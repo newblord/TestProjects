@@ -1,0 +1,1 @@
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.Tests\obj\Debug\JBrick.Dal.EF.Tests.csprojResolveAssemblyReference.cache

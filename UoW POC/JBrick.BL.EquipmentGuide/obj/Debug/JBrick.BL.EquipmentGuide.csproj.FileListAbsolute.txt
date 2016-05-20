@@ -1,0 +1,58 @@
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.EquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.EquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Contracts.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.Configuration.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.Core.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Contracts.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Core.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.Configuration.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\obj\Debug\JBrick.BL.EquipmentGuide.csprojResolveAssemblyReference.cache
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\obj\Debug\JBrick.BL.EquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\obj\Debug\JBrick.BL.EquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\EntityFramework.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.BL.EquipmentGuide\bin\Debug\EntityFramework.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.EquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.EquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Contracts.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.Configuration.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\EntityFramework.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.BL.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Contracts.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.EF.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\JBrick.Dal.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.Configuration.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\bin\Debug\EntityFramework.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\obj\Debug\JBrick.BL.EquipmentGuide.csprojResolveAssemblyReference.cache
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\obj\Debug\JBrick.BL.EquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.BL.EquipmentGuide\obj\Debug\JBrick.BL.EquipmentGuide.pdb

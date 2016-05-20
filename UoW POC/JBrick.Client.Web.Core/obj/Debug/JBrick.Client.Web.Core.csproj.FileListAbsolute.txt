@@ -1,0 +1,86 @@
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Client.Web.Core.dll.config
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Client.Web.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Client.Web.Core.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\EntityFramework.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\EntityFramework.SqlServer.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Contracts.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.Configuration.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\Microsoft.Web.Infrastructure.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.Helpers.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.Mvc.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.Razor.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Deployment.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Razor.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Contracts.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Core.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.EquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\EntityFramework.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\EntityFramework.SqlServer.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.Configuration.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.Helpers.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.Mvc.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.Razor.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Deployment.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Razor.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\obj\Debug\JBrick.Client.Web.Core.csprojResolveAssemblyReference.cache
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\obj\Debug\JBrick.Client.Web.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Client.Web.Core\obj\Debug\JBrick.Client.Web.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Client.Web.Core.dll.config
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Client.Web.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Client.Web.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\EntityFramework.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\EntityFramework.SqlServer.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Contracts.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.Configuration.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\Microsoft.Web.Infrastructure.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.Helpers.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.Mvc.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.Razor.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Deployment.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Razor.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Contracts.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.EquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.EF.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.Sql.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\JBrick.Dal.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\EntityFramework.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\EntityFramework.SqlServer.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.Configuration.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\Microsoft.Practices.Unity.RegistrationByConvention.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.Helpers.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.Mvc.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.Razor.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Deployment.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\bin\Debug\System.Web.WebPages.Razor.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\obj\Debug\JBrick.Client.Web.Core.csprojResolveAssemblyReference.cache
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\obj\Debug\JBrick.Client.Web.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Client.Web.Core\obj\Debug\JBrick.Client.Web.Core.pdb

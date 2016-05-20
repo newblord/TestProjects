@@ -1,0 +1,81 @@
+﻿@model IEnumerable<JBrick.Contracts.Business.ICooperRatingModel>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.CarInitial)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CarClass)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BridgeSpanFeet)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BndFtKips)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CooperRatingEBnd)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ShearKips)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CooperRatingEShear)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FloorReactKips)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CooperRatingEFloor)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.CarInitial)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CarClass)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.BridgeSpanFeet)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.BndFtKips)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CooperRatingEBnd)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ShearKips)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CooperRatingEShear)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.FloorReactKips)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CooperRatingEFloor)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
+            @Html.ActionLink("Details", "Details", new { id=item.Id }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.Id })
+        </td>
+    </tr>
+}
+
+</table>

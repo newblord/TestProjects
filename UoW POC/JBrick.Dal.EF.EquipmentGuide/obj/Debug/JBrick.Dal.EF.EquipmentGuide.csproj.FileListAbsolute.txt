@@ -1,0 +1,32 @@
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll.config
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.SqlServer.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Contracts.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Contracts.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.SqlServer.xml
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\obj\Debug\JBrick.Dal.EF.EquipmentGuide.csprojResolveAssemblyReference.cache
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\obj\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.EF.EquipmentGuide\obj\Debug\JBrick.Dal.EF.EquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll.config
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.EquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.SqlServer.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Contracts.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Contracts.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.EF.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\JBrick.Dal.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\bin\Debug\EntityFramework.SqlServer.xml
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\obj\Debug\JBrick.Dal.EF.EquipmentGuide.csprojResolveAssemblyReference.cache
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\obj\Debug\JBrick.Dal.EF.EquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF.EquipmentGuide\obj\Debug\JBrick.Dal.EF.EquipmentGuide.pdb

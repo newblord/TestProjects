@@ -1,0 +1,14 @@
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Core\bin\Debug\JBrick.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Core\bin\Debug\JBrick.Core.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Core\bin\Debug\JBrick.Contracts.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Core\bin\Debug\JBrick.Contracts.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Core\obj\Debug\JBrick.Core.csprojResolveAssemblyReference.cache
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Core\obj\Debug\JBrick.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Core\obj\Debug\JBrick.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Core\bin\Debug\JBrick.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Core\bin\Debug\JBrick.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Core\bin\Debug\JBrick.Contracts.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Core\bin\Debug\JBrick.Contracts.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Core\obj\Debug\JBrick.Core.csprojResolveAssemblyReference.cache
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Core\obj\Debug\JBrick.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Core\obj\Debug\JBrick.Core.pdb

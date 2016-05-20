@@ -1,0 +1,28 @@
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll.config
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Contracts.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Core.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Contracts.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Core.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.pdb
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.csprojResolveAssemblyReference.cache
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\Users\jeffbrick\Source\Workspaces\My Projects\UoW POC\UoW POC\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll.config
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Contracts.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Contracts.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.pdb
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.csprojResolveAssemblyReference.cache
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
