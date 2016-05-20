@@ -36,6 +36,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9210093A-ACD9-4494-8E17-6D26EFD7E9A9}"
 	ProjectSection(SolutionItems) = preProject
 		Layer Design including Unit of Work.docx = Layer Design including Unit of Work.docx
+		Readme.txt = Readme.txt
 	EndProjectSection
 EndProject
 Global
