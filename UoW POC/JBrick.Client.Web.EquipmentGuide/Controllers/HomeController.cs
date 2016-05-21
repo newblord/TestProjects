@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using JBrick.Client.Web.Core.Attributes;
 using JBrick.Client.Web.Core.Controllers;
+using System.Reflection;
 
 namespace JBrick.Client.Web.EquipmentGuide.Controllers
 {
@@ -12,7 +13,7 @@ namespace JBrick.Client.Web.EquipmentGuide.Controllers
 	{
 		public ActionResult Index()
 		{
-			return View();
+            return View();
 		}
 
 		public ActionResult About()

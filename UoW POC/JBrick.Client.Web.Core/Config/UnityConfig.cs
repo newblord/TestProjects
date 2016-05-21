@@ -18,6 +18,8 @@ using JBrick.Dal.Sql;
 using System.Data;
 using JBrick.Dal.EF;
 using System.Data.Entity;
+using JBrick.Contracts.IoC;
+using JBrick.Core.IoC;
 
 namespace JBrick.Client.Web.Core.Config
 {
@@ -35,15 +37,19 @@ namespace JBrick.Client.Web.Core.Config
             LogLevel applicationLogLevel = LogLevel.None;
             Enum.TryParse(applicationLogLevelConfigValue, out applicationLogLevel);
 
+            container.RegisterType<IIoC, IoC>(new ContainerControlledLifetimeManager(), new InjectionConstructor(container));
             container.RegisterType<ILogger, ConsoleLogger>();
             container.RegisterType<AuthorizeAttribute, ECIAuthorizeAttribute>();
             container.RegisterType<ISecurityServiceFactory, MockSecurityServiceFactory>();
+
+            //Uncomment either the SQL or EF UoW registrations
             //container.RegisterType<IUnitOfWorkFactory, SqlUnitOfWorkFactory>();
             //container.RegisterType<IRepositoryFactory, SqlRepositoryFactory>();
             //container.RegisterType<IRepositoryContextProvider<IDbConnection>, SqlRepositoryContextProvider>();
             container.RegisterType<IUnitOfWorkFactory, EFUnitOfWorkFactory>();
             container.RegisterType<IRepositoryFactory, EFRepositoryFactory>();
             container.RegisterType<IRepositoryContextProvider<DbContext>, EFRepositoryContextProvider>(new ContainerControlledLifetimeManager());
+
             container.RegisterType<ControllerActionLogAttribute>();
             container.RegisterType<ErrorHandlerLogAttribute>();
         }

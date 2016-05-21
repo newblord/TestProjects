@@ -75,6 +75,8 @@
     <Compile Include="Business\ICooperRatingBusinessService.cs" />
     <Compile Include="Business\ICooperRatingKeyModel.cs" />
     <Compile Include="Business\ICooperRatingModel.cs" />
+    <Compile Include="Ioc\IIoC.cs" />
+    <Compile Include="Ioc\IParameterOverride.cs" />
     <Compile Include="Logging\Enums\LogLevel.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

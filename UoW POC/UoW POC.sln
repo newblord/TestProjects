@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JBrick.Client.Web.Equipment
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JBrick.BL.EquipmentGuide", "JBrick.BL.EquipmentGuide\JBrick.BL.EquipmentGuide.csproj", "{BDB1449E-1FE8-4ED8-801F-FC6BC1BDF5E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JBrick.Dal.Sql.MockEquipmentGuide", "JBrick.Dal.Sql.EquipmentGuide\JBrick.Dal.Sql.MockEquipmentGuide.csproj", "{BFF3E7F4-8FE3-4E4D-BE1A-23FD55AC7FAE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JBrick.Dal.Sql.EquipmentGuideMock", "JBrick.Dal.Sql.EquipmentGuide\JBrick.Dal.Sql.EquipmentGuideMock.csproj", "{BFF3E7F4-8FE3-4E4D-BE1A-23FD55AC7FAE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JBrick.Dal.EF", "JBrick.Dal.EF\JBrick.Dal.EF.csproj", "{D5E99EBB-6423-4305-930E-0ADA1AC22E25}"
 EndProject

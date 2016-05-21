@@ -24,11 +24,17 @@ namespace JBrick.Dal.Sql
 
 		private void CreateRepositoryContext(string repositoryName)
 		{
-			///Add EF model dbcontext to ActiveContexts dictionary
-			//if (string.Compare(repositoryName, IDbConnectionKey.Conn1.ToString(), true) == 0)
-			//{
-			//}
-		}
+            ///Add Sql Connections to ActiveContexts dictionary
+            /// But since the Repository in this 
+            //if (string.Compare(repositoryName, IDbConnectionKey.Conn1.ToString(), true) == 0)
+            //{
+                    //var cxn = new SqlConnection("Data Source=sqlDev;Initial Catalog=Sandbox;Integrated Security=SSPI;");
+                    //var ctx = new SqlRepositoryContext(cxn);
+
+                    //ctx.RepositoryContext.Open();
+                    //ActiveContexts.Add(repositoryName, ctx);
+            //}
+        }
 
 		public void ClearActiveContexts()
 		{

@@ -30,3 +30,24 @@ C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF\bin\Debug\EntityFramework.SqlServer.
 C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF\obj\Debug\JBrick.Dal.EF.csprojResolveAssemblyReference.cache
 C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF\obj\Debug\JBrick.Dal.EF.dll
 C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.EF\obj\Debug\JBrick.Dal.EF.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Dal.EF.dll.config
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Dal.EF.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Dal.EF.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\EntityFramework.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\EntityFramework.SqlServer.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Contracts.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Dal.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\Microsoft.Practices.Unity.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\Microsoft.Practices.ServiceLocation.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Contracts.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\JBrick.Dal.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\EntityFramework.xml
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\EntityFramework.SqlServer.xml
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\Microsoft.Practices.Unity.xml
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\Microsoft.Practices.ServiceLocation.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\bin\Debug\Microsoft.Practices.ServiceLocation.xml
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\obj\Debug\JBrick.Dal.EF.csprojResolveAssemblyReference.cache
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\obj\Debug\JBrick.Dal.EF.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.EF\obj\Debug\JBrick.Dal.EF.pdb

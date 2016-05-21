@@ -1,6 +1,6 @@
 using System;
+using System.Linq;
 using Microsoft.Practices.Unity;
-using Microsoft.Practices.Unity.Configuration;
 
 namespace JBrick.Client.Web.EquipmentGuide.App_Start
 {
@@ -33,7 +33,32 @@ namespace JBrick.Client.Web.EquipmentGuide.App_Start
         public static void RegisterTypes(IUnityContainer container)
         {
             Web.Core.Config.UnityConfig.RegisterCommonTypes(container);
-            container.RegisterType<JBrick.Contracts.Business.ICooperRatingBusinessService, JBrick.BL.EquipmentGuide.CooperRatingBusinessService>();
+
+            container.RegisterTypes(
+                AllClasses.FromLoadedAssemblies().Where(t => t.Namespace != null && t.Namespace.StartsWith("JBrick.BL.EquipmentGuide")),
+                WithMappings.FromMatchingInterface,
+                overwriteExistingMappings: false);
+
+            // Uncomment the registration section for either EF or Sql UoW implementation
+            //container.RegisterTypes(
+            //    AllClasses.FromLoadedAssemblies().Where(t => t.Namespace != null && t.Namespace.StartsWith("JBrick.Dal.Sql.EquipmentGuideMock")),
+            //    WithMappings.FromMatchingInterface,
+            //    overwriteExistingMappings: false);
+
+            //container.RegisterTypes(
+            //    AllClasses.FromLoadedAssemblies().Where(t => t.Namespace != null && t.Namespace.StartsWith("JBrick.Dal.Sql")),
+            //    WithMappings.FromMatchingInterface,
+            //    overwriteExistingMappings: false);
+
+            container.RegisterTypes(
+                AllClasses.FromLoadedAssemblies().Where(t => t.Namespace != null && t.Namespace.StartsWith("JBrick.Dal.EF.EquipmentGuide")),
+                WithMappings.FromMatchingInterface,
+                overwriteExistingMappings: false);
+
+            container.RegisterTypes(
+                AllClasses.FromLoadedAssemblies().Where(t => t.Namespace != null && t.Namespace.StartsWith("JBrick.Dal.EF")),
+                WithMappings.FromMatchingInterface,
+                overwriteExistingMappings: false);
         }
     }
 }

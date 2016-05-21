@@ -4,20 +4,22 @@ using System.Collections.Generic;
 namespace JBrick.Contracts.Business
 {
     public interface ICooperRatingBusinessService
-	 {
-		 #region Modifiers
+    {
+        string GetUnitOfWorkProviderType();
 
-		 ICooperRatingModel CreateCooperRating(ICooperRatingModel model);
-		 ICooperRatingModel UpdateCooperRating(ICooperRatingModel model);
-		 void DeleteCooperRating(int id);
+        #region Modifiers
 
-		 #endregion
+        ICooperRatingModel CreateCooperRating(ICooperRatingModel model);
+        ICooperRatingModel UpdateCooperRating(ICooperRatingModel model);
+        void DeleteCooperRating(int id);
 
-		 #region Retrievers
+        #endregion
 
-		 ICooperRatingModel FetchCooperRating(int id);
-		 IEnumerable<ICooperRatingModel> FetchAllCooperRating();
+        #region Retrievers
 
-		 #endregion
+        ICooperRatingModel FetchCooperRating(int id);
+        IEnumerable<ICooperRatingModel> FetchAllCooperRating();
+
+        #endregion
     }
 }

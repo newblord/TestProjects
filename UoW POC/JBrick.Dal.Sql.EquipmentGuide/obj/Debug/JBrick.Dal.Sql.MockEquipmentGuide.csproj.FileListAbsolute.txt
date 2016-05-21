@@ -26,3 +26,22 @@ C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal
 C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.csprojResolveAssemblyReference.cache
 C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
 C:\CodeStuff\Repos\CH\Sandbox\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll.config
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Contracts.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Core.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Contracts.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Core.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.Sql.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\JBrick.Dal.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.csprojResolveAssemblyReference.cache
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\obj\Debug\JBrick.Dal.Sql.MockEquipmentGuide.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\Microsoft.Practices.ServiceLocation.dll
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\Microsoft.Practices.Unity.xml
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\Microsoft.Practices.ServiceLocation.pdb
+C:\CodeStuff\Repos\CH\Sandbox\UoW POC\JBrick.Dal.Sql.EquipmentGuide\bin\Debug\Microsoft.Practices.ServiceLocation.xml

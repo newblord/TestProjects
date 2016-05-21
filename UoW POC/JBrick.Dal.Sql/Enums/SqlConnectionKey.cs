@@ -8,7 +8,7 @@ namespace JBrick.Dal.Sql.Enums
 {
    public enum SqlConnectionKey 
    {
-      Conn1 = 1,
-		Conn2 = 2
+      MockDb,
+      NonExistentEquipmentGuideDb
    }
 }

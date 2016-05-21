@@ -1,17 +1,26 @@
 ﻿using JBrick.BL.Core;
 using JBrick.Contracts.Business;
 using JBrick.Dal;
-using JBrick.Dal.EF.EquipmentGuide;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace JBrick.BL.EquipmentGuide
 {
    public class CooperRatingBusinessService : BusinessServiceBase, ICooperRatingBusinessService
    {
-      #region Constructors
 
-      public CooperRatingBusinessService(IUnitOfWorkFactory unitOfWorkFactory)
+        public string GetUnitOfWorkProviderType()
+        {
+            using (var uow = this.UnitOfWorkFactory.GetUnitOfWorkWithoutTransaction())
+            {
+                return uow.GetType().Namespace;
+            }
+        }
+
+        #region Constructors
+
+        public CooperRatingBusinessService(IUnitOfWorkFactory unitOfWorkFactory)
           : base(unitOfWorkFactory)
       {
 
@@ -25,7 +34,7 @@ namespace JBrick.BL.EquipmentGuide
       {
          using (var uow = this.UnitOfWorkFactory.GetUnitOfWork())
          {
-            var rep = uow.GetRepository<CooperRatingRepository>();
+            var rep = uow.GetRepository<ICooperRatingRepository>();
             var result = rep.Insert(MarshallCooperRatingDto(data));
 
             uow.CommitChanges();
@@ -38,7 +47,7 @@ namespace JBrick.BL.EquipmentGuide
       {
          using (var uow = this.UnitOfWorkFactory.GetUnitOfWork())
          {
-            var rep = uow.GetRepository<CooperRatingRepository>();
+            var rep = uow.GetRepository<ICooperRatingRepository>();
             var result = new CooperRatingDto();
 
             result = rep.Update(MarshallCooperRatingDto(data));
@@ -53,7 +62,7 @@ namespace JBrick.BL.EquipmentGuide
       {
          using (var uow = this.UnitOfWorkFactory.GetUnitOfWork())
          {
-            var rep = uow.GetRepository<CooperRatingRepository>();
+            var rep = uow.GetRepository<ICooperRatingRepository>();
             rep.Delete(id);
 
             uow.CommitChanges();
@@ -68,7 +77,7 @@ namespace JBrick.BL.EquipmentGuide
       {
          using (var uow = this.UnitOfWorkFactory.GetUnitOfWork())
          {
-            var rep = uow.GetRepository<CooperRatingRepository>();
+            var rep = uow.GetRepository<ICooperRatingRepository>();
             var dto = rep.Fetch(id);
 
             uow.CommitChanges();
@@ -82,7 +91,7 @@ namespace JBrick.BL.EquipmentGuide
          using (var uow = this.UnitOfWorkFactory.GetUnitOfWork())
          {
             var results = new List<ICooperRatingModel>();
-            var rep = uow.GetRepository<CooperRatingRepository>();
+            var rep = uow.GetRepository<ICooperRatingRepository>();
             var items = rep.FetchAll();
 
             foreach (var dto in items)
@@ -136,7 +145,7 @@ namespace JBrick.BL.EquipmentGuide
          return model;
       }
 
-      #endregion
+        #endregion
 
-   }
+    }
 }
