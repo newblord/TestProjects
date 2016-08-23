@@ -8,654 +8,645 @@
 
 <#
 
-fileManager.StartHeader();
+	fileManager.StartHeader();
 
-#region Unit of work
+	#region Unit of work
  
-if (ElementsToGenerate.HasFlag(Elements.UnitOfWork))
-{
-	fileManager.StartNewFile(DbContextInterfaceName + FileExtension);
-	
-	CreateHeader();
-	BeginNamespace(UnitOfWorkNamespace);
-	BeginInterface(DbContextInterfaceName, MakeDbContextInterfacePartial, DbContextInterfaceBaseClasses);
-
-	foreach (Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
+	if (ElementsToGenerate.HasFlag(Elements.UnitOfWork))
 	{
-		WriteLine("System.Data.Entity.DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
-	}
+		fileManager.StartNewFile(DbContextInterfaceName + FileExtension, ContextProjectName, ContextFolderName);
 	
-	WriteLine("");
+		CreateHeader();
+		BeginNamespace(UnitOfWorkNamespace);
+		BeginInterface(DbContextInterfaceName, MakeDbContextInterfacePartial, DbContextInterfaceBaseClasses);
 
-	foreach (string s in AdditionalContextInterfaceItems.Where(x => !string.IsNullOrEmpty(x)))
-	{ 
-      WriteLine(s);
-	}
-
-	WriteLine("");
-   WriteLine("int SaveChanges();");
-
-	if (IsSupportedFrameworkVersion("4.5")) 
-	{ 
-      WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync();");
-      WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken);");
-	} 
-
-	if (storedProcs.Any()) 
-	{ 
-		WriteLine("");
-      WriteLine("// Stored Procedures");
-		foreach (StoredProcedure sp in storedProcs.Where(s => !s.IsTVF))
+		foreach (Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			int returnModelsCount = sp.ReturnModels.Count;
-			if (returnModelsCount == 1)
-			{ 
-				WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
-				WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, true));
-			} 
-			else 
-			{ 
-				WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
-			}
+			WriteLine("System.Data.Entity.DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+		}
+	
+		WriteLine("");
 
-			if (IsSupportedFrameworkVersion("4.5"))
-			{
-				if(StoredProcHasOutParams(sp) || sp.ReturnModels.Count == 0) 
-				{ 
-					WriteLine("// {0}Async cannot be created due to having out parameters, or is relying on the procedure result ({1})", WriteStoredProcFunctionName(sp), WriteStoredProcReturnType(sp));
-				} 
-				else 
-				{ 
-					WriteLine("System.Threading.Tasks.Task<{0}> {1}Async({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
-				} 
-			} 
+		foreach (string s in AdditionalContextInterfaceItems.Where(x => !string.IsNullOrEmpty(x)))
+		{ 
+			WriteLine(s);
 		}
 
-		if (IncludeTableValuedFunctions) 
+		WriteLine("");
+		WriteLine("int SaveChanges();");
+
+		if (IsSupportedFrameworkVersion("4.5")) 
+		{ 
+			WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync();");
+			WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken);");
+		} 
+
+		if (storedProcs.Any()) 
 		{ 
 			WriteLine("");
-			WriteLine("// Table Valued Functions");
-
-			foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
+			WriteLine("// Stored Procedures");
+			foreach (StoredProcedure sp in storedProcs.Where(s => !s.IsTVF))
 			{
-				string spExecName = WriteStoredProcFunctionName(sp);
-				string spReturnClassName = WriteStoredProcReturnModelName(sp);
-				WriteLine("System.Linq.IQueryable<{0}> {1}({2});", spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
-			}
-		}
-	}
-
-	CloseBrace();
-	CloseBrace();
-}
-
-#endregion
-
-#region Database context
-
-if(ElementsToGenerate.HasFlag(Elements.Context))
-{ 
-	fileManager.StartNewFile(DbContextName + FileExtension);
-
-	CreateHeader();
-	BeginNamespace(ContextNamespace);
-	BeginClass(DbContextName, MakeClassesPartial, string.Format("{0}, {1}", DbContextBaseClass, DbContextInterfaceName));
-	
-	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
-	{
-		WriteLine("public System.Data.Entity.DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
-	} 
-
-	WriteLine("");
-   WriteLine("static {0}()", DbContextName);
-	OpenMethodBrace();
-	WriteLine("System.Data.Entity.Database.SetInitializer<{0}>(null);",DbContextName);
-	CloseMethodBrace();
-
-	WriteLine("public {0}()", DbContextName);
-	WriteLine("\t: base({0})",DefaultConstructorArgument);
-	OpenMethodBrace();
-	CloseMethodBrace();
-
-	WriteLine("public {0}(string connectionString)", DbContextName);
-	WriteLine("\t: base(connectionString)");
-	OpenMethodBrace();
-	CloseMethodBrace();
-
-	WriteLine("public {0}(string connectionString, System.Data.Entity.Infrastructure.DbCompiledModel model)", DbContextName);
-	WriteLine("\t: base(connectionString, model)");
-	OpenMethodBrace();
-	CloseMethodBrace();
-
-	WriteLine("public {0}(System.Data.Common.DbConnection existingConnection, bool contextOwnsConnection)", DbContextName);
-	WriteLine("\t: base(existingConnection, contextOwnsConnection)");
-	OpenMethodBrace();
-	CloseMethodBrace();
-
-	WriteLine("public {0}(System.Data.Common.DbConnection existingConnection, System.Data.Entity.Infrastructure.DbCompiledModel model, bool contextOwnsConnection)", DbContextName);
-	WriteLine("\t: base(existingConnection, model, contextOwnsConnection)");
-	OpenMethodBrace();
-	CloseMethodBrace();
-
-	WriteLine("protected override void Dispose(bool disposing)");
-	OpenMethodBrace();
-	WriteLine("base.Dispose(disposing);");
-	CloseMethodBrace();
-   
-	WriteLine("public bool IsSqlParameterNull(System.Data.SqlClient.SqlParameter param)");
-	OpenMethodBrace();
-	WriteLine("var sqlValue = param.SqlValue;");
-	WriteLine("var nullableValue = sqlValue as System.Data.SqlTypes.INullable;");
-	WriteLine("if (nullableValue != null)");
-	PushIndent("\t");
-	WriteLine("return nullableValue.IsNull;");
-	PopIndent();
-	WriteLine("return (sqlValue == null || sqlValue == System.DBNull.Value);");
-	CloseMethodBrace();
-
-	WriteLine("protected override void OnModelCreating(System.Data.Entity.DbModelBuilder modelBuilder)");
-	OpenMethodBrace();
-	WriteLine("base.OnModelCreating(modelBuilder);");
-
-	if(storedProcs.Any() && IncludeTableValuedFunctions)
-	{
-		WriteLine("modelBuilder.Conventions.Add(new CodeFirstStoreFunctions.FunctionsConvention<{0}>(\"dbo\"));",DbContextName);
-		foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
-		{
-			WriteLine("modelBuilder.ComplexType<{0}>();",WriteStoredProcReturnModelName(sp));
-		} 
-	}
-
-	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
-	{
-      WriteLine("modelBuilder.Configurations.Add(new {0}());",tbl.NameHumanCase + ConfigurationClassName);
-	}
-
-	CloseMethodBrace();
-
-   WriteLine("public static System.Data.Entity.DbModelBuilder CreateModel(System.Data.Entity.DbModelBuilder modelBuilder, string schema)");
-   OpenMethodBrace();
-	
-	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
-	{
-      WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + ConfigurationClassName);
-	}
-   
-	WriteLine("return modelBuilder;");
-   CloseMethodBrace();
-
-	if (storedProcs.Any())
-	{
-		foreach (StoredProcedure sp in storedProcs.Where(s => !s.IsTVF))
-		{
-			string spReturnClassName = WriteStoredProcReturnModelName(sp);
-			string spExecName = WriteStoredProcFunctionName(sp);
-			int returnModelsCount = sp.ReturnModels.Count;
-			if (returnModelsCount > 0)
-			{
+				int returnModelsCount = sp.ReturnModels.Count;
 				if (returnModelsCount == 1)
-				{
-					WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
-					OpenMethodBrace();
-					WriteLine("int procResult;");
-					WriteLine("return {0}({1});",spExecName, WriteStoredProcFunctionOverloadCall(sp));
-					CloseMethodBrace();
-
-					WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, true));
+				{ 
+					WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+					WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, true));
 				} 
 				else 
-				{
-					WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+				{ 
+					WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
 				}
-				OpenMethodBrace();
-				WriteLine(WriteStoredProcFunctionDeclareSqlParameter(sp, true));
 
-				if (returnModelsCount == 1)
+				if (IsSupportedFrameworkVersion("4.5"))
 				{
-					var exec = string.Format("EXEC @procResult = [{0}].[{1}] {2}", sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp));
-					WriteLine("var procResultData = Database.SqlQuery<{0}>(\"{1}\", {2}).ToList();",spReturnClassName, exec, WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
-					WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
-					WriteLine("procResult = (int) procResultParam.Value;");
-				}
-				else
-				{
-					var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name); 
-					WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
-					WriteLine("var procResultData = new {0}();",spReturnClassName);
-					WriteLine("var cmd = Database.Connection.CreateCommand();");
-					WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
-					WriteLine("cmd.CommandText = \"{0}\";",exec);
-
-					foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
+					if(StoredProcHasOutParams(sp) || sp.ReturnModels.Count == 0) 
 					{ 
-						WriteLine("cmd.Parameters.Add({0});",WriteStoredProcSqlParameterName(p));
+						WriteLine("// {0}Async cannot be created due to having out parameters, or is relying on the procedure result ({1})", WriteStoredProcFunctionName(sp), WriteStoredProcReturnType(sp));
 					} 
-
-					WriteLine("try");
-					OpenMethodBrace();
-					WriteLine("Database.Connection.Open();");
-					WriteLine("var reader = cmd.ExecuteReader();");
-					WriteLine("var objectContext = ((System.Data.Entity.Infrastructure.IObjectContextAdapter) this).ObjectContext;");
-
-					int n = 0;
-					var returnModelCount = sp.ReturnModels.Count;
-					foreach (var returnModel in sp.ReturnModels)
-					{
-						n++; 
-						WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();",n, spReturnClassName);
-						if (n < returnModelCount)
-						{ 
-							WriteLine("reader.NextResult();");
-
-						} 
+					else 
+					{ 
+						WriteLine("System.Threading.Tasks.Task<{0}> {1}Async({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
 					} 
-					CloseMethodBrace();
-					WriteLine("finally");
-					OpenMethodBrace();
-					WriteLine("Database.Connection.Close();");
-					CloseMethodBrace();
 				} 
-				WriteLine("return procResultData;");
-				CloseMethodBrace();
-
 			}
-			else
+
+			if (IncludeTableValuedFunctions) 
 			{ 
-				WriteLine("public int {0}({1})",spExecName, WriteStoredProcFunctionParams(sp, true));
-				OpenMethodBrace();
-				WriteLine("{0} ",WriteStoredProcFunctionDeclareSqlParameter(sp, true));
-				WriteLine("Database.ExecuteSqlCommand(\"EXEC @procResult = [{0}].[{1}] {2}\", {3});",sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
-				WriteLine("{0} ",WriteStoredProcFunctionSetSqlParameters(sp, false));
-				WriteLine("return (int) procResultParam.Value;");
-				CloseMethodBrace();
+				WriteLine("");
+				WriteLine("// Table Valued Functions");
 
-			}
-
-		// Async
-			if (IsSupportedFrameworkVersion("4.5") && !StoredProcHasOutParams(sp) && returnModelsCount > 0)
-			{
-				WriteLine("public async System.Threading.Tasks.Task<{0}> {1}Async({2})",WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
-				OpenMethodBrace();
-				WriteLine("{0}",WriteStoredProcFunctionDeclareSqlParameter(sp, false));
-				if (returnModelsCount == 1)
+				foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
 				{
-					var parameters = WriteStoredProcFunctionSqlParameterAnonymousArray(sp, false);
-					if (!string.IsNullOrWhiteSpace(parameters))
-						parameters = ", " + parameters;
-					var exec = string.Format("EXEC [{0}].[{1}] {2}", sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp));
-					WriteLine("var procResultData = await Database.SqlQuery<{0}>(\"{1}\"{2}).ToListAsync();",spReturnClassName, exec, parameters);
-					WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+					string spExecName = WriteStoredProcFunctionName(sp);
+					string spReturnClassName = WriteStoredProcReturnModelName(sp);
+					WriteLine("System.Linq.IQueryable<{0}> {1}({2});", spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
 				}
-				else		
-				{
-					var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name); 
-					WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
-					WriteLine("var procResultData = new {0}();",spReturnClassName);
-					WriteLine("var cmd = Database.Connection.CreateCommand();");
-					WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
-					WriteLine("cmd.CommandText = \"{0}\";",exec);
-					foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
-					{ 
-						WriteLine("cmd.Parameters.Add({0});",WriteStoredProcSqlParameterName(p));
-					} 
-
-					WriteLine("try");
-					OpenMethodBrace();
-					WriteLine("Database.Connection.Open();");
-					WriteLine("var reader = await cmd.ExecuteReaderAsync();");
-					WriteLine("var objectContext = ((System.Data.Entity.Infrastructure.IObjectContextAdapter) this).ObjectContext;");
-
-					int n = 0;
-					var returnModelCount = sp.ReturnModels.Count;
-					foreach (var returnModel in sp.ReturnModels)
-					{
-						n++; 
-						WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();",n, spReturnClassName);
-						if (n < returnModelCount)
-						{ 
-							WriteLine("await reader.NextResultAsync();");
-						} 
-					} 
-
-					CloseMethodBrace();
-					WriteLine("finally");
-					OpenMethodBrace();
-					WriteLine("Database.Connection.Close();");
-					CloseMethodBrace();
-				} 
-
-				WriteLine("return procResultData;");
-				CloseMethodBrace();
 			}
 		}
 
-		if (IncludeTableValuedFunctions)
-		{ 
-			WriteLine("// Table Valued Functions");
-
-			foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
-			{
-				string spExecName = WriteStoredProcFunctionName(sp);
-				string spReturnClassName = WriteStoredProcReturnModelName(sp);
-
-				WriteLine("[System.Data.Entity.DbFunction(\"{0}\", \"{1}\")]",DbContextName, sp.Name);
-				WriteLine("[CodeFirstStoreFunctions.DbFunctionDetails(DatabaseSchema = \"{0}\")]",sp.Schema);
-				WriteLine("public IQueryable<{0}> {1}({2})",spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
-				OpenMethodBrace();
-				WriteLine("{0} ",WriteTableValuedFunctionDeclareSqlParameter(sp));
-				WriteLine("return ((System.Data.Entity.Infrastructure.IObjectContextAdapter)this).ObjectContext.CreateQuery<{0}>(\"[{1}].[{2}]({3})\", {4});",spReturnClassName, DbContextName, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteTableValuedFunctionSqlParameterAnonymousArray(sp));
-				CloseMethodBrace();
-
-			} 
-		} 
-	}
-	CloseBrace();
-	CloseBrace();
-}
-
-#endregion
-
-#region POCO classes
-
-if(ElementsToGenerate.HasFlag(Elements.Poco))
-{
-	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
-	{
-		fileManager.StartNewFile(tbl.NameHumanCase + FileExtension, ModelProjectName, ModelFolderName);
-		if(!tbl.HasPrimaryKey) 
-		{ 
-			WriteLine("// The table '{0}' is not usable by entity framework because it",tbl.Name);
-			WriteLine("// does not have a primary key. It is listed here for completeness.");
-		}
-
-		CreateHeader();
-		BeginNamespace(PocoNamespace);
-
-		WritePocoClassAttributes(tbl);
-		BeginClass(tbl.NameHumanCase, false, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
-		WritePocoBaseClassBody(tbl); 
-
-		int DataMemberOrder = 1;
-		
-		foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
-		{
-			if((IncludeExtendedPropertyComments == CommentsStyle.InSummaryBlock || IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
-			{
-				WriteLine("///<summary>");
-				WriteLine("/// {0}",col.SummaryComments);
-				WriteLine("///</summary>");
-			} 
-			WriteLine("{0}",WritePocoColumn(col));
-		} 
-
-		if(tbl.ReverseNavigationProperty.Count() > 0)
-		{
-			foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
-			{
-				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
-				{
-					WriteLine("[{0}]",rnpda);
-				}	 
-				WriteLine("{0}",s);
-			} 
-		} 
-
-		if(tbl.HasForeignKey) { 
-
-			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
-			{
-				foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
-				{
-					WriteLine("[{0}]",fkda);
-				} 
-				WriteLine("{0}",entityFk);
-			}
-		} 
- 
-		if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || tbl.ReverseNavigationCtor.Count() > 0 || MakeClassesPartial) 
-		{ 
-			WriteLine("public {0}()",tbl.NameHumanCase);
-			OpenMethodBrace();
-
-			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
-			{
-				WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
-			} 
-
-			foreach(string s in tbl.ReverseNavigationCtor)
-			{
-				WriteLine("{0}",s);
-			}
-			CloseBrace();
-		}
 		CloseBrace();
 		CloseBrace();
 	}
-}
 
-#endregion
+	#endregion
 
-#region POCO Interfaces
+	#region Database context
 
-if(ElementsToGenerate.HasFlag(Elements.Poco))
-{
-	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
-	{
-		fileManager.StartNewFile("I" + tbl.NameHumanCase + FileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
+	if(ElementsToGenerate.HasFlag(Elements.Context))
+	{ 
+		fileManager.StartNewFile(DbContextName + FileExtension, ContextProjectName, ContextFolderName);
 
 		CreateHeader();
-		BeginNamespace(PocoInterfaceNamespace);
-		BeginInterface("I" + tbl.NameHumanCase, false, "");
-
-		int DataMemberOrder = 1;
-		foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
+		BeginNamespace(ContextNamespace);
+		BeginClass(DbContextName, MakeClassesPartial, string.Format("{0}, {1}", DbContextBaseClass, DbContextInterfaceName));
+	
+		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			if(!col.IsComputed) 
-			{
-				WriteLine("{0}", WritePocoInterfaceColumn(col));
-			}
-		}
-
-		if(tbl.ReverseNavigationProperty.Count() > 0)
-		{
-			foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
-			{
-				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
-				{
-					WriteLine("  [{0}]",rnpda);
-				} 
-				WriteLine("{0}",s);
-			} 
+			WriteLine("public System.Data.Entity.DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		} 
 
-		if(tbl.HasForeignKey) 
-		{ 
-			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
-			{
-				foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
-				{
-					WriteLine("[{0}]",fkda);
-				} 
-				WriteLine("{0}",entityFk);
-			}
-		} 
-		CloseBrace();
-		CloseBrace();
-	}
-}
+		WriteLine("");
+		WriteLine("static {0}()", DbContextName);
+		OpenMethodBrace();
+		WriteLine("System.Data.Entity.Database.SetInitializer<{0}>(null);",DbContextName);
+		CloseMethodBrace();
 
-#endregion
-
-#region POCO Configuration
-
-if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
-{
-	foreach(Table tbl in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase))
-	{
-		fileManager.StartNewFile(tbl.NameHumanCase + ConfigurationClassName + FileExtension, ConfigurationProjectName, ConfigurationFolderName);
-		
-		CreateHeader();
-		BeginNamespace(PocoConfigurationNamespace);
-		BeginClass(tbl.NameHumanCase + ConfigurationClassName, false, string.Format("System.Data.Entity.ModelConfiguration.EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
-
-		WriteLine("public {0}()",tbl.NameHumanCase + ConfigurationClassName);
-		WriteLine(": this( \"{0}\" )", string.IsNullOrEmpty(tbl.Schema) ? "" : tbl.Schema);
+		WriteLine("public {0}()", DbContextName);
+		WriteLine("\t: base({0})",DefaultConstructorArgument);
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(string schema)",tbl.NameHumanCase + ConfigurationClassName);
+		WriteLine("public {0}(string connectionString)", DbContextName);
+		WriteLine("\t: base(connectionString)");
 		OpenMethodBrace();
-		if (!string.IsNullOrEmpty(tbl.Schema)) 
-		{ 
-			WriteLine("ToTable(\"{0}\", schema);",tbl.Name);
-		}
-		else
-		{ 
-			WriteLine("ToTable(\"{0}\");",tbl.Name);
-		} 
-		WriteLine("HasKey({0});",tbl.PrimaryKeyNameHumanCase());
+		CloseMethodBrace();
 
-		foreach(Column col in tbl.Columns.Where(x => !x.Hidden).OrderBy(x => x.Ordinal))
+		WriteLine("public {0}(string connectionString, System.Data.Entity.Infrastructure.DbCompiledModel model)", DbContextName);
+		WriteLine("\t: base(connectionString, model)");
+		OpenMethodBrace();
+		CloseMethodBrace();
+
+		WriteLine("public {0}(System.Data.Common.DbConnection existingConnection, bool contextOwnsConnection)", DbContextName);
+		WriteLine("\t: base(existingConnection, contextOwnsConnection)");
+		OpenMethodBrace();
+		CloseMethodBrace();
+
+		WriteLine("public {0}(System.Data.Common.DbConnection existingConnection, System.Data.Entity.Infrastructure.DbCompiledModel model, bool contextOwnsConnection)", DbContextName);
+		WriteLine("\t: base(existingConnection, model, contextOwnsConnection)");
+		OpenMethodBrace();
+		CloseMethodBrace();
+
+		WriteLine("protected override void Dispose(bool disposing)");
+		OpenMethodBrace();
+		WriteLine("base.Dispose(disposing);");
+		CloseMethodBrace();
+	
+		WriteLine("public bool IsSqlParameterNull(System.Data.SqlClient.SqlParameter param)");
+		OpenMethodBrace();
+		WriteLine("var sqlValue = param.SqlValue;");
+		WriteLine("var nullableValue = sqlValue as System.Data.SqlTypes.INullable;");
+		WriteLine("if (nullableValue != null)");
+		PushIndent("\t");
+		WriteLine("return nullableValue.IsNull;");
+		PopIndent();
+		WriteLine("return (sqlValue == null || sqlValue == System.DBNull.Value);");
+		CloseMethodBrace();
+
+		WriteLine("protected override void OnModelCreating(System.Data.Entity.DbModelBuilder modelBuilder)");
+		OpenMethodBrace();
+		WriteLine("base.OnModelCreating(modelBuilder);");
+
+		if(storedProcs.Any() && IncludeTableValuedFunctions)
 		{
-			WriteLine("{0}",col.Config);
-		} 
-		
-		if(tbl.HasForeignKey) 
-		{ 
-			foreach(var configFk in tbl.Columns.SelectMany(x => x.ConfigFk).OrderBy(o => o))
+			WriteLine("modelBuilder.Conventions.Add(new CodeFirstStoreFunctions.FunctionsConvention<{0}>(\"dbo\"));",DbContextName);
+			foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
 			{
-				WriteLine("{0}",configFk);
+				WriteLine("modelBuilder.ComplexType<{0}>();",WriteStoredProcReturnModelName(sp));
 			} 
-		} 
-
-		foreach (string s in tbl.MappingConfiguration)
-		{
-			WriteLine("{0}",s);
 		}
-		CloseMethodBrace(); 
+
+		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
+		{
+			WriteLine("modelBuilder.Configurations.Add(new {0}());",tbl.NameHumanCase + ConfigurationClassName);
+		}
+
+		CloseMethodBrace();
+
+		WriteLine("public static System.Data.Entity.DbModelBuilder CreateModel(System.Data.Entity.DbModelBuilder modelBuilder, string schema)");
+		OpenMethodBrace();
+	
+		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
+		{
+			WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + ConfigurationClassName);
+		}
+	
+		WriteLine("return modelBuilder;");
+		CloseMethodBrace();
+
+		if (storedProcs.Any())
+		{
+			foreach (StoredProcedure sp in storedProcs.Where(s => !s.IsTVF))
+			{
+				string spReturnClassName = WriteStoredProcReturnModelName(sp);
+				string spExecName = WriteStoredProcFunctionName(sp);
+				int returnModelsCount = sp.ReturnModels.Count;
+				if (returnModelsCount > 0)
+				{
+					if (returnModelsCount == 1)
+					{
+						WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+						OpenMethodBrace();
+						WriteLine("int procResult;");
+						WriteLine("return {0}({1});",spExecName, WriteStoredProcFunctionOverloadCall(sp));
+						CloseMethodBrace();
+
+						WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, true));
+					} 
+					else 
+					{
+						WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+					}
+					OpenMethodBrace();
+					WriteLine(WriteStoredProcFunctionDeclareSqlParameter(sp, true));
+
+					if (returnModelsCount == 1)
+					{
+						var exec = string.Format("EXEC @procResult = [{0}].[{1}] {2}", sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp));
+						WriteLine("var procResultData = Database.SqlQuery<{0}>(\"{1}\", {2}).ToList();",spReturnClassName, exec, WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
+						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+						WriteLine("procResult = (int) procResultParam.Value;");
+					}
+					else
+					{
+						var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name); 
+						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+						WriteLine("var procResultData = new {0}();",spReturnClassName);
+						WriteLine("var cmd = Database.Connection.CreateCommand();");
+						WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
+						WriteLine("cmd.CommandText = \"{0}\";",exec);
+
+						foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
+						{ 
+							WriteLine("cmd.Parameters.Add({0});",WriteStoredProcSqlParameterName(p));
+						} 
+
+						WriteLine("try");
+						OpenMethodBrace();
+						WriteLine("Database.Connection.Open();");
+						WriteLine("var reader = cmd.ExecuteReader();");
+						WriteLine("var objectContext = ((System.Data.Entity.Infrastructure.IObjectContextAdapter) this).ObjectContext;");
+
+						int n = 0;
+						var returnModelCount = sp.ReturnModels.Count;
+						foreach (var returnModel in sp.ReturnModels)
+						{
+							n++; 
+							WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();",n, spReturnClassName);
+							if (n < returnModelCount)
+							{ 
+								WriteLine("reader.NextResult();");
+
+							} 
+						} 
+						CloseMethodBrace();
+						WriteLine("finally");
+						OpenMethodBrace();
+						WriteLine("Database.Connection.Close();");
+						CloseMethodBrace();
+					} 
+					WriteLine("return procResultData;");
+					CloseMethodBrace();
+
+				}
+				else
+				{ 
+					WriteLine("public int {0}({1})",spExecName, WriteStoredProcFunctionParams(sp, true));
+					OpenMethodBrace();
+					WriteLine("{0} ",WriteStoredProcFunctionDeclareSqlParameter(sp, true));
+					WriteLine("Database.ExecuteSqlCommand(\"EXEC @procResult = [{0}].[{1}] {2}\", {3});",sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
+					WriteLine("{0} ",WriteStoredProcFunctionSetSqlParameters(sp, false));
+					WriteLine("return (int) procResultParam.Value;");
+					CloseMethodBrace();
+
+				}
+
+				// Async
+				if (IsSupportedFrameworkVersion("4.5") && !StoredProcHasOutParams(sp) && returnModelsCount > 0)
+				{
+					WriteLine("public async System.Threading.Tasks.Task<{0}> {1}Async({2})",WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+					OpenMethodBrace();
+					WriteLine("{0}",WriteStoredProcFunctionDeclareSqlParameter(sp, false));
+					if (returnModelsCount == 1)
+					{
+						var parameters = WriteStoredProcFunctionSqlParameterAnonymousArray(sp, false);
+						if (!string.IsNullOrWhiteSpace(parameters))
+							parameters = ", " + parameters;
+						var exec = string.Format("EXEC [{0}].[{1}] {2}", sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp));
+						WriteLine("var procResultData = await Database.SqlQuery<{0}>(\"{1}\"{2}).ToListAsync();",spReturnClassName, exec, parameters);
+						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+					}
+					else		
+					{
+						var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name); 
+						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+						WriteLine("var procResultData = new {0}();",spReturnClassName);
+						WriteLine("var cmd = Database.Connection.CreateCommand();");
+						WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
+						WriteLine("cmd.CommandText = \"{0}\";",exec);
+						foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
+						{ 
+							WriteLine("cmd.Parameters.Add({0});",WriteStoredProcSqlParameterName(p));
+						} 
+
+						WriteLine("try");
+						OpenMethodBrace();
+						WriteLine("Database.Connection.Open();");
+						WriteLine("var reader = await cmd.ExecuteReaderAsync();");
+						WriteLine("var objectContext = ((System.Data.Entity.Infrastructure.IObjectContextAdapter) this).ObjectContext;");
+
+						int n = 0;
+						var returnModelCount = sp.ReturnModels.Count;
+						foreach (var returnModel in sp.ReturnModels)
+						{
+							n++; 
+							WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();",n, spReturnClassName);
+							if (n < returnModelCount)
+							{ 
+								WriteLine("await reader.NextResultAsync();");
+							} 
+						} 
+
+						CloseMethodBrace();
+						WriteLine("finally");
+						OpenMethodBrace();
+						WriteLine("Database.Connection.Close();");
+						CloseMethodBrace();
+					} 
+
+					WriteLine("return procResultData;");
+					CloseMethodBrace();
+				}
+			}
+
+			if (IncludeTableValuedFunctions)
+			{ 
+				WriteLine("// Table Valued Functions");
+
+				foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
+				{
+					string spExecName = WriteStoredProcFunctionName(sp);
+					string spReturnClassName = WriteStoredProcReturnModelName(sp);
+
+					WriteLine("[System.Data.Entity.DbFunction(\"{0}\", \"{1}\")]",DbContextName, sp.Name);
+					WriteLine("[CodeFirstStoreFunctions.DbFunctionDetails(DatabaseSchema = \"{0}\")]",sp.Schema);
+					WriteLine("public IQueryable<{0}> {1}({2})",spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
+					OpenMethodBrace();
+					WriteLine("{0} ",WriteTableValuedFunctionDeclareSqlParameter(sp));
+					WriteLine("return ((System.Data.Entity.Infrastructure.IObjectContextAdapter)this).ObjectContext.CreateQuery<{0}>(\"[{1}].[{2}]({3})\", {4});",spReturnClassName, DbContextName, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteTableValuedFunctionSqlParameterAnonymousArray(sp));
+					CloseMethodBrace();
+
+				} 
+			} 
+		}
 		CloseBrace();
 		CloseBrace();
 	}
-}
 
-#endregion
+	#endregion
 
-#region Stored procedure return models
+	#region POCO classes
 
-if(storedProcs.Any() && ElementsToGenerate.HasFlag(Elements.Poco))
-{
-	foreach(StoredProcedure sp in storedProcs.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureReturnTypes.ContainsKey(x.Name)))
+	if(ElementsToGenerate.HasFlag(Elements.Poco))
 	{
-		string spReturnClassName = WriteStoredProcReturnModelName(sp);
-		
-		fileManager.StartNewFile(spReturnClassName + FileExtension);
-		
-		CreateHeader();
-		BeginNamespace("");
-		BeginClass(spReturnClassName,false,"");
-
-		int DataMemberOrder = 1;
-		var returnModelCount = sp.ReturnModels.Count;
-
-		if(returnModelCount < 2)
+		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
-			foreach (var returnColumn in sp.ReturnModels.First())
+			fileManager.StartNewFile(tbl.NameHumanCase + FileExtension, ModelProjectName, ModelFolderName);
+			if(!tbl.HasPrimaryKey) 
 			{ 
-				WriteLine("{0}",WriteStoredProcReturnColumn(returnColumn));
+				WriteLine("// The table '{0}' is not usable by entity framework because it",tbl.Name);
+				WriteLine("// does not have a primary key. It is listed here for completeness.");
 			}
-		} 
-		else 
-		{
-			int model = 0;
-			foreach (var returnModel in sp.ReturnModels)
+
+			CreateHeader();
+			BeginNamespace(PocoNamespace);
+
+			WritePocoClassAttributes(tbl);
+			BeginClass(tbl.NameHumanCase, false, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
+			WritePocoBaseClassBody(tbl); 
+
+			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 			{
-				int SubDataMemberOrder = 1;
-				model++;
-				WriteLine("public class ResultSetModel{0}",model);
+				if((IncludeExtendedPropertyComments == CommentsStyle.InSummaryBlock || IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
+				{
+					WriteLine("///<summary>");
+					WriteLine("/// {0}",col.SummaryComments);
+					WriteLine("///</summary>");
+				} 
+				WriteLine("{0}",WritePocoColumn(col));
+			} 
+
+			if(tbl.ReverseNavigationProperty.Count() > 0)
+			{
+				foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
+				{
+					foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
+					{
+						WriteLine("[{0}]",rnpda);
+					}	 
+					WriteLine("{0}",s);
+				} 
+			} 
+
+			if(tbl.HasForeignKey) { 
+
+				foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
+				{
+					foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
+					{
+						WriteLine("[{0}]",fkda);
+					} 
+					WriteLine("{0}",entityFk);
+				}
+			} 
+ 
+			if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || tbl.ReverseNavigationCtor.Count() > 0 || MakeClassesPartial) 
+			{ 
+				WriteLine("public {0}()",tbl.NameHumanCase);
 				OpenMethodBrace();
-				
-				foreach (var returnColumn in returnModel)
+
+				foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
+				{
+					WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
+				} 
+
+				foreach(string s in tbl.ReverseNavigationCtor)
+				{
+					WriteLine("{0}",s);
+				}
+				CloseBrace();
+			}
+			CloseBrace();
+			CloseBrace();
+		}
+	}
+
+	#endregion
+
+	#region POCO Interfaces
+
+	if(ElementsToGenerate.HasFlag(Elements.Poco))
+	{
+		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
+		{
+			fileManager.StartNewFile("I" + tbl.NameHumanCase + FileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
+
+			CreateHeader();
+			BeginNamespace(PocoInterfaceNamespace);
+			BeginInterface("I" + tbl.NameHumanCase, false, "");
+
+			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
+			{
+				if(!col.IsComputed) 
+				{
+					WriteLine("{0}", WritePocoInterfaceColumn(col));
+				}
+			}
+
+			if(tbl.ReverseNavigationProperty.Count() > 0)
+			{
+				foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
+				{
+					foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
+					{
+						WriteLine("  [{0}]",rnpda);
+					} 
+					WriteLine("{0}",s);
+				} 
+			} 
+
+			if(tbl.HasForeignKey) 
+			{ 
+				foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
+				{
+					foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
+					{
+						WriteLine("[{0}]",fkda);
+					} 
+					WriteLine("{0}",entityFk);
+				}
+			} 
+			CloseBrace();
+			CloseBrace();
+		}
+	}
+
+	#endregion
+
+	#region POCO Configuration
+
+	if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
+	{
+		foreach(Table tbl in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase))
+		{
+			fileManager.StartNewFile(tbl.NameHumanCase + ConfigurationClassName + FileExtension, ConfigurationProjectName, ConfigurationFolderName);
+		
+			CreateHeader();
+			BeginNamespace(PocoConfigurationNamespace);
+			BeginClass(tbl.NameHumanCase + ConfigurationClassName, false, string.Format("System.Data.Entity.ModelConfiguration.EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
+
+			WriteLine("public {0}()",tbl.NameHumanCase + ConfigurationClassName);
+			WriteLine(": this( \"{0}\" )", string.IsNullOrEmpty(tbl.Schema) ? "" : tbl.Schema);
+			OpenMethodBrace();
+			CloseMethodBrace();
+
+			WriteLine("public {0}(string schema)",tbl.NameHumanCase + ConfigurationClassName);
+			OpenMethodBrace();
+			if (!string.IsNullOrEmpty(tbl.Schema)) 
+			{ 
+				WriteLine("ToTable(\"{0}\", schema);",tbl.Name);
+			}
+			else
+			{ 
+				WriteLine("ToTable(\"{0}\");",tbl.Name);
+			} 
+			WriteLine("HasKey({0});",tbl.PrimaryKeyNameHumanCase());
+
+			foreach(Column col in tbl.Columns.Where(x => !x.Hidden).OrderBy(x => x.Ordinal))
+			{
+				WriteLine("{0}",col.Config);
+			} 
+		
+			if(tbl.HasForeignKey) 
+			{ 
+				foreach(var configFk in tbl.Columns.SelectMany(x => x.ConfigFk).OrderBy(o => o))
+				{
+					WriteLine("{0}",configFk);
+				} 
+			} 
+
+			foreach (string s in tbl.MappingConfiguration)
+			{
+				WriteLine("{0}",s);
+			}
+			CloseMethodBrace(); 
+			CloseBrace();
+			CloseBrace();
+		}
+	}
+
+	#endregion
+
+	#region Stored procedure return models
+
+	if(storedProcs.Any() && ElementsToGenerate.HasFlag(Elements.Poco))
+	{
+		foreach(StoredProcedure sp in storedProcs.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureReturnTypes.ContainsKey(x.Name)))
+		{
+			string spReturnClassName = WriteStoredProcReturnModelName(sp);
+		
+			fileManager.StartNewFile(spReturnClassName + FileExtension);
+		
+			CreateHeader();
+			BeginNamespace("");
+			BeginClass(spReturnClassName,false,"");
+
+			var returnModelCount = sp.ReturnModels.Count;
+
+			if(returnModelCount < 2)
+			{
+				foreach (var returnColumn in sp.ReturnModels.First())
 				{ 
 					WriteLine("{0}",WriteStoredProcReturnColumn(returnColumn));
 				}
-				CloseMethodBrace();
-
-				WriteLine("public System.Collections.Generic.List<ResultSetModel{0}> ResultSet{0};",model);
-
 			} 
-		} 
-		CloseBrace();
-		CloseBrace();
+			else 
+			{
+				int model = 0;
+				foreach (var returnModel in sp.ReturnModels)
+				{
+					model++;
+					WriteLine("public class ResultSetModel{0}",model);
+					OpenMethodBrace();
+				
+					foreach (var returnColumn in returnModel)
+					{ 
+						WriteLine("{0}",WriteStoredProcReturnColumn(returnColumn));
+					}
+					CloseMethodBrace();
+
+					WriteLine("public System.Collections.Generic.List<ResultSetModel{0}> ResultSet{0};",model);
+
+				} 
+			} 
+			CloseBrace();
+			CloseBrace();
+		}
 	}
-}
 
-#endregion
+	#endregion
 
-fileManager.StartFooter(); 
+	fileManager.StartFooter(); 
 
-WriteLine("// </auto-generated>");
-fileManager.EndBlock();
-if(GenerateSeparateFiles)
-	fileManager.Process(); 
+	WriteLine("// </auto-generated>");
+	fileManager.EndBlock();
+	if(GenerateSeparateFiles)
+		fileManager.Process();
 #>
 
 <#+
 
-public void CreateHeader()
-{
-	WriteLine("//------------------------------------------------------------------------------");
-	WriteLine("// <auto-generated>");
-	WriteLine("//     This code was generated from a template.");
-	WriteLine("//");
-	WriteLine("//     Manual changes to this file may cause unexpected behavior in your application.");
-	WriteLine("//     Manual changes to this file will be overwritten if the code is regenerated.");
-	WriteLine("// </auto-generated>");
-	WriteLine("//------------------------------------------------------------------------------");
-	WriteLine("");
-}
+	public void CreateHeader()
+	{
+		WriteLine("//------------------------------------------------------------------------------");
+		WriteLine("// <auto-generated>");
+		WriteLine("//	  This code was generated from a template.");
+		WriteLine("//");
+		WriteLine("//	  Manual changes to this file may cause unexpected behavior in your application.");
+		WriteLine("//	  Manual changes to this file will be overwritten if the code is regenerated.");
+		WriteLine("// </auto-generated>");
+		WriteLine("//------------------------------------------------------------------------------");
+		WriteLine("");
+	}
 
-public void BeginNamespace(string name)
-{
-	WriteLine("namespace {0}", name);
-	WriteLine("{");
+	public void BeginNamespace(string name)
+	{
+		WriteLine("namespace {0}", name);
+		WriteLine("{");
+		PushIndent("\t");
+	}
 
-	PushIndent("\t");
-}
+	public void BeginInterface(string name, bool isPartial, string baseClass)
+	{
+		WriteLine("public {0}interface {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
+		WriteLine("{");
+		PushIndent("\t");
+	}
 
-public void BeginInterface(string name, bool isPartial, string baseClass)
-{
-	WriteLine("public {0}interface {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
-	WriteLine("{");
+	public void BeginClass(string name, bool isPartial, string baseClass)
+	{
+		WriteLine("public {0}class {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
+		WriteLine("{");
+		PushIndent("\t");
+	}
 
-	PushIndent("\t");
-}
+	public void CloseBrace()
+	{
+		PopIndent();
+		WriteLine("}");
+	}
 
-public void BeginClass(string name, bool isPartial, string baseClass)
-{
-	WriteLine("public {0}class {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
-	WriteLine("{");
+	public void OpenMethodBrace()
+	{
+		WriteLine("{");
+		PushIndent("\t");
+	}
 
-	PushIndent("\t");
-}
-
-public void CloseBrace()
-{
-	PopIndent();
-	WriteLine("}");
-}
-
-public void OpenMethodBrace()
-{
-	WriteLine("{");
-	PushIndent("\t");
-	WriteLine("");
-}
-
-public void CloseMethodBrace()
-{
-	PopIndent();
-	WriteLine("}");
-	WriteLine("");
-}
+	public void CloseMethodBrace()
+	{
+		PopIndent();
+		WriteLine("}");
+		WriteLine("");
+	}
 
 #>
