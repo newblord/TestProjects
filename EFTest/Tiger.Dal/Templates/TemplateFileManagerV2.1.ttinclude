@@ -60,30 +60,6 @@
 	*/
 
 	/// <summary>
-	/// Writes a line to the build pane in visual studio and activates it
-	/// </summary>
-	/// <param name="message">Text to output - a \n is appended</param>
-	void WriteLineToBuildPane (string message){
-		WriteLineToBuildPane(String.Format("{0}\n", message));
-	}
-
-	/// <summary>
-	/// Writes a string to the build pane in visual studio and activates it
-	/// </summary>
-	/// <param name="message">Text to output</param>
-	void WriteToBuildPane (string message)
-	{
-		IVsOutputWindow outWindow = (this.Host as IServiceProvider).GetService(typeof( SVsOutputWindow ) ) as IVsOutputWindow;
-		Guid generalPaneGuid = Microsoft.VisualStudio.VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid;
-	
-		// P.S. There's also the GUID_OutWindowDebugPane available.
-		IVsOutputWindowPane generalPane;
-		outWindow.GetPane( ref generalPaneGuid , out generalPane );
-		generalPane.OutputString( message  );
-		generalPane.Activate(); // Brings this pane into view
-	}
-
-	/// <summary>
 	/// Responsible for marking the various sections of the generation,
 	/// so they can be split up into separate files and projects
 	/// </summary>
