@@ -46,7 +46,7 @@
 	string _dbContextInterfaceName = null;
 	string DbContextInterfaceName {get {return _dbContextInterfaceName ?? ("I" + DbContextName);} set {_dbContextInterfaceName = value;}}
 	string DbContextInterfaceBaseClasses = "System.IDisposable";
-	string DbContextBaseClass = "DbContext";
+	string DbContextBaseClass = "System.Data.Entity.DbContext";
 	string _defaultConstructorArgument = null;
 	string DefaultConstructorArgument {get {return _defaultConstructorArgument ?? String.Format('"' + "Name={0}" + '"',ConnectionStringName);} set {_defaultConstructorArgument = value;}}
 	string ConfigurationClassName = "Configuration";
@@ -89,6 +89,21 @@
 	Func<string, string, short, string> ForeignKeyName;
 	List<EnumDefinition> EnumsDefinitions = new List<EnumDefinition>();
 
+	string ContextProjectName = "";
+	string ContextFolderName = "";
+	string ConfigurationProjectName = "";
+	string ConfigurationFolderName = "";
+	string ModelProjectName = "";
+	string ModelFolderName = "";
+	string ModelInterfaceProjectName = "";
+	string ModelInterfaceFolderName = "";
+	string RepositoryProjectName = "";
+	string RepositoryFolderName = "";
+	string RepositoryInterfaceProjectName = "";
+	string RepositoryInterfaceFolderName = "";
+	List<string> TableNames = null;
+	List<string> StoredProcedureNames = null;
+
 	// Settings to allow selective code generation
 	[Flags]
 	private enum Elements
@@ -97,9 +112,16 @@
 		Poco = 1,
 		Context = 2,
 		UnitOfWork = 4,
-		PocoConfiguration = 8
+		PocoConfiguration = 8,
+		PocoInterface = 16,
+		Repository = 32,
+		RepositoryInterface = 64
 	};
-	Elements ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork | Elements.PocoConfiguration;
+
+	Elements ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork 
+											| Elements.PocoConfiguration | Elements.PocoInterface 
+											| Elements.Repository | Elements.RepositoryInterface;
+
 	string PocoNamespace, ContextNamespace, UnitOfWorkNamespace, 
 				PocoConfigurationNamespace, PocoInterfaceNamespace, RepositoryNamespace, RepositoryInterfaceNamespace = "";
 
@@ -802,7 +824,7 @@
 		private string WrapIfNullable(string propType, Column col) {
 			if(!IsNullable(col))
 				return propType;
-			return String.Format(NullableShortHand ? "{0}?" : "System.Nullable<{0}>",propType);
+			return String.Format(NullableShortHand ? "{0}?" : "Nullable<{0}>",propType);
 		}
 
 		public bool IsComputed
@@ -817,11 +839,11 @@
 		{
 			string databaseGeneratedOption = string.Empty;
 			if(IsIdentity)
-				databaseGeneratedOption = ".HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity)";
+				databaseGeneratedOption = ".HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity)";
 			if(IsComputed)
-				databaseGeneratedOption = ".HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Computed)";
+				databaseGeneratedOption = ".HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed)";
 			if(IsPrimaryKey && !IsIdentity && !IsStoreGenerated)
-				databaseGeneratedOption = ".HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None)";
+				databaseGeneratedOption = ".HasDatabaseGeneratedOption(DatabaseGeneratedOption.None)";
 
 			Config = string.Format("Property(x => x.{0}).HasColumnName(@\"{1}\"){2}{3}{4}{5}{6}{7}{8}{9}{10}{11};", NameHumanCase, Name,
 												(IsNullable) ? ".IsOptional()" : ".IsRequired()",
@@ -871,11 +893,8 @@
 
 				case "string":
 				case "datetime":
-				case "system.datetime":
 				case "timespan":
-				case "system.timespan":
 				case "datetimeoffset":
-				case "system.datetimeoffset":
 					if(Default.First() != '"')
 							Default = string.Format("\"{0}\"", Default);
 					if(Default.Contains('\\') || Default.Contains('\r') || Default.Contains('\n'))
@@ -890,7 +909,6 @@
 				case "decimal":
 				case "byte":
 				case "guid":
-				case "system.guid":
 					if(Default.First() == '\"' && Default.Last() == '\"' && Default.Length > 2)
 							Default = Default.Substring(1, Default.Length - 2);
 					break;
@@ -937,30 +955,27 @@
 					break;
 
 				case "datetime":
-				case "system.datetime":
 					DateTime dt;
 					if(!DateTime.TryParse(Default, out dt))
-							Default = lower.Contains("getdate()") ? "System.DateTime.Now" : lower.Contains("getutcdate()") ? "System.DateTime.UtcNow" : string.Empty;
+							Default = lower.Contains("getdate()") ? "DateTime.Now" : lower.Contains("getutcdate()") ? "DateTime.UtcNow" : string.Empty;
 					else
-							Default = string.Format("System.DateTime.Parse({0})", Default);
+							Default = string.Format("DateTime.Parse({0})", Default);
 					break;
 
 				case "datetimeoffset":
-				case "system.datetimeoffset":
 					DateTimeOffset dto;
 					if(!DateTimeOffset.TryParse(Default, out dto))
-							Default = lower.Contains("sysdatetimeoffset") ? "System.DateTimeOffset.Now" : lower.Contains("sysutcdatetime") ? "System.DateTimeOffset.UtcNow" : string.Empty;
+							Default = lower.Contains("sysdatetimeoffset") ? "DateTimeOffset.Now" : lower.Contains("sysutcdatetime") ? "DateTimeOffset.UtcNow" : string.Empty;
 					else
-							Default = string.Format("System.DateTimeOffset.Parse({0})", Default);
+							Default = string.Format("DateTimeOffset.Parse({0})", Default);
 					break;
 
 				case "timespan":
-				case "system.timespan":
 					TimeSpan ts;
 					if(!TimeSpan.TryParse(Default, out ts))
 							Default = string.Empty;
 					else
-							Default = string.Format("System.TimeSpan.Parse({0})", Default);
+							Default = string.Format("TimeSpan.Parse({0})", Default);
 					break;
 
 				case "double":
@@ -997,7 +1012,7 @@
 
 				case "string":
 					if (lower.Contains("newid()") || lower.Contains("newsequentialid()"))
-							Default = "System.Guid.NewGuid().ToString()";
+							Default = "Guid.NewGuid().ToString()";
 					if(lower.StartsWith("space("))
 							Default = "\"\"";
 					if(lower == "null")
@@ -1005,13 +1020,12 @@
 					break;
 
 				case "guid":
-				case "system.guid":
 					if (lower.Contains("newid()") || lower.Contains("newsequentialid()"))
-							Default = "System.Guid.NewGuid()";
+							Default = "Guid.NewGuid()";
 					else if (lower.Contains("null"))
 							Default = "null";
 					else
-							Default = string.Format("System.Guid.Parse(\"{0}\")", Default);
+							Default = string.Format("Guid.Parse(\"{0}\")", Default);
 					break;
 			}
 		}
@@ -1044,7 +1058,7 @@
 		public static string WrapTypeIfNullable(string propertyType, DataColumn col) {
 			if(!IsNullable(col))
 				return propertyType;
-			return String.Format(NullableShortHand ? "{0}?" : "System.Nullable<{0}>",propertyType);
+			return String.Format(NullableShortHand ? "{0}?" : "Nullable<{0}>",propertyType);
 		}
 
 	}
@@ -2679,22 +2693,22 @@ OPTION (QUERYTRACEON 9481)";
 					sysType = "int";
 					break;
 				case "uniqueidentifier":
-					sysType = "System.Guid";
+					sysType = "Guid";
 					break;
 				case "smalldatetime":
 				case "datetime":
 				case "datetime2":
 				case "date":
-					sysType = "System.DateTime";
+					sysType = "DateTime";
 					break;
 				case "datetimeoffset":
-					sysType = "System.DateTimeOffset";
+					sysType = "DateTimeOffset";
 					break;
 				case "table type":
-					sysType = "System.Data.DataTable";
+					sysType = "Data.DataTable";
 					break;
 				case "time":
-					sysType = "System.TimeSpan";
+					sysType = "TimeSpan";
 					break;
 				case "float":
 					sysType = "double";

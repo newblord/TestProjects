@@ -13,8 +13,8 @@
 	// Namespace = ""; // Override the default namespace here
 	DbContextName = "POCTest";
 	//DbContextInterfaceName = "IMyDbContext"; //Defaults to "I" + DbContextName
-	DbContextInterfaceBaseClasses = "System.IDisposable";	 // Specify what the base classes are for your database context interface
-	DbContextBaseClass = "System.Data.Entity.DbContext";	// Specify what the base class is for your DbContext. For ASP.NET Identity use "IdentityDbContext<ApplicationUser>"
+	DbContextInterfaceBaseClasses = "IDisposable";	 // Specify what the base classes are for your database context interface
+	DbContextBaseClass = "DbContext";	// Specify what the base class is for your DbContext. For ASP.NET Identity use "IdentityDbContext<ApplicationUser>"
 	//DefaultConstructorArgument = "EnvironmentConnectionStrings.MyDbContext"; //defaults to "Name=" + ConnectionStringName
 	TargetFrameworkVersion = "4.51"; // Please set this to your .NET framework version, 4.0, 4.5, 4.51, etc.
 	ConfigurationClassName = "Configuration"; // Configuration, Mapping, Map, etc. This is appended to the Poco class name to configure the mappings.
@@ -52,20 +52,20 @@
 		// "JsonIgnore"
 	};
 
-	string ContextProjectName = "Tiger.Dal";
-	string ContextFolderName = "";
-	string ConfigurationProjectName = "Tiger.Dal";
-	string ConfigurationFolderName = "Configurations";
-	string ModelProjectName = "Tiger.DataModel";
-	string ModelFolderName = "Models";
-	string ModelInterfaceProjectName = "Tiger.DataModel";
-	string ModelInterfaceFolderName = "Interfaces";
-	string RepositoryProjectName = "Tiger.Dal";
-	string RepositoryFolderName = "Repositories";
-	string RepositoryInterfaceProjectName = "Tiger.Dal";
-	string RepositoryInterfaceFolderName = "Interfaces";
-	List<string> TableNames = new List<string>();
-	List<string> StoredProcedureNames = new List<string>();
+	ContextProjectName = "Tiger.Dal";
+	ContextFolderName = "";
+	ConfigurationProjectName = "Tiger.Dal";
+	ConfigurationFolderName = "Configurations";
+	ModelProjectName = "Tiger.DataModel";
+	ModelFolderName = "Models";
+	ModelInterfaceProjectName = "Tiger.DataModel";
+	ModelInterfaceFolderName = "Interfaces";
+	RepositoryProjectName = "Tiger.Dal";
+	RepositoryFolderName = "Repositories";
+	RepositoryInterfaceProjectName = "Tiger.Dal";
+	RepositoryInterfaceFolderName = "Interfaces";
+	TableNames = new List<string>();
+	StoredProcedureNames = new List<string>();
 
 	InitConnectionString();
 	ProcessDatabaseXML(ref TableNames, ref StoredProcedureNames);
@@ -101,7 +101,9 @@
 	// Elements to generate ***************************************************************************************************************
 	// Add the elements that should be generated when the template is executed.
 	// Multiple projects can now be used that separate the different concerns.
-	ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork | Elements.PocoConfiguration;
+	ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork 
+											| Elements.PocoConfiguration | Elements.PocoInterface 
+											| Elements.Repository | Elements.RepositoryInterface;
 
 	// Use these namespaces to specify where the different elements now live. These may even be in different assemblies.
 	// Please note this does not create the files in these locations, it only adds a using statement to say where they are.

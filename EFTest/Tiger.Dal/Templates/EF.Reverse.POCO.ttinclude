@@ -10,34 +10,7 @@
 
 	fileManager.StartHeader();
 
-	#region Database Object XML
-
-	fileManager.StartNewFile(Host.TemplateFile.Replace(".tt","") + ".xml");
-
-	WriteLine("<Database>");
-	PushIndent("\t");
-
-	WriteLine("<Tables>");
-	PushIndent("\t");
-	foreach(string table in TableNames)
-	{
-		WriteLine("<Table>{0}</Table>", table);
-	}
-	PopIndent();
-	WriteLine("</Tables>");
-
-	WriteLine("<StoredProcedures>");
-	PushIndent("\t");
-	foreach(string sproc in StoredProcedureNames)
-	{
-		WriteLine("<StoredProcedure>{0}</StoredProcedure>", sproc);
-	}
-	PopIndent();
-	WriteLine("</StoredProcedures>");
-
-	PopIndent();
-	WriteLine("</Database>");
-	#endregion
+	
 
 	#region Unit of work
  
@@ -46,12 +19,28 @@
 		fileManager.StartNewFile(DbContextInterfaceName + FileExtension, ContextProjectName, ContextFolderName);
 	
 		CreateHeader();
+
+		WriteLine("using System;");
+		WriteLine("using System.Data.Entity;");
+
+		if (IsSupportedFrameworkVersion("4.5")) 
+		{ 
+			WriteLine("using System.Threading;");
+			WriteLine("using System.Threading.Tasks;");
+		}
+
+		if(IncludeTableValuedFunctions && storedProcs.Any())
+		{
+			WriteLine("using System.Linq;");
+		}
+		WriteLine("");
+
 		BeginNamespace(UnitOfWorkNamespace);
 		BeginInterface(DbContextInterfaceName, MakeDbContextInterfacePartial, DbContextInterfaceBaseClasses);
 
 		foreach (Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			WriteLine("System.Data.Entity.DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+			WriteLine("DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		}
 	
 		WriteLine("");
@@ -66,8 +55,8 @@
 
 		if (IsSupportedFrameworkVersion("4.5")) 
 		{ 
-			WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync();");
-			WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken);");
+			WriteLine("Task<int> SaveChangesAsync();");
+			WriteLine("Task<int> SaveChangesAsync(CancellationToken cancellationToken);");
 		} 
 
 		if (storedProcs.Any()) 
@@ -95,7 +84,7 @@
 					} 
 					else 
 					{ 
-						WriteLine("System.Threading.Tasks.Task<{0}> {1}Async({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+						WriteLine("Task<{0}> {1}Async({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
 					} 
 				} 
 			}
@@ -109,7 +98,7 @@
 				{
 					string spExecName = WriteStoredProcFunctionName(sp);
 					string spReturnClassName = WriteStoredProcReturnModelName(sp);
-					WriteLine("System.Linq.IQueryable<{0}> {1}({2});", spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
+					WriteLine("IQueryable<{0}> {1}({2});", spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
 				}
 			}
 		}
@@ -127,18 +116,37 @@
 		fileManager.StartNewFile(DbContextName + FileExtension, ContextProjectName, ContextFolderName);
 
 		CreateHeader();
+
+		WriteLine("using System;");
+		WriteLine("using System.Data.Entity;");
+		WriteLine("using System.Data.Entity.Infrastructure;");
+		WriteLine("using System.Data.Common;");
+		WriteLine("using System.Data.SqlClient;");
+
+		if (IsSupportedFrameworkVersion("4.5")) 
+		{ 
+			WriteLine("using System.Threading;");
+			WriteLine("using System.Threading.Tasks;");
+		}
+
+		if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
+		{
+			WriteLine("using {0};", PocoConfigurationNamespace);
+		}
+		WriteLine("");
+
 		BeginNamespace(ContextNamespace);
 		BeginClass(DbContextName, MakeClassesPartial, string.Format("{0}, {1}", DbContextBaseClass, DbContextInterfaceName));
 	
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			WriteLine("public System.Data.Entity.DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+			WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		} 
 
 		WriteLine("");
 		WriteLine("static {0}()", DbContextName);
 		OpenMethodBrace();
-		WriteLine("System.Data.Entity.Database.SetInitializer<{0}>(null);",DbContextName);
+		WriteLine("Database.SetInitializer<{0}>(null);",DbContextName);
 		CloseMethodBrace();
 
 		WriteLine("public {0}()", DbContextName);
@@ -151,17 +159,17 @@
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(string connectionString, System.Data.Entity.Infrastructure.DbCompiledModel model)", DbContextName);
+		WriteLine("public {0}(string connectionString, DbCompiledModel model)", DbContextName);
 		WriteLine("\t: base(connectionString, model)");
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(System.Data.Common.DbConnection existingConnection, bool contextOwnsConnection)", DbContextName);
+		WriteLine("public {0}(DbConnection existingConnection, bool contextOwnsConnection)", DbContextName);
 		WriteLine("\t: base(existingConnection, contextOwnsConnection)");
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(System.Data.Common.DbConnection existingConnection, System.Data.Entity.Infrastructure.DbCompiledModel model, bool contextOwnsConnection)", DbContextName);
+		WriteLine("public {0}(DbConnection existingConnection, DbCompiledModel model, bool contextOwnsConnection)", DbContextName);
 		WriteLine("\t: base(existingConnection, model, contextOwnsConnection)");
 		OpenMethodBrace();
 		CloseMethodBrace();
@@ -171,7 +179,7 @@
 		WriteLine("base.Dispose(disposing);");
 		CloseMethodBrace();
 	
-		WriteLine("public bool IsSqlParameterNull(System.Data.SqlClient.SqlParameter param)");
+		WriteLine("public bool IsSqlParameterNull(SqlParameter param)");
 		OpenMethodBrace();
 		WriteLine("var sqlValue = param.SqlValue;");
 		WriteLine("var nullableValue = sqlValue as System.Data.SqlTypes.INullable;");
@@ -179,10 +187,10 @@
 		PushIndent("\t");
 		WriteLine("return nullableValue.IsNull;");
 		PopIndent();
-		WriteLine("return (sqlValue == null || sqlValue == System.DBNull.Value);");
+		WriteLine("return (sqlValue == null || sqlValue == DBNull.Value);");
 		CloseMethodBrace();
 
-		WriteLine("protected override void OnModelCreating(System.Data.Entity.DbModelBuilder modelBuilder)");
+		WriteLine("protected override void OnModelCreating(DbModelBuilder modelBuilder)");
 		OpenMethodBrace();
 		WriteLine("base.OnModelCreating(modelBuilder);");
 
@@ -195,21 +203,27 @@
 			} 
 		}
 
-		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
+		if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
 		{
-			WriteLine("modelBuilder.Configurations.Add(new {0}());",tbl.NameHumanCase + ConfigurationClassName);
+			foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
+			{
+				WriteLine("modelBuilder.Configurations.Add(new {0}());",tbl.NameHumanCase + ConfigurationClassName);
+			}
 		}
 
 		CloseMethodBrace();
 
-		WriteLine("public static System.Data.Entity.DbModelBuilder CreateModel(System.Data.Entity.DbModelBuilder modelBuilder, string schema)");
+		WriteLine("public static DbModelBuilder CreateModel(DbModelBuilder modelBuilder, string schema)");
 		OpenMethodBrace();
-	
-		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
+		
+		if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
 		{
-			WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + ConfigurationClassName);
+			foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
+			{
+				WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + ConfigurationClassName);
+			}
 		}
-	
+
 		WriteLine("return modelBuilder;");
 		CloseMethodBrace();
 
@@ -264,7 +278,7 @@
 						OpenMethodBrace();
 						WriteLine("Database.Connection.Open();");
 						WriteLine("var reader = cmd.ExecuteReader();");
-						WriteLine("var objectContext = ((System.Data.Entity.Infrastructure.IObjectContextAdapter) this).ObjectContext;");
+						WriteLine("var objectContext = ((IObjectContextAdapter) this).ObjectContext;");
 
 						int n = 0;
 						var returnModelCount = sp.ReturnModels.Count;
@@ -303,7 +317,7 @@
 				// Async
 				if (IsSupportedFrameworkVersion("4.5") && !StoredProcHasOutParams(sp) && returnModelsCount > 0)
 				{
-					WriteLine("public async System.Threading.Tasks.Task<{0}> {1}Async({2})",WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+					WriteLine("public async Task<{0}> {1}Async({2})",WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
 					OpenMethodBrace();
 					WriteLine("{0}",WriteStoredProcFunctionDeclareSqlParameter(sp, false));
 					if (returnModelsCount == 1)
@@ -332,7 +346,7 @@
 						OpenMethodBrace();
 						WriteLine("Database.Connection.Open();");
 						WriteLine("var reader = await cmd.ExecuteReaderAsync();");
-						WriteLine("var objectContext = ((System.Data.Entity.Infrastructure.IObjectContextAdapter) this).ObjectContext;");
+						WriteLine("var objectContext = ((IObjectContextAdapter) this).ObjectContext;");
 
 						int n = 0;
 						var returnModelCount = sp.ReturnModels.Count;
@@ -367,12 +381,12 @@
 					string spExecName = WriteStoredProcFunctionName(sp);
 					string spReturnClassName = WriteStoredProcReturnModelName(sp);
 
-					WriteLine("[System.Data.Entity.DbFunction(\"{0}\", \"{1}\")]",DbContextName, sp.Name);
+					WriteLine("[.DbFunction(\"{0}\", \"{1}\")]",DbContextName, sp.Name);
 					WriteLine("[CodeFirstStoreFunctions.DbFunctionDetails(DatabaseSchema = \"{0}\")]",sp.Schema);
 					WriteLine("public IQueryable<{0}> {1}({2})",spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
 					OpenMethodBrace();
 					WriteLine("{0} ",WriteTableValuedFunctionDeclareSqlParameter(sp));
-					WriteLine("return ((System.Data.Entity.Infrastructure.IObjectContextAdapter)this).ObjectContext.CreateQuery<{0}>(\"[{1}].[{2}]({3})\", {4});",spReturnClassName, DbContextName, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteTableValuedFunctionSqlParameterAnonymousArray(sp));
+					WriteLine("return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<{0}>(\"[{1}].[{2}]({3})\", {4});",spReturnClassName, DbContextName, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteTableValuedFunctionSqlParameterAnonymousArray(sp));
 					CloseMethodBrace();
 
 				} 
@@ -398,6 +412,11 @@
 			}
 
 			CreateHeader();
+
+			WriteLine("using System;");
+			WriteLine("using {0};",PocoInterfaceNamespace);
+			WriteLine("");
+
 			BeginNamespace(PocoNamespace);
 
 			WritePocoClassAttributes(tbl);
@@ -440,7 +459,8 @@
 			} 
  
 			if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || tbl.ReverseNavigationCtor.Count() > 0 || MakeClassesPartial) 
-			{ 
+			{
+				WriteLine(""); 
 				WriteLine("public {0}()",tbl.NameHumanCase);
 				OpenMethodBrace();
 
@@ -449,10 +469,6 @@
 					WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
 				} 
 
-				foreach(string s in tbl.ReverseNavigationCtor)
-				{
-					WriteLine("{0}",s);
-				}
 				CloseBrace();
 			}
 			CloseBrace();
@@ -464,13 +480,19 @@
 
 	#region POCO Interfaces
 
-	if(ElementsToGenerate.HasFlag(Elements.Poco))
+	if(ElementsToGenerate.HasFlag(Elements.PocoInterface))
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
 			fileManager.StartNewFile("I" + tbl.NameHumanCase + FileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
 
 			CreateHeader();
+
+			WriteLine("using System;");
+			WriteLine("using System.Collections.Generic;");
+			WriteLine("using {0};",PocoNamespace);
+			WriteLine("");
+
 			BeginNamespace(PocoInterfaceNamespace);
 			BeginInterface("I" + tbl.NameHumanCase, false, "");
 
@@ -490,7 +512,7 @@
 					{
 						WriteLine("  [{0}]",rnpda);
 					} 
-					WriteLine("{0}",s);
+					WriteLine("{0}",s.Replace("public virtual",""));
 				} 
 			} 
 
@@ -502,9 +524,39 @@
 					{
 						WriteLine("[{0}]",fkda);
 					} 
-					WriteLine("{0}",entityFk);
+					WriteLine("{0}",entityFk.Replace("public virtual",""));
 				}
 			} 
+			CloseBrace();
+			CloseBrace();
+		}
+	}
+
+	#endregion
+
+	#region Repository Interfaces
+
+	if(ElementsToGenerate.HasFlag(Elements.Poco))
+	{
+		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
+		{
+			fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + FileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
+
+			CreateHeader();
+
+			WriteLine("using System.Collections.Generic;");
+			WriteLine("using {0};",PocoNamespace);
+			WriteLine("");
+
+			BeginNamespace(RepositoryInterfaceNamespace);
+			BeginInterface("I" + tbl.NameHumanCase + "Repository", false, "");
+
+			WriteLine("{0} Insert({0} data);", tbl.NameHumanCase);
+			WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
+			WriteLine("void Delete(int id);", tbl.NameHumanCase);
+			WriteLine("{0} FindById(int id);", tbl.NameHumanCase);
+			WriteLine("IEnumerable<{0}> GetAll();", tbl.NameHumanCase);
+			
 			CloseBrace();
 			CloseBrace();
 		}
@@ -521,8 +573,14 @@
 			fileManager.StartNewFile(tbl.NameHumanCase + ConfigurationClassName + FileExtension, ConfigurationProjectName, ConfigurationFolderName);
 		
 			CreateHeader();
+
+			WriteLine("using System.Data.Entity.ModelConfiguration;");
+			WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
+			WriteLine("using {0};",PocoNamespace);
+			WriteLine("");
+
 			BeginNamespace(PocoConfigurationNamespace);
-			BeginClass(tbl.NameHumanCase + ConfigurationClassName, false, string.Format("System.Data.Entity.ModelConfiguration.EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
+			BeginClass(tbl.NameHumanCase + ConfigurationClassName, false, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
 
 			WriteLine("public {0}()",tbl.NameHumanCase + ConfigurationClassName);
 			WriteLine(": this( \"{0}\" )", string.IsNullOrEmpty(tbl.Schema) ? "" : tbl.Schema);
@@ -577,7 +635,10 @@
 			fileManager.StartNewFile(spReturnClassName + FileExtension);
 		
 			CreateHeader();
-			BeginNamespace("");
+
+			WriteLine("using System.Collections.Generic;");
+			WriteLine("");
+
 			BeginClass(spReturnClassName,false,"");
 
 			var returnModelCount = sp.ReturnModels.Count;
@@ -604,11 +665,10 @@
 					}
 					CloseMethodBrace();
 
-					WriteLine("public System.Collections.Generic.List<ResultSetModel{0}> ResultSet{0};",model);
+					WriteLine("public List<ResultSetModel{0}> ResultSet{0};",model);
 
 				} 
 			} 
-			CloseBrace();
 			CloseBrace();
 		}
 	}
@@ -616,8 +676,37 @@
 	#endregion
 
 	fileManager.EndBlock();
-	if(GenerateSeparateFiles)
-		fileManager.Process();
+	fileManager.Process(GenerateSeparateFiles);
+
+	#region Database Object XML
+
+	fileManager.StartNewFile(Host.TemplateFile.Replace(".tt","") + ".xml");
+
+	WriteLine("<Database>");
+	PushIndent("\t");
+
+	WriteLine("<Tables>");
+	PushIndent("\t");
+	foreach(string table in TableNames)
+	{
+		WriteLine("<Table>{0}</Table>", table);
+	}
+	PopIndent();
+	WriteLine("</Tables>");
+
+	WriteLine("<StoredProcedures>");
+	PushIndent("\t");
+	foreach(string sproc in StoredProcedureNames)
+	{
+		WriteLine("<StoredProcedure>{0}</StoredProcedure>", sproc);
+	}
+	PopIndent();
+	WriteLine("</StoredProcedures>");
+
+	PopIndent();
+	WriteLine("</Database>");
+	#endregion
+
 #>
 
 <#+
