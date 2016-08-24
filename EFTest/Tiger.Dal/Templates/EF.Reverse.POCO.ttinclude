@@ -10,6 +10,35 @@
 
 	fileManager.StartHeader();
 
+	#region Database Object XML
+
+	fileManager.StartNewFile(Host.TemplateFile.Replace(".tt","") + ".xml");
+
+	WriteLine("<Database>");
+	PushIndent("\t");
+
+	WriteLine("<Tables>");
+	PushIndent("\t");
+	foreach(string table in TableNames)
+	{
+		WriteLine("<Table>{0}</Table>", table);
+	}
+	PopIndent();
+	WriteLine("</Tables>");
+
+	WriteLine("<StoredProcedures>");
+	PushIndent("\t");
+	foreach(string sproc in StoredProcedureNames)
+	{
+		WriteLine("<StoredProcedure>{0}</StoredProcedure>", sproc);
+	}
+	PopIndent();
+	WriteLine("</StoredProcedures>");
+
+	PopIndent();
+	WriteLine("</Database>");
+	#endregion
+
 	#region Unit of work
  
 	if (ElementsToGenerate.HasFlag(Elements.UnitOfWork))
@@ -586,9 +615,6 @@
 
 	#endregion
 
-	fileManager.StartFooter(); 
-
-	WriteLine("// </auto-generated>");
 	fileManager.EndBlock();
 	if(GenerateSeparateFiles)
 		fileManager.Process();

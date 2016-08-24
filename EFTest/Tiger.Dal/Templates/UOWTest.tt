@@ -8,7 +8,7 @@
 	// A course for this generator is available on Pluralsight at https://www.pluralsight.com/courses/code-first-entity-framework-legacy-databases
 	 
 	// Main settings **********************************************************************************************************************
-	ConnectionStringName = "POCTest";	// Searches for this connection string in config files listed below in the ConfigFilenameSearchOrder setting
+	ConnectionStringName = "LendDirect";	// Searches for this connection string in config files listed below in the ConfigFilenameSearchOrder setting
 	//ConnectionStringName is the only required setting
 	// Namespace = ""; // Override the default namespace here
 	DbContextName = "POCTest";
@@ -68,10 +68,12 @@
 	List<string> StoredProcedureNames = new List<string>();
 
 	InitConnectionString();
+	ProcessDatabaseXML(ref TableNames, ref StoredProcedureNames);
 
-	using (Tiger.Dal.UpdateFromDatabase frm = new Tiger.Dal.UpdateFromDatabase(ConnectionString))
+	using (Tiger.Dal.UpdateFromDatabase frm = new Tiger.Dal.UpdateFromDatabase(ConnectionString, TableNames, StoredProcedureNames))
 	{
 		frm.ShowDialog();
+
 		TableNames = frm.TableNames;
 		StoredProcedureNames = frm.StoredProcedureNames;
 	}
@@ -506,9 +508,6 @@
 		var spReturnClassName = WriteStoredProcReturnModelName(sp);
 		return (returnModelCount == 1) ? string.Format("System.Collections.Generic.List<{0}>", spReturnClassName) : spReturnClassName;
 	};
-
-
-
 
 	// Read schema
 	var factory = GetDbProviderFactory();

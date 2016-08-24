@@ -15,6 +15,7 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Configuration" #>
 <#@ import namespace="System.Windows.Forms" #>
+<#@ import namespace="System.Xml.Linq" #>
 <#@ import namespace="EnvDTE" #>
 <#@ include file="TemplateFileManagerV2.1.ttinclude" #>
 <#@ output extension=".cs"#>
@@ -204,6 +205,23 @@
 	private static bool IsNullable(Column col)
 	{
 		return col.IsNullable && !NotNullable.Contains(col.PropertyType.ToLower());
+	}
+
+	public void ProcessDatabaseXML(ref List<string> tableNames, ref List<string> storedProcedureNames)
+	{
+		string fileName = Host.TemplateFile.Replace(".tt", "") + ".xml";
+
+		if(System.IO.File.Exists(fileName))
+		{
+			var xml = XDocument.Load(fileName);
+
+			// Query the data and write out a subset of contacts
+			tableNames = (from c in xml.Root.Descendants("Table")
+							select c.Value).ToList();
+
+			storedProcedureNames = (from c in xml.Root.Descendants("StoredProcedure")
+							select c.Value).ToList();
+		}
 	}
 
 	private string GetConnectionString(ref string connectionStringName, out string providerName, out string configFilePath)
