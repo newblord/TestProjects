@@ -10,8 +10,6 @@
 
 	fileManager.StartHeader();
 
-	
-
 	#region Unit of work
  
 	if (ElementsToGenerate.HasFlag(Elements.UnitOfWork))
@@ -22,6 +20,7 @@
 
 		WriteLine("using System;");
 		WriteLine("using System.Data.Entity;");
+		WriteLine("using {0};",PocoNamespace);
 
 		if (IsSupportedFrameworkVersion("4.5")) 
 		{ 
@@ -122,6 +121,7 @@
 		WriteLine("using System.Data.Entity.Infrastructure;");
 		WriteLine("using System.Data.Common;");
 		WriteLine("using System.Data.SqlClient;");
+		WriteLine("using {0};",PocoNamespace);
 
 		if (IsSupportedFrameworkVersion("4.5")) 
 		{ 
@@ -404,7 +404,7 @@
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
-			fileManager.StartNewFile(tbl.NameHumanCase + FileExtension, ModelProjectName, ModelFolderName);
+			fileManager.StartNewFile(tbl.NameHumanCase + GeneratedFileExtension, ModelProjectName, ModelFolderName);
 			if(!tbl.HasPrimaryKey) 
 			{ 
 				WriteLine("// The table '{0}' is not usable by entity framework because it",tbl.Name);
@@ -420,7 +420,7 @@
 			BeginNamespace(PocoNamespace);
 
 			WritePocoClassAttributes(tbl);
-			BeginClass(tbl.NameHumanCase, false, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
+			BeginClass(tbl.NameHumanCase, MakeClassesPartial, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
 			WritePocoBaseClassBody(tbl); 
 
 			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
@@ -473,6 +473,12 @@
 			}
 			CloseBrace();
 			CloseBrace();
+
+			if(MakeClassesPartial && GenerateNestFiles)
+			{
+				fileManager.StartNewFile(tbl.NameHumanCase + FileExtension, ModelProjectName, ModelFolderName);
+				GenerateNestClass(PocoNamespace, tbl.NameHumanCase);
+			}
 		}
 	}
 
@@ -484,7 +490,7 @@
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
-			fileManager.StartNewFile("I" + tbl.NameHumanCase + FileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
+			fileManager.StartNewFile("I" + tbl.NameHumanCase + GeneratedFileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
 
 			CreateHeader();
 
@@ -494,7 +500,7 @@
 			WriteLine("");
 
 			BeginNamespace(PocoInterfaceNamespace);
-			BeginInterface("I" + tbl.NameHumanCase, false, "");
+			BeginInterface("I" + tbl.NameHumanCase, MakeInterfacesPartial, "");
 
 			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 			{
@@ -529,6 +535,12 @@
 			} 
 			CloseBrace();
 			CloseBrace();
+
+			if(MakeInterfacesPartial && GenerateNestFiles)
+			{
+				fileManager.StartNewFile("I" + tbl.NameHumanCase + FileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
+				GenerateNestInterface(PocoInterfaceNamespace, "I" + tbl.NameHumanCase);
+			}
 		}
 	}
 
@@ -540,7 +552,7 @@
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
-			fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + FileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
+			fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + GeneratedFileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
 
 			CreateHeader();
 
@@ -549,7 +561,7 @@
 			WriteLine("");
 
 			BeginNamespace(RepositoryInterfaceNamespace);
-			BeginInterface("I" + tbl.NameHumanCase + "Repository", false, "");
+			BeginInterface("I" + tbl.NameHumanCase + "Repository", MakeInterfacesPartial, "");
 
 			WriteLine("{0} Insert({0} data);", tbl.NameHumanCase);
 			WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
@@ -559,6 +571,12 @@
 			
 			CloseBrace();
 			CloseBrace();
+
+			if(MakeInterfacesPartial && GenerateNestFiles)
+			{
+				fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + FileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
+				GenerateNestInterface(RepositoryInterfaceNamespace, "I" + tbl.NameHumanCase + "Repository");
+			}
 		}
 	}
 
@@ -580,7 +598,7 @@
 			WriteLine("");
 
 			BeginNamespace(PocoConfigurationNamespace);
-			BeginClass(tbl.NameHumanCase + ConfigurationClassName, false, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
+			BeginClass(tbl.NameHumanCase + ConfigurationClassName, MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
 
 			WriteLine("public {0}()",tbl.NameHumanCase + ConfigurationClassName);
 			WriteLine(": this( \"{0}\" )", string.IsNullOrEmpty(tbl.Schema) ? "" : tbl.Schema);
@@ -675,9 +693,6 @@
 
 	#endregion
 
-	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
-
 	#region Database Object XML
 
 	fileManager.StartNewFile(Host.TemplateFile.Replace(".tt","") + ".xml");
@@ -706,6 +721,9 @@
 	PopIndent();
 	WriteLine("</Database>");
 	#endregion
+
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
 
 #>
 
@@ -743,6 +761,34 @@
 		WriteLine("public {0}class {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
 		WriteLine("{");
 		PushIndent("\t");
+	}
+
+	public void GenerateNestClass(string namespaceName, string className)
+	{
+		WriteLine("namespace {0}", namespaceName);
+		WriteLine("{");
+		PushIndent("\t");
+
+		WriteLine("public partial class {0}",className);
+		WriteLine("{");
+		WriteLine("}");
+
+		PopIndent();
+		CloseBrace();
+	}
+
+	public void GenerateNestInterface(string namespaceName, string interfaceName)
+	{
+		WriteLine("namespace {0}", namespaceName);
+		WriteLine("{");
+		PushIndent("\t");
+
+		WriteLine("public partial interface {0}",interfaceName);
+		WriteLine("{");
+		WriteLine("}");
+
+		PopIndent();
+		CloseBrace();
 	}
 
 	public void CloseBrace()

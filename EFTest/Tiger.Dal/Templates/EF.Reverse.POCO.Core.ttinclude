@@ -17,7 +17,7 @@
 <#@ import namespace="System.Windows.Forms" #>
 <#@ import namespace="System.Xml.Linq" #>
 <#@ import namespace="EnvDTE" #>
-<#@ include file="TemplateFileManagerV2.1.ttinclude" #>
+<#@ include file="TemplateFileManager.ttinclude" #>
 <#@ output extension=".cs"#>
 <#
 
@@ -53,11 +53,14 @@
 	string CollectionType = "System.Collections.Generic.List";
 	static bool NullableShortHand = true;
 	bool MakeClassesPartial = true;
+	bool MakeInterfacesPartial = true;
 	bool MakeDbContextInterfacePartial = false;
 	bool GenerateSeparateFiles = false;
+	bool GenerateNestFiles = false;
 	bool UseMappingTables = true;
 	bool IsSqlCe = false;
 	string FileExtension = ".cs";
+	string GeneratedFileExtension = ".generated.cs";
 	bool UseCamelCase = true;
 	bool UsePrivateSetterForComputedColumns = true;
 	CommentsStyle IncludeComments = CommentsStyle.AtEndOfField;

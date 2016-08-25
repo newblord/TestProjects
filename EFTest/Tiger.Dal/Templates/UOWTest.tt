@@ -20,8 +20,10 @@
 	ConfigurationClassName = "Configuration"; // Configuration, Mapping, Map, etc. This is appended to the Poco class name to configure the mappings.
 	ConfigFilenameSearchOrder = new[] { "app.config", "web.config", "app.config.transform", "web.config.transform" }; // Add more here if required. The config files are searched for in the local project first, then the whole solution second.
 	MakeClassesPartial = true;
+	MakeInterfacesPartial = true;
 	MakeDbContextInterfacePartial = true;
 	GenerateSeparateFiles = true;
+	GenerateNestFiles = true;
 	UseMappingTables = true; // If true, mapping will be used and no mapping tables will be generated. If false, all tables will be generated.
 	UseCamelCase = true;	 // This will rename the tables & fields to use CamelCase. If false table & field names will be left alone.
 	IncludeComments = CommentsStyle.AtEndOfField; // Adds comments to the generated code
@@ -53,7 +55,7 @@
 	};
 
 	ContextProjectName = "Tiger.Dal";
-	ContextFolderName = "";
+	ContextFolderName = "Context";
 	ConfigurationProjectName = "Tiger.Dal";
 	ConfigurationFolderName = "Configurations";
 	ModelProjectName = "Tiger.DataModel";
@@ -118,7 +120,7 @@
 	//		PocoConfigurationNamespace = "YourProject.Maps";
 	// You also need to set the following to the namespace where they now live:
 	PocoNamespace = "Tiger.DataModel.Models";
-	ContextNamespace = "Tiger.Dal";
+	ContextNamespace = "Tiger.Dal.Context";
 	UnitOfWorkNamespace = "Tiger.Dal";
 	PocoConfigurationNamespace = "Tiger.Dal.Configurations";
 	PocoInterfaceNamespace = "Tiger.DataModel.Interfaces";

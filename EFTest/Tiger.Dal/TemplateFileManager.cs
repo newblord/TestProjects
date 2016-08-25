@@ -395,18 +395,60 @@ public class TemplateFileManager
 		foreach (var item in groupedFileNames)
 		{
 			EnvDTE.ProjectItem pi = VSHelper.FindProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
-			ProjectSyncPart(pi, item.OutputFiles);
+
+			if (pi != null)
+			{
+				ProjectItemSyncPart(pi, item.OutputFiles);
+			}
+			else
+			{
+				EnvDTE.Project prj = VSHelper.GetProject(dte, item.FirstItem.ProjectName);
+				ProjectSyncPart(prj, item.OutputFiles);
+			}
 		}
 
 		// clean up
 		bool hasDefaultItems = groupedFileNames.Where(f => String.IsNullOrEmpty(f.ProjectName) && String.IsNullOrEmpty(f.FolderName)).Count() > 0;
 		if (hasDefaultItems == false)
 		{
-			ProjectSyncPart(templateProjectItem, new List<OutputFile>());
+			ProjectItemSyncPart(templateProjectItem, new List<OutputFile>());
 		}
 	}
 
-	private static void ProjectSyncPart(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+	private static void ProjectSyncPart(EnvDTE.Project project, IEnumerable<OutputFile> keepFileNames)
+	{
+		var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
+		
+		var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+		//var originalOutput = Path.GetFileNameWithoutExtension(project.FileName);
+
+		foreach (EnvDTE.ProjectItem projectItem in project.ProjectItems)
+		{
+			projectFiles.Add(projectItem.FileNames[0], projectItem);
+		}
+
+		//// Remove unused items from the project
+		//foreach (var pair in projectFiles)
+		//{
+		//	bool isNotFound = keepFileNames.Where(f => f.FileName == pair.Key).Count() == 0;
+		//	if (isNotFound == true
+		//		&& !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalOutput + "."))
+		//	{
+		//		pair.Value.Delete();
+		//	}
+		//}
+
+		// Add missing files to the project
+		foreach (var fileName in keepFileNameSet)
+		{
+			if (!projectFiles.ContainsKey(fileName.FileName))
+			{
+				project.ProjectItems.AddFromFile(fileName.FileName);
+			}
+		}
+	}
+
+	private static void ProjectItemSyncPart(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
 	{
 		var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
 		var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
@@ -831,7 +873,7 @@ public class VSHelper
 
 		if (String.IsNullOrEmpty(file.FolderName) == true && prj != null)
 		{
-			return FindProjectItem(prj.ProjectItems, fullName, true);
+			return null;
 		}
 		else if (prj != null && String.IsNullOrEmpty(file.FolderName) == false)
 		{
