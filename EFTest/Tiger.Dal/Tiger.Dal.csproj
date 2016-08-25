@@ -86,6 +86,7 @@
     <None Include="Templates\TemplateFileManager.ttinclude" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Features-Readme.txt" />
     <Content Include="Templates\UOWTest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>UOWTest.cs</LastGenOutput>
