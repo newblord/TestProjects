@@ -418,7 +418,7 @@ public class TemplateFileManager
 	private static void ProjectSyncPart(EnvDTE.Project project, IEnumerable<OutputFile> keepFileNames)
 	{
 		var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
-		
+
 		var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
 		//var originalOutput = Path.GetFileNameWithoutExtension(project.FileName);
 

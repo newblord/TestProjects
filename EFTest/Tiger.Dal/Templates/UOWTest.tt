@@ -23,12 +23,13 @@
 	MakeInterfacesPartial = true;
 	MakeDbContextInterfacePartial = true;
 	GenerateSeparateFiles = true;
+	UseDataAnnotations = true;
 	UseMappingTables = true; // If true, mapping will be used and no mapping tables will be generated. If false, all tables will be generated.
 	UseCamelCase = true;	 // This will rename the tables & fields to use CamelCase. If false table & field names will be left alone.
 	IncludeComments = CommentsStyle.AtEndOfField; // Adds comments to the generated code
 	IncludeExtendedPropertyComments = CommentsStyle.InSummaryBlock; // Adds extended properties as comments to the generated code
 	IncludeViews = true;
-	IncludeSynonyms = true;
+	IncludeSynonyms = false;
 	IncludeStoredProcedures = true;
 	IncludeTableValuedFunctions = true; // If true, you must set IncludeStoredProcedures = true, and install the "EntityFramework.CodeFirstStoreFunctions" Nuget Package.
 	DisableGeographyTypes = false; // Turns off use of System.Data.Entity.Spatial.DbGeography and System.Data.Entity.Spatial.DbGeometry as OData doesn't support entities with geometry/geography types.
@@ -102,8 +103,7 @@
 	// Elements to generate ***************************************************************************************************************
 	// Add the elements that should be generated when the template is executed.
 	// Multiple projects can now be used that separate the different concerns.
-	ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork 
-											| Elements.PocoConfiguration | Elements.PocoInterface 
+	ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork | Elements.PocoInterface 
 											| Elements.Repository | Elements.RepositoryInterface;
 
 	// Use these namespaces to specify where the different elements now live. These may even be in different assemblies.
@@ -257,6 +257,11 @@
 		// Example:
 		// if(t.ClassName.StartsWith("Order"))
 		//	  WriteLine("	 [SomeAttribute]");
+
+		if(!UseDataAnnotations)
+		{
+			WriteLine("[Table(\"{0}\", Schema = \"{1}\")]", t.Name, t.Schema);
+		}
 	};
 
 	// Writes optional base classes
@@ -281,7 +286,32 @@
 		//if (!c.IsNullable)
 		//	 return "[System.ComponentModel.DataAnnotations.Required] " + c.Entity;
 
-		return c.Entity;
+		StringBuilder sb = new StringBuilder();
+
+		if(UseDataAnnotations)
+		{
+			if(c.IsIdentity)
+				sb.AppendLine("[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
+			if(c.IsComputed)
+				sb.AppendLine("[DatabaseGenerated(DatabaseGeneratedOption.Computed)]");
+
+			if(c.IsPrimaryKey)
+				sb.AppendLine("[Key]");
+			if(!c.IsNullable)
+				sb.AppendLine("[Required]");
+			if(!c.IsMaxLength && c.MaxLength > 0)
+				sb.AppendLine(string.Format("[MaxLength({0})]", c.MaxLength));
+
+			sb.AppendLine(string.Format("[Column(\"{0}\", TypeName=\"{1}\")]"
+							,c.Name
+							,c.SqlPropertyType
+							//,c.IsPrimaryKey ? string.Format(", Order = {0}", c.PrimaryKeyOrdinal) : ""
+						));
+		}
+
+		sb.AppendLine(c.Entity);
+
+		return sb.ToString();
 	};
 
 	Func<Column, string> WritePocoInterfaceColumn = c =>

@@ -414,6 +414,8 @@
 			CreateHeader();
 
 			WriteLine("using System;");
+			WriteLine("using System.ComponentModel.DataAnnotations;");
+			WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
 			WriteLine("using {0};",PocoInterfaceNamespace);
 			WriteLine("");
 
@@ -422,6 +424,20 @@
 			WritePocoClassAttributes(tbl);
 			BeginClass(tbl.NameHumanCase, MakeClassesPartial, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
 			WritePocoBaseClassBody(tbl); 
+
+			if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || MakeClassesPartial) 
+			{
+				WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2214:DoNotCallOverridableMethodsInConstructors\")]"); 
+				WriteLine("public {0}()",tbl.NameHumanCase);
+				OpenMethodBrace();
+
+				foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
+				{
+					WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
+				} 
+
+				CloseMethodBrace();
+			}
 
 			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 			{
@@ -441,7 +457,8 @@
 					foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
 					{
 						WriteLine("[{0}]",rnpda);
-					}	 
+					}
+					WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2227:CollectionPropertiesShouldBeReadOnly\")]");	 
 					WriteLine("{0}",s);
 				} 
 			} 
@@ -457,20 +474,7 @@
 					WriteLine("{0}",entityFk);
 				}
 			} 
- 
-			if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || tbl.ReverseNavigationCtor.Count() > 0 || MakeClassesPartial) 
-			{
-				WriteLine(""); 
-				WriteLine("public {0}()",tbl.NameHumanCase);
-				OpenMethodBrace();
-
-				foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
-				{
-					WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
-				} 
-
-				CloseBrace();
-			}
+			
 			CloseBrace();
 			CloseBrace();
 		}
@@ -566,7 +570,7 @@
 
 	#region POCO Configuration
 
-	if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
+	if(!UseDataAnnotations)
 	{
 		foreach(Table tbl in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase))
 		{

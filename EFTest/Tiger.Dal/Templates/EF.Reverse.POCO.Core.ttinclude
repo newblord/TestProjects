@@ -56,6 +56,7 @@
 	bool MakeInterfacesPartial = true;
 	bool MakeDbContextInterfacePartial = false;
 	bool GenerateSeparateFiles = false;
+	bool UseDataAnnotations = false;
 	bool UseMappingTables = true;
 	bool IsSqlCe = false;
 	string FileExtension = ".cs";
@@ -120,8 +121,7 @@
 		RepositoryInterface = 64
 	};
 
-	Elements ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork 
-											| Elements.PocoConfiguration | Elements.PocoInterface 
+	Elements ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork | Elements.PocoInterface 
 											| Elements.Repository | Elements.RepositoryInterface;
 
 	string PocoNamespace, ContextNamespace, UnitOfWorkNamespace, 

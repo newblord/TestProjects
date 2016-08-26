@@ -7,7 +7,9 @@
 	3)  Add Repository Interface support
 		 - Done
 	4)  Add Data Annotation support to POCO classes
+		 - Done
 	5)  Add switch to generate either Configuration or use Data Annotation for POCO classes
+		 - Done
 	6)  Data Annotation validations for POCO Interfaces
 	7)  Only add new extra partial class/interface for auto generated files
 		 - someone could have modified the extra file
