@@ -56,7 +56,6 @@
 	bool MakeInterfacesPartial = true;
 	bool MakeDbContextInterfacePartial = false;
 	bool GenerateSeparateFiles = false;
-	bool GenerateNestFiles = false;
 	bool UseMappingTables = true;
 	bool IsSqlCe = false;
 	string FileExtension = ".cs";

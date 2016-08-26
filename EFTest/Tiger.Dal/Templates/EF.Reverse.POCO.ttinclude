@@ -473,12 +473,6 @@
 			}
 			CloseBrace();
 			CloseBrace();
-
-			if(MakeClassesPartial && GenerateNestFiles)
-			{
-				fileManager.StartNewFile(tbl.NameHumanCase + FileExtension, ModelProjectName, ModelFolderName);
-				GenerateNestClass(PocoNamespace, tbl.NameHumanCase);
-			}
 		}
 	}
 
@@ -535,12 +529,6 @@
 			} 
 			CloseBrace();
 			CloseBrace();
-
-			if(MakeInterfacesPartial && GenerateNestFiles)
-			{
-				fileManager.StartNewFile("I" + tbl.NameHumanCase + FileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
-				GenerateNestInterface(PocoInterfaceNamespace, "I" + tbl.NameHumanCase);
-			}
 		}
 	}
 
@@ -571,12 +559,6 @@
 			
 			CloseBrace();
 			CloseBrace();
-
-			if(MakeInterfacesPartial && GenerateNestFiles)
-			{
-				fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + FileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
-				GenerateNestInterface(RepositoryInterfaceNamespace, "I" + tbl.NameHumanCase + "Repository");
-			}
 		}
 	}
 
@@ -761,34 +743,6 @@
 		WriteLine("public {0}class {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
 		WriteLine("{");
 		PushIndent("\t");
-	}
-
-	public void GenerateNestClass(string namespaceName, string className)
-	{
-		WriteLine("namespace {0}", namespaceName);
-		WriteLine("{");
-		PushIndent("\t");
-
-		WriteLine("public partial class {0}",className);
-		WriteLine("{");
-		WriteLine("}");
-
-		PopIndent();
-		CloseBrace();
-	}
-
-	public void GenerateNestInterface(string namespaceName, string interfaceName)
-	{
-		WriteLine("namespace {0}", namespaceName);
-		WriteLine("{");
-		PushIndent("\t");
-
-		WriteLine("public partial interface {0}",interfaceName);
-		WriteLine("{");
-		WriteLine("}");
-
-		PopIndent();
-		CloseBrace();
 	}
 
 	public void CloseBrace()

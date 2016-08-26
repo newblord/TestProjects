@@ -9,12 +9,10 @@
 	4)  Add Data Annotation support to POCO classes
 	5)  Add switch to generate either Configuration or use Data Annotation for POCO classes
 	6)  Data Annotation validations for POCO Interfaces
-	7)  Add extra partial class/interface for auto generated files
-		 -Done
-	8)  Only add new extra partial class/interface for auto generated files
+	7)  Only add new extra partial class/interface for auto generated files
 		 - someone could have modified the extra file
 		 - this is the intended purpose for the extra partial files
-	9)  Add Repository support
-	10) Add proper Entity Framework Add/Attach/Entity support to Repository files
-	11)	Add Custom Property change management for POCO classes
-	12) Add support for Entity Framework Entity Graph management
+	8)  Add Repository support
+	9) Add proper Entity Framework Add/Attach/Entity support to Repository files
+	10)	Add Custom Property change management for POCO classes
+	11) Add support for Entity Framework Entity Graph management
