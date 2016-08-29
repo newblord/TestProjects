@@ -538,9 +538,90 @@
 
 	#endregion
 
+	#region Repositories
+
+	if(ElementsToGenerate.HasFlag(Elements.Repository))
+	{
+		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
+		{
+			string className = tbl.NameHumanCase + "Repository";
+
+			fileManager.StartNewFile(className + GeneratedFileExtension, RepositoryProjectName, RepositoryFolderName);
+
+			CreateHeader();
+
+			WriteLine("using System;");
+			WriteLine("using System.Collections.Generic;");
+			WriteLine("using System.Data.Entity;");
+			WriteLine("using System.Linq;");
+			WriteLine("using Tiger.Dal.Context;");
+			WriteLine("using {0};",PocoNamespace);
+			WriteLine("");
+
+			BeginNamespace(RepositoryInterfaceNamespace);
+			BeginClass(className, MakeClassesPartial, "I" + tbl.NameHumanCase + "Repository");
+
+			WriteLine("private readonly {0} Context;", DbContextName);
+
+			WriteLine("public {0}()",className);
+			OpenMethodBrace();
+			WriteLine("Context = new {0}();", DbContextName);
+			CloseMethodBrace();
+
+			WriteLine("public {0} Insert({0} data)", tbl.NameHumanCase);
+			OpenMethodBrace();
+			WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot insert null value in {0}.Insert\"); }}", className);
+			WriteLine("");
+			WriteLine("Context.{0}s.Add(data);", tbl.NameHumanCase);
+			WriteLine("Context.SaveChanges();");
+			WriteLine("");
+			WriteLine("return data;");
+			CloseMethodBrace();
+
+			WriteLine("public {0} Update({0} data)", tbl.NameHumanCase);
+			OpenMethodBrace();
+			WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot update null value in {0}.Update\"); }}", className);
+			WriteLine("");
+			WriteLine("Context.Entry(data).State = EntityState.Modified;");
+			WriteLine("Context.SaveChanges();");
+			WriteLine("");
+			WriteLine("return data;");
+			CloseMethodBrace();
+
+			WriteLine("public void Delete(int id)");
+			OpenMethodBrace();
+			WriteLine("{0} data = FindById(id)", tbl.NameHumanCase);
+			WriteLine("Delete(data);");
+			CloseMethodBrace();
+
+			WriteLine("public void Delete({0} data)", tbl.NameHumanCase);
+			OpenMethodBrace();
+			WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot delete null value in {0}.Delete\"); }}", className);
+			WriteLine("");
+			WriteLine("Context.{0}s.Remove(data);", tbl.NameHumanCase);
+			WriteLine("Context.SaveChanges();");
+			CloseMethodBrace();
+
+			WriteLine("public {0} FindById(int id)", tbl.NameHumanCase);
+			OpenMethodBrace();
+			WriteLine("return Context.{0}s.Where(x => x.Id == id).FirstOrDefault();",tbl.NameHumanCase);
+			CloseMethodBrace();
+
+			WriteLine("public IEnumerable<{0}> GetAll()", tbl.NameHumanCase);
+			OpenMethodBrace();
+			WriteLine("return Context.{0}s.AsEnumerable();", tbl.NameHumanCase);
+			CloseMethodBrace();
+			
+			CloseBrace();
+			CloseBrace();
+		}
+	}
+
+	#endregion
+
 	#region Repository Interfaces
 
-	if(ElementsToGenerate.HasFlag(Elements.Poco))
+	if(ElementsToGenerate.HasFlag(Elements.RepositoryInterface))
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
@@ -557,7 +638,8 @@
 
 			WriteLine("{0} Insert({0} data);", tbl.NameHumanCase);
 			WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
-			WriteLine("void Delete(int id);", tbl.NameHumanCase);
+			WriteLine("void Delete(int id);");
+			WriteLine("void Delete({0} data);", tbl.NameHumanCase);
 			WriteLine("{0} FindById(int id);", tbl.NameHumanCase);
 			WriteLine("IEnumerable<{0}> GetAll();", tbl.NameHumanCase);
 			

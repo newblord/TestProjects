@@ -15,6 +15,8 @@
 		 - someone could have modified the extra file
 		 - this is the intended purpose for the extra partial files
 	8)  Add Repository support
-	9) Add proper Entity Framework Add/Attach/Entity support to Repository files
-	10)	Add Custom Property change management for POCO classes
+		 - Done
+	9)  Add proper Entity Framework Add/Attach/Entity support to Repository files
+	10) Add Custom Property change management for POCO classes
 	11) Add support for Entity Framework Entity Graph management
+	12) Add Enum support
