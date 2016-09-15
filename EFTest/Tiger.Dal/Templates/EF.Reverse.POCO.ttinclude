@@ -590,7 +590,7 @@
 
 			WriteLine("public void Delete(int id)");
 			OpenMethodBrace();
-			WriteLine("{0} data = FindById(id)", tbl.NameHumanCase);
+			WriteLine("{0} data = FindById(id);", tbl.NameHumanCase);
 			WriteLine("Delete(data);");
 			CloseMethodBrace();
 
