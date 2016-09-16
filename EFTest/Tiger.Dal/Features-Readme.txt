@@ -20,3 +20,9 @@
 	10) Add Custom Property change management for POCO classes
 	11) Add support for Entity Framework Entity Graph management
 	12) Add Enum support
+	13) Refactor Database Reverse Engineering for mass table generation
+		 a) Update sql code used to grab schema information about tables
+		 b) Update object creation of schema
+		 c) Architect new way to store and maintain database object so we are not repopulating schema everytime
+			i) only needs to be done if A and B dont speed up process
+		 - Currently takes 1 minute and 10 seconds to generate only the poco classes for all tables in WinChk
