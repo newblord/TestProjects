@@ -65,7 +65,6 @@
 	bool UsePrivateSetterForComputedColumns = true;
 	CommentsStyle IncludeComments = CommentsStyle.AtEndOfField;
 	bool IncludeQueryTraceOn9481Flag = false;
-	CommentsStyle IncludeExtendedPropertyComments = CommentsStyle.InSummaryBlock;
 	static bool DisableGeographyTypes = false;
 	bool PrependSchemaName = true;
 	Regex SchemaFilterExclude = null;
@@ -557,7 +556,7 @@
 				var reader = new SqlServerSchemaReader(conn, factory, IncludeQueryTraceOn9481Flag) { Outer = this };
 				reader.TableNames = tableNames;
 
-				var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, UseCamelCase, PrependSchemaName, IncludeComments, IncludeViews, IncludeExtendedPropertyComments, TableRename, UpdateColumn, UsePrivateSetterForComputedColumns, IncludeSynonyms);
+				var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, UseCamelCase, PrependSchemaName, IncludeComments, IncludeViews, TableRename, UpdateColumn, UsePrivateSetterForComputedColumns, IncludeSynonyms);
 				tables.SetPrimaryKeys();
 
 				// Must be done in this order
@@ -749,12 +748,10 @@
 		public int PrimaryKeyOrdinal;
 		public string ExtendedProperty;
 		public string SummaryComments;
-		public string UniqueIndexName;
 
 		public bool IsIdentity;
 		public bool IsNullable;
 		public bool IsPrimaryKey;
-		public bool IsPrimaryKeyViaUniqueIndex;
 		public bool IsStoreGenerated;
 		public bool IsRowVersion;
 		public bool IsConcurrencyToken; //  Manually set via callback
@@ -778,7 +775,7 @@
 			EntityFk = new List<string>();
 		}
 
-		private void SetupEntity(CommentsStyle includeComments, CommentsStyle includeExtendedPropertyComments, bool usePrivateSetterForComputedColumns)
+		private void SetupEntity(CommentsStyle includeComments, bool usePrivateSetterForComputedColumns)
 		{
 			var comments = string.Empty;
 			if (includeComments != CommentsStyle.None)
@@ -786,10 +783,7 @@
 				comments = Name;
 				if (IsPrimaryKey)
 				{
-					if (IsPrimaryKeyViaUniqueIndex)
-							comments += " (Primary key via unique index " + UniqueIndexName + ")";
-					else
-							comments += " (Primary key)";
+					comments += " (Primary key)";
 				}
 
 				if (MaxLength > 0)
@@ -803,22 +797,7 @@
 			{
 				SummaryComments = comments;
 			}
-			if (includeExtendedPropertyComments == CommentsStyle.InSummaryBlock && !string.IsNullOrEmpty(ExtendedProperty))
-			{
-				if (string.IsNullOrEmpty(SummaryComments))
-					SummaryComments = ExtendedProperty;
-				else
-					SummaryComments += ". " + ExtendedProperty;
-			}
-
-			if (includeExtendedPropertyComments == CommentsStyle.AtEndOfField && !string.IsNullOrEmpty(ExtendedProperty))
-			{
-				if (string.IsNullOrEmpty(inlineComments))
-					inlineComments = " // " + ExtendedProperty;
-				else
-					inlineComments += ". " + ExtendedProperty;
-			}
-
+			
 			Entity = string.Format("public {0} {1} {{ get; {2}set; }}{3}", WrapIfNullable(PropertyType, this), NameHumanCase, usePrivateSetterForComputedColumns && IsComputed ? "private " : string.Empty, inlineComments);
 			InterfaceEntity = string.Format("{0} {1} {{ get; set; }}{2}", WrapIfNullable(PropertyType, this), NameHumanCase, inlineComments);
 		}
@@ -860,9 +839,9 @@
 												databaseGeneratedOption);
 		}
 
-		public void SetupEntityAndConfig(CommentsStyle includeComments, CommentsStyle includeExtendedPropertyComments, bool usePrivateSetterForComputedColumns)
+		public void SetupEntityAndConfig(CommentsStyle includeComments, bool usePrivateSetterForComputedColumns)
 		{
-			SetupEntity(includeComments, includeExtendedPropertyComments, usePrivateSetterForComputedColumns);
+			SetupEntity(includeComments, usePrivateSetterForComputedColumns);
 			SetupConfig();
 		}
 
@@ -1257,13 +1236,11 @@
 		}
 
 		public GeneratedTextTransformation Outer;
-		public abstract Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, bool includeViews, CommentsStyle includeExtendedPropertyComments, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns, bool includeSynonyms);
+		public abstract Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, bool includeViews, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns, bool includeSynonyms);
 		public abstract List<StoredProcedure> ReadStoredProcs(Regex SchemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName , Func<string, string, string> StoredProcedureRename, bool includeTableValuedFunctions);
 		public abstract List<ForeignKey> ReadForeignKeys(Func<string, string, string> tableRename, Func<ForeignKey, ForeignKey> foreignKeyFilter);
 		public abstract void ProcessForeignKeys(List<ForeignKey> fkList, Tables tables, bool useCamelCase, bool prependSchemaName, string collectionType, bool checkForFkNameClashes, CommentsStyle includeComments, Func<string, string, short, string> ForeignKeyName);
 		public abstract void IdentifyForeignKeys(List<ForeignKey> fkList, Tables tables);
-		public abstract void ReadUniqueIndexes(Tables tables);
-		public abstract void ReadExtendedProperties(Tables tables);
 
 		protected void WriteLine(string o)
 		{
@@ -1379,23 +1356,6 @@
 					AND k.parent_column_id = FkCol.column_id
 			ORDER BY FK_Table, FK_Column";
 
-
-		private const string ExtendedPropertySQL = @"
-			SELECT  s.name AS [schema],
-			t.name AS [table],
-			c.name AS [column],
-			value AS [property]
-			FROM	 sys.extended_properties AS ep
-			INNER JOIN sys.tables AS t
-				ON ep.major_id = t.object_id
-			INNER JOIN sys.schemas AS s
-				ON s.schema_id = t.schema_id
-			INNER JOIN sys.columns AS c
-				ON ep.major_id = c.object_id
-					AND ep.minor_id = c.column_id
-			WHERE	class = 1
-			ORDER BY t.name";
-
 		private const string StoredProcedureSQL = @"
 			SELECT  R.SPECIFIC_SCHEMA,
 			R.SPECIFIC_NAME,
@@ -1461,33 +1421,6 @@
 			R.SPECIFIC_NAME,
 			P.ORDINAL_POSITION";
 
-		private const string UniqueIndexSQL = @"
-			SELECT  SCHEMA_NAME(t.schema_id) AS TableSchema,
-			t.name AS TableName,
-			ind.name AS IndexName,
-			ic.key_ordinal AS KeyOrdinal,
-			col.name AS ColumnName,
-			(SELECT COUNT(1)
-			FROM	sys.index_columns i
-			WHERE  i.object_id = ind.object_id
-						AND i.index_id = ind.index_id) AS ColumnCount
-			FROM	 sys.tables t
-			INNER JOIN sys.indexes ind
-				ON ind.object_id = t.object_id
-			INNER JOIN sys.index_columns ic
-				ON ind.object_id = ic.object_id
-					AND ind.index_id = ic.index_id
-			INNER JOIN sys.columns col
-				ON ic.object_id = col.object_id
-					AND ic.column_id = col.column_id
-			WHERE	t.is_ms_shipped = 0
-			AND (
-					ind.is_unique = 1
-					OR ind.is_primary_key = 1
-					OR ind.is_unique_constraint = 1
-				)
-			AND ind.ignore_dup_key = 0";
-
 		private bool IncludeQueryTraceOn9481Flag;
 		public List<string> TableNames {get;set;}
 		public List<string> StoredProcedureNames {get;set;}
@@ -1520,7 +1453,7 @@
 			return sql;
 		}
 
-		public override Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, bool includeViews, CommentsStyle includeExtendedPropertyComments, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns, bool includeSynonyms)
+		public override Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, bool includeViews, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns, bool includeSynonyms)
 		{
 			var result = new Tables();
 			if(Cmd == null)
@@ -1609,14 +1542,9 @@
 					c.NameHumanCase = original + n++;
 			}
 
-			if (includeExtendedPropertyComments != CommentsStyle.None)
-				ReadExtendedProperties(result);
-
-			ReadUniqueIndexes(result);
-
 			foreach(Table tbl in result)
 			{
-				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(includeComments, includeExtendedPropertyComments, usePrivateSetterForComputedColumns));
+				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(includeComments, usePrivateSetterForComputedColumns));
 			}
 
 			return result;
@@ -1658,117 +1586,6 @@
 			}
 
 			return fkList;
-		}
-
-		// When a table has no primary keys, all the NOT NULL columns are set as being the primary key.
-		// This function reads the unique indexes for a table, and correctly sets the columns being used as primary keys.
-		public override void ReadUniqueIndexes(Tables tables)
-		{
-			if (Cmd == null)
-				return;
-
-			if (Cmd.GetType().Name == "SqlCeCommand")
-				return;
-
-			Cmd.CommandText = UniqueIndexSQL + IncludeQueryTraceOn9481();
-			Cmd.CommandTimeout = 600;
-
-			var list = new List<UniqueIndex>();
-			using (DbDataReader rdr = Cmd.ExecuteReader())
-			{
-				while (rdr.Read())
-				{
-					var uniqueIndex = new UniqueIndex();
-
-					uniqueIndex.Schema		= rdr["TableSchema"].ToString().Trim();
-					uniqueIndex.TableName	= rdr["TableName"].ToString().Trim();
-					uniqueIndex.IndexName	= rdr["IndexName"].ToString().Trim();
-					uniqueIndex.KeyOrdinal  = (byte) rdr["KeyOrdinal"];
-					uniqueIndex.Column		= rdr["ColumnName"].ToString().Trim();
-					uniqueIndex.ColumnCount = (int) rdr["ColumnCount"];
-
-					list.Add(uniqueIndex);
-				}
-			}
-
-			Table t = null;
-			var indexTables = list
-				.Select(x => new { x.Schema, x.TableName })
-				.Distinct();
-
-			foreach (var indexTable in indexTables)
-			{
-				// Lookup table
-				if (t == null || t.Name != indexTable.TableName || t.Schema != indexTable.Schema)
-					t = tables.Find(x => x.Name == indexTable.TableName && x.Schema == indexTable.Schema);
-
-				// Check if table has no primary keys
-				if (t == null || t.PrimaryKeys.Any())
-					continue; // Already has a primary key, ignore this unique constraint
-
-				// Find unique indexes for tabve
-				var uniqueIndexKeys =
-					list.Where(x => x.Schema == indexTable.Schema && x.TableName == indexTable.TableName)
-							.Select(x => new { x.IndexName, x.KeyOrdinal, x.Column, x.ColumnCount })
-							.OrderBy(o => o.ColumnCount)
-							.ThenBy(o => o.KeyOrdinal);
-
-				// Process only the first index with the lowest unique column count
-				string indexName = null;
-				foreach (var key in uniqueIndexKeys)
-				{
-					if (indexName == null)
-							indexName = key.IndexName;
-
-					if (indexName != key.IndexName)
-							break; // First unique index with lowest column count has been processed, exit.
-
-					var col = t.Columns.Find(x => x.Name == key.Column);
-					if (col != null && !col.IsNullable && !col.Hidden)
-					{
-							col.IsPrimaryKey = true;
-							col.IsPrimaryKeyViaUniqueIndex = true;
-							col.UniqueIndexName = indexName;
-					}
-				}
-			}
-		}
-
-		public override void ReadExtendedProperties(Tables tables)
-		{
-			if(Cmd == null)
-				return;
-
-			Cmd.CommandText = ExtendedPropertySQL + IncludeQueryTraceOn9481();
-			Cmd.CommandTimeout = 600;
-
-			using(DbDataReader rdr = Cmd.ExecuteReader())
-			{
-				Table t = null;
-				while(rdr.Read())
-				{
-					string schema			  = rdr["schema"].ToString().Trim();
-					string tableName		  = rdr["table"].ToString().Trim();
-					string column			  = rdr["column"].ToString().Trim();
-					string extendedProperty = rdr["property"].ToString().Trim();
-
-					if (extendedProperty == string.Empty)
-							continue;
-
-					if(t == null || t.Name != tableName || t.Schema != schema)
-							t = tables.Find(x => x.Name == tableName && x.Schema == schema);
-
-					if (t != null)
-					{
-							var col = t.Columns.Find(x => x.Name == column);
-							if (col != null)
-							{
-								extendedProperty = extendedProperty.Replace("\n", " ").Replace("\r", " ");
-								col.ExtendedProperty = extendedProperty;
-							}
-					}
-				}
-			}
 		}
 
 		public override List<StoredProcedure> ReadStoredProcs(Regex schemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName , Func<string, string, string> StoredProcedureRename, bool includeTableValuedFunctions)
