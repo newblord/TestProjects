@@ -23,6 +23,7 @@
 	13) Refactor Database Reverse Engineering for mass table generation
 		 a) Update sql code used to grab schema information about tables
 		 b) Update object creation of schema
-		 c) Architect new way to store and maintain database object so we are not repopulating schema everytime
+		 c) Update FolderName to FolderPath and refactor the code to look for folder based on folder path given and not name  
+		 d) Architect new way to store and maintain database object so we are not repopulating schema everytime
 			i) only needs to be done if A and B dont speed up process
 		 - Currently takes 1 minute and 10 seconds to generate only the poco classes for all tables in WinChk
