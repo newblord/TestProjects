@@ -29,9 +29,6 @@ namespace Tiger.Dal
 			StoredProcedureNames = storedProcedureNames;
 
 			InitializeDatabaseTreeview();
-
-			TableNames = new List<string>();
-			StoredProcedureNames = new List<string>();
 		}
 
 		private void InitializeDatabaseTreeview()
@@ -44,7 +41,7 @@ namespace Tiger.Dal
 
 		private void InitializeDatabaseTables()
 		{
-			string tables = string.Join(",", TableNames);
+			string tables = string.Join("', '", TableNames);
 
 			string sql = @"SELECT
 								s.NAME        AS [Schema]
@@ -125,7 +122,7 @@ namespace Tiger.Dal
 
 		private void InitializeDatabaseStoredProcedures()
 		{
-			string tables = string.Join(",", TableNames);
+			string tables = string.Join("', '", TableNames);
 
 			string sql = @"SELECT
 											  s.NAME        AS [Schema]
