@@ -23,7 +23,6 @@
 
 	var code = new CodeGenerationTools(this);
 	string Namespace = code.VsNamespaceSuggestion() ?? "DebugMode";
-	var fileManager = TemplateFileManager.Create(this);
 
 #>
 <#+

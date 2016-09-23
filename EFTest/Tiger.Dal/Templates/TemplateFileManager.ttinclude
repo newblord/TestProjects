@@ -120,7 +120,6 @@
 
 			this.templateProjectItem = dte.Solution.FindProjectItem(_textTransformation.Host.TemplateFile);
 			this.CanOverrideExistingFile = true;
-			this.IsAutoIndentEnabled = false;
 			this.Encoding = System.Text.Encoding.UTF8;
 			checkOutAction = fileName => dte.SourceControl.CheckOutItem(fileName);
 			projectSyncAction = keepFileNames => ProjectSync(templateProjectItem, keepFileNames);
@@ -131,12 +130,6 @@
 		/// </summary>
 		/// <returns></returns>
 		public bool CanOverrideExistingFile { get; set; }
-
-		/// <summary>
-		/// If set to true, output files (c#, vb) are formatted based on the vs settings.
-		/// </summary>
-		/// <returns></returns>
-		public bool IsAutoIndentEnabled { get; set; }
 
 		/// <summary>
 		/// Defines Encoding format for generated output file. (Default UTF8)
@@ -195,8 +188,6 @@
 			currentBlock = null;
 		}
 
-		
-
 		/// <summary>
 		/// Produce the template output files.
 		/// </summary>
@@ -244,7 +235,8 @@
 							ProjectName = outputFile.ProjectName,
 							FolderName = outputFile.FolderName,
 							FileProperties = outputFile.FileProperties,
-							Content = content
+							Content = content,
+							OutputPath = outputPath
 						};
 
 						CreateFile(file);
@@ -256,47 +248,14 @@
 				
 			}
 
-			//projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(list, null, null));
-			//var items = VSHelper.GetOutputFilesAsProjectItems(this.dte, list);
-			//this.WriteVsProperties(items, list);
+			if (list.Count > 0)
+			{
+				projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(list, null, null));
 
-			//if (this.IsAutoIndentEnabled == true && split == true)
-			//{
-			//	this.FormatProjectItems(items);
-			//}
-
-			//this.WriteLog(list.ToArray());
+				this.WriteLog(list.ToArray());
+			}
 
 			return list;
-		}
-
-		private void FormatProjectItems(IEnumerable<EnvDTE.ProjectItem> items)
-		{
-			foreach (var item in items)
-			{
-				this._textTransformation.WriteLine(
-				VSHelper.ExecuteVsCommand(this.dte, item, "Edit.FormatDocument")); //, "Edit.RemoveAndSort"));
-				this._textTransformation.WriteLine("//-> " + item.Name);
-			}
-		}
-
-		private void WriteVsProperties(IEnumerable<EnvDTE.ProjectItem> items, IEnumerable<OutputFile> outputFiles)
-		{
-			foreach (var file in outputFiles)
-			{
-				var item = items.Where(p => p.Name == Path.GetFileName(file.FileName)).FirstOrDefault();
-				if (item == null) continue;
-
-				if (String.IsNullOrEmpty(file.FileProperties.CustomTool) == false)
-				{
-					VSHelper.SetPropertyValue(item, "CustomTool", file.FileProperties.CustomTool);
-				}
-
-				if (String.IsNullOrEmpty(file.FileProperties.BuildActionString) == false)
-				{
-					VSHelper.SetPropertyValue(item, "ItemType", file.FileProperties.BuildActionString);
-				}
-			}
 		}
 
 		private string ReplaceParameter(string text, Block block)
@@ -320,7 +279,6 @@
 		/// <param name="list"></param>
 		private void WriteLog(OutputFile[] list)
 		{
-			this._textTransformation.WriteLine("// Generated items");
 			for (int i = 0; i < list.Count(); i++)
 			{
 				this._textTransformation.WriteLine("// " + this.GetDirectorySolutionRelative(list[i].FileName));
@@ -391,16 +349,29 @@
 
 			foreach (var item in groupedFileNames)
 			{
-				EnvDTE.ProjectItem pi = VSHelper.FindProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
-
-				if (pi != null)
+				if (String.IsNullOrEmpty(item.ProjectName) == true && String.IsNullOrEmpty(item.FolderName) == true)
 				{
-					ProjectItemSyncPart(pi, item.OutputFiles);
+					ProjectItemSyncPart(templateProjectItem, item.OutputFiles);
 				}
 				else
 				{
-					EnvDTE.Project prj = VSHelper.GetProject(dte, item.FirstItem.ProjectName);
-					ProjectSyncPart(prj, item.OutputFiles);
+					EnvDTE.ProjectItem pi = VSHelper.FindProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
+
+					if(pi != null)
+					{
+						EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.ProjectName);
+						prj.ProjectItems.AddFromDirectory(Path.GetDirectoryName(pi.FileNames[0]));
+
+						if (!prj.Saved)
+						{
+							prj.Save();
+						}
+					}
+					else
+					{
+						EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.FirstItem.ProjectName);
+						ProjectSyncPart(prj, item.OutputFiles);
+					}
 				}
 			}
 
@@ -799,15 +770,6 @@
 			}
 		}
 
-		public static IEnumerable<ProjectItem> GetOutputFilesAsProjectItems(EnvDTE.DTE dte, IEnumerable<OutputFile> outputFiles)
-		{
-			var fileNames = (from o in outputFiles
-								  select Path.GetFileName(o.FileName))
-								.ToArray();
-
-			return VSHelper.GetAllSolutionItems(dte).Where(f => fileNames.Contains(f.Name));
-		}
-
 		public static string GetOutputPath(EnvDTE.DTE dte, string projectName, string folderName, string defaultPath)
 		{
 			if (String.IsNullOrEmpty(projectName) == true && String.IsNullOrEmpty(folderName) == true)
@@ -990,7 +952,6 @@
 
 		}
 
-
 		private static void FindClasses(CodeElements elements, string searchNamespace, List<CodeClass> result)
 		{
 
@@ -1063,6 +1024,7 @@
 		public string FolderName { get; set; }
 		public string Content { get; set; }
 		public FileProperties FileProperties { get; set; }
+		public string OutputPath { get;set; }
 	}
 
 	public class BuildAction

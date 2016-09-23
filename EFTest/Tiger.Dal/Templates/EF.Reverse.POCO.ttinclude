@@ -8,6 +8,9 @@
 
 <#
 
+	WriteLine("// Generated items");
+
+	var fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
 
 	#region Unit of work
@@ -398,6 +401,12 @@
 
 	#endregion
 
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
+
 	#region POCO classes
 
 	if(ElementsToGenerate.HasFlag(Elements.Poco))
@@ -482,6 +491,12 @@
 
 	#endregion
 
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
+
 	#region POCO Interfaces
 
 	if(ElementsToGenerate.HasFlag(Elements.PocoInterface))
@@ -537,6 +552,12 @@
 	}
 
 	#endregion
+
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
 
 	#region Repositories
 
@@ -619,6 +640,12 @@
 
 	#endregion
 
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
+
 	#region Repository Interfaces
 
 	if(ElementsToGenerate.HasFlag(Elements.RepositoryInterface))
@@ -649,6 +676,12 @@
 	}
 
 	#endregion
+
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
 
 	#region POCO Configuration
 
@@ -710,6 +743,12 @@
 
 	#endregion
 
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
+
 	#region Stored procedure return models
 
 	if(storedProcs.Any() && ElementsToGenerate.HasFlag(Elements.Poco))
@@ -760,6 +799,12 @@
 	}
 
 	#endregion
+
+	fileManager.EndBlock();
+	fileManager.Process(GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
 
 	#region Database Object XML
 
