@@ -38,6 +38,12 @@
 			this.cbxPocoInterfaces = new System.Windows.Forms.CheckBox();
 			this.cbxPocos = new System.Windows.Forms.CheckBox();
 			this.gvTables = new System.Windows.Forms.DataGridView();
+			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.TablePoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableIPoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.tpViews = new System.Windows.Forms.TabPage();
 			this.gvViews = new System.Windows.Forms.DataGridView();
 			this.ViewSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -49,12 +55,6 @@
 			this.pGlobalSettings = new System.Windows.Forms.Panel();
 			this.label1 = new System.Windows.Forms.Label();
 			this.cbxContext = new System.Windows.Forms.CheckBox();
-			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.TablePoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableIPoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
@@ -150,7 +150,9 @@
 			this.cbxRepositoryInterfaces.Size = new System.Drawing.Size(140, 17);
 			this.cbxRepositoryInterfaces.TabIndex = 3;
 			this.cbxRepositoryInterfaces.Text = "All Repository Interfaces";
+			this.cbxRepositoryInterfaces.ThreeState = true;
 			this.cbxRepositoryInterfaces.UseVisualStyleBackColor = true;
+			this.cbxRepositoryInterfaces.CheckStateChanged += new System.EventHandler(this.cbxRepositoryInterfaces_CheckStateChanged);
 			// 
 			// cbxRepositories
 			// 
@@ -161,7 +163,9 @@
 			this.cbxRepositories.Size = new System.Drawing.Size(98, 17);
 			this.cbxRepositories.TabIndex = 2;
 			this.cbxRepositories.Text = "All Repositories";
+			this.cbxRepositories.ThreeState = true;
 			this.cbxRepositories.UseVisualStyleBackColor = true;
+			this.cbxRepositories.CheckStateChanged += new System.EventHandler(this.cbxRepositories_CheckStateChanged);
 			// 
 			// cbxPocoInterfaces
 			// 
@@ -172,7 +176,9 @@
 			this.cbxPocoInterfaces.Size = new System.Drawing.Size(120, 17);
 			this.cbxPocoInterfaces.TabIndex = 1;
 			this.cbxPocoInterfaces.Text = "All POCO Interfaces";
+			this.cbxPocoInterfaces.ThreeState = true;
 			this.cbxPocoInterfaces.UseVisualStyleBackColor = true;
+			this.cbxPocoInterfaces.CheckStateChanged += new System.EventHandler(this.cbxPocoInterfaces_CheckStateChanged);
 			// 
 			// cbxPocos
 			// 
@@ -183,7 +189,9 @@
 			this.cbxPocos.Size = new System.Drawing.Size(109, 17);
 			this.cbxPocos.TabIndex = 0;
 			this.cbxPocos.Text = "All POCO Classes";
+			this.cbxPocos.ThreeState = true;
 			this.cbxPocos.UseVisualStyleBackColor = true;
+			this.cbxPocos.CheckStateChanged += new System.EventHandler(this.cbxPocos_CheckStateChanged);
 			// 
 			// gvTables
 			// 
@@ -208,6 +216,56 @@
 			this.gvTables.TabIndex = 0;
 			this.gvTables.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellContentClick);
 			this.gvTables.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellValueChanged);
+			// 
+			// TableSelect
+			// 
+			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+			this.TableSelect.DataPropertyName = "TableSelect";
+			this.TableSelect.HeaderText = "";
+			this.TableSelect.Name = "TableSelect";
+			this.TableSelect.ThreeState = true;
+			this.TableSelect.Width = 5;
+			// 
+			// TableName
+			// 
+			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+			this.TableName.DataPropertyName = "TableName";
+			this.TableName.HeaderText = "Name";
+			this.TableName.MinimumWidth = 150;
+			this.TableName.Name = "TableName";
+			this.TableName.ReadOnly = true;
+			// 
+			// TablePoco
+			// 
+			this.TablePoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TablePoco.DataPropertyName = "GeneratePoco";
+			this.TablePoco.HeaderText = "POCO";
+			this.TablePoco.Name = "TablePoco";
+			this.TablePoco.Width = 50;
+			// 
+			// TableIPoco
+			// 
+			this.TableIPoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIPoco.DataPropertyName = "GeneratePocoInterface";
+			this.TableIPoco.HeaderText = "POCO Interface";
+			this.TableIPoco.Name = "TableIPoco";
+			this.TableIPoco.Width = 60;
+			// 
+			// TableRepository
+			// 
+			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableRepository.DataPropertyName = "GenerateRepository";
+			this.TableRepository.HeaderText = "Repository";
+			this.TableRepository.Name = "TableRepository";
+			this.TableRepository.Width = 65;
+			// 
+			// TableIRepository
+			// 
+			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
+			this.TableIRepository.HeaderText = "Repository Interface";
+			this.TableIRepository.Name = "TableIRepository";
+			this.TableIRepository.Width = 65;
 			// 
 			// tpViews
 			// 
@@ -320,56 +378,6 @@
 			this.cbxContext.TabIndex = 1;
 			this.cbxContext.Text = "Generate Context Class";
 			this.cbxContext.UseVisualStyleBackColor = true;
-			// 
-			// TableSelect
-			// 
-			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
-			this.TableSelect.DataPropertyName = "TableSelect";
-			this.TableSelect.HeaderText = "";
-			this.TableSelect.Name = "TableSelect";
-			this.TableSelect.ThreeState = true;
-			this.TableSelect.Width = 5;
-			// 
-			// TableName
-			// 
-			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-			this.TableName.DataPropertyName = "TableName";
-			this.TableName.HeaderText = "Name";
-			this.TableName.MinimumWidth = 150;
-			this.TableName.Name = "TableName";
-			this.TableName.ReadOnly = true;
-			// 
-			// TablePoco
-			// 
-			this.TablePoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TablePoco.DataPropertyName = "GeneratePoco";
-			this.TablePoco.HeaderText = "POCO";
-			this.TablePoco.Name = "TablePoco";
-			this.TablePoco.Width = 50;
-			// 
-			// TableIPoco
-			// 
-			this.TableIPoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIPoco.DataPropertyName = "GeneratePocoInterface";
-			this.TableIPoco.HeaderText = "POCO Interface";
-			this.TableIPoco.Name = "TableIPoco";
-			this.TableIPoco.Width = 60;
-			// 
-			// TableRepository
-			// 
-			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableRepository.DataPropertyName = "GenerateRepository";
-			this.TableRepository.HeaderText = "Repository";
-			this.TableRepository.Name = "TableRepository";
-			this.TableRepository.Width = 65;
-			// 
-			// TableIRepository
-			// 
-			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
-			this.TableIRepository.HeaderText = "Repository Interface";
-			this.TableIRepository.Name = "TableIRepository";
-			this.TableIRepository.Width = 65;
 			// 
 			// UpdateFromDatabase
 			// 
