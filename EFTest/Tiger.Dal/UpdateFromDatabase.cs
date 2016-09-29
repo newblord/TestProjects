@@ -20,6 +20,10 @@ namespace Tiger.Dal
 
 		public List<string> StoredProcedureNames { get; set; }
 
+		private bool SkipTableHeaderCheckboxEvent { get; set; }
+
+		private bool SkipTableCellValueEvent { get; set; }
+
 		public UpdateFromDatabase(string connectionStringName, List<string> tableNames, List<string> storedProcedureNames)
 		{
 			InitializeComponent();
@@ -28,29 +32,57 @@ namespace Tiger.Dal
 			TableNames = tableNames;
 			StoredProcedureNames = storedProcedureNames;
 
-			InitializeDatabaseTreeview();
+			InitializeDatabaseObjects();
+
 		}
 
-		private void InitializeDatabaseTreeview()
+		#region Private Methods
+
+		private void SetupTableGridViewHeaderCheckbox()
+		{
+			Rectangle rect = gvTables.GetCellDisplayRectangle(0, -1, true);
+			rect.Y = rect.Height / 3;
+			rect.X = rect.Location.X + (rect.Width / 3);
+			CheckBox cbx = new CheckBox();
+			cbx.Name = "TableSelectHeader";
+			//datagridview[0, 0].ToolTipText = "sdfsdf";
+			cbx.Size = new Size(18, 18);
+			cbx.Location = rect.Location;
+			cbx.BackColor = Color.Transparent;
+			cbx.ThreeState = true;
+			cbx.CheckStateChanged += new EventHandler(checkboxHeader_CheckStateChanged);
+			gvTables.Controls.Add(cbx);
+		}
+
+		private void ToggleTableOptions(CheckState state, int rowIndex)
+		{
+			gvTables[2, rowIndex].Value = state == CheckState.Checked ? true : false;
+			gvTables[3, rowIndex].Value = state == CheckState.Checked ? true : false;
+			gvTables[4, rowIndex].Value = state == CheckState.Checked ? true : false;
+			gvTables[5, rowIndex].Value = state == CheckState.Checked ? true : false;
+		}
+
+		private void InitializeDatabaseObjects()
 		{
 			InitializeDatabaseTables();
-			InitializeDatabaseViews();
-			InitializeDatabaseStoredProcedures();
-			InitializeDatabaseFunctions();
+			//InitializeDatabaseViews();
+			//InitializeDatabaseStoredProcedures();
+			//InitializeDatabaseFunctions();
 		}
 
 		private void InitializeDatabaseTables()
 		{
 			string tables = string.Join("', '", TableNames);
+			List<TableData> tableData = new List<TableData>();
 
 			string sql = @"SELECT
 								s.NAME        AS [Schema]
 								, o.type_desc AS [Type]
 								, o.NAME      AS [Name]
-								, Case
+								, CAST(Case
 									WHEN o.NAME IN ('{TABLE_NAMES}') THEN 1
 									ELSE 0
-									END AS Checked
+									END AS BIT) AS Checked
 							FROM   sys.all_objects o
 										INNER JOIN sys.schemas s
 												ON s.schema_id = o.schema_id
@@ -70,176 +102,279 @@ namespace Tiger.Dal
 
 				SqlDataReader reader = command.ExecuteReader();
 
-				TreeNode node = tvDBComponents.Nodes.Add("Tables");
 
 				while (reader.Read())
 				{
-					TreeNode newNode = new TreeNode(reader["Name"].ToString());
+					TableData data = new TableData();
 
-					if (int.Parse(reader["Checked"].ToString()) == 1)
-						newNode.Checked = true;
+					bool isChecked = bool.Parse(reader["Checked"].ToString());
 
-					node.Nodes.Add(newNode);
+					data.TableName = reader["Name"].ToString();
+					data.TableSelect = isChecked == true ? CheckState.Checked : CheckState.Unchecked;
+
+					tableData.Add(data);
 				}
 
 				connection.Close();
 			}
+
+			gvTables.DataSource = tableData;
 		}
 
-		private void InitializeDatabaseViews()
+		//private void InitializeDatabaseViews()
+		//{
+		//	using (SqlConnection connection = new SqlConnection(ConnectionString))
+		//	{
+		//		connection.Open();
+		//		SqlCommand command = connection.CreateCommand();
+
+		//		command.CommandType = CommandType.Text;
+		//		command.CommandText = @"SELECT
+		//									  s.NAME        AS [Schema]
+		//									  , o.type_desc AS [Type]
+		//									  , o.NAME      AS [Name]
+		//									FROM   sys.all_objects o
+		//											 INNER JOIN sys.schemas s
+		//														ON s.schema_id = o.schema_id
+		//									WHERE
+		//									  o.type IN ('V') 
+		//									  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
+		//									ORDER  BY o.NAME 
+		//									";
+
+		//		SqlDataReader reader = command.ExecuteReader();
+
+		//		TreeNode node = tvDBComponents.Nodes.Add("Views");
+
+		//		while (reader.Read())
+		//		{
+		//			node.Nodes.Add(reader["Name"].ToString());
+		//		}
+
+		//		connection.Close();
+		//	}
+		//}
+
+		//private void InitializeDatabaseStoredProcedures()
+		//{
+		//	string tables = string.Join("', '", TableNames);
+
+		//	string sql = @"SELECT
+		//									  s.NAME        AS [Schema]
+		//									  , o.type_desc AS [Type]
+		//									  , o.NAME      AS [Name]
+		//									  , Case
+		//											WHEN o.NAME IN ('{SPROC_NAMES}') THEN 1
+		//											ELSE 0
+		//											END AS Checked
+		//									FROM   sys.all_objects o
+		//											 INNER JOIN sys.schemas s
+		//														ON s.schema_id = o.schema_id
+		//									WHERE
+		//									  o.type IN ('P') 
+		//									  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
+		//									ORDER  BY o.type,o.NAME 
+		//									";
+
+		//	using (SqlConnection connection = new SqlConnection(ConnectionString))
+		//	{
+		//		connection.Open();
+		//		SqlCommand command = connection.CreateCommand();
+
+		//		command.CommandType = CommandType.Text;
+		//		command.CommandText = sql.Replace("{SPROC_NAMES}", tables);
+
+		//		SqlDataReader reader = command.ExecuteReader();
+
+		//		TreeNode node = tvDBComponents.Nodes.Add("Stored Procedures");
+
+		//		while (reader.Read())
+		//		{
+		//			TreeNode newNode = new TreeNode(reader["Name"].ToString());
+
+		//			if (int.Parse(reader["Checked"].ToString()) == 1)
+		//				newNode.Checked = true;
+
+		//			node.Nodes.Add(newNode);
+		//		}
+
+		//		connection.Close();
+		//	}
+		//}
+
+		//private void InitializeDatabaseFunctions()
+		//{
+		//	using (SqlConnection connection = new SqlConnection(ConnectionString))
+		//	{
+		//		connection.Open();
+		//		SqlCommand command = connection.CreateCommand();
+
+		//		command.CommandType = CommandType.Text;
+		//		command.CommandText = @"SELECT
+		//									  s.NAME        AS [Schema]
+		//									  , o.type_desc AS [Type]
+		//									  , o.NAME      AS [Name]
+		//									FROM   sys.all_objects o
+		//											 INNER JOIN sys.schemas s
+		//														ON s.schema_id = o.schema_id
+		//									WHERE
+		//									  o.type IN ('FN', 'IF', 'TF') 
+		//									  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
+		//									ORDER  BY o.type,o.NAME 
+		//									";
+
+		//		SqlDataReader reader = command.ExecuteReader();
+
+		//		TreeNode node = tvDBComponents.Nodes.Add("Functions");
+
+		//		while (reader.Read())
+		//		{
+		//			node.Nodes.Add(reader["Name"].ToString());
+		//		}
+
+		//		connection.Close();
+		//	}
+		//}
+
+		#endregion
+
+		#region Events
+
+		private void UpdateFromDatabase_Load(object sender, EventArgs e)
 		{
-			using (SqlConnection connection = new SqlConnection(ConnectionString))
+			SetupTableGridViewHeaderCheckbox();
+		}
+
+		public void checkboxHeader_CheckStateChanged(object sender, EventArgs e)
+		{
+			if (gvTables.IsCurrentCellInEditMode)
 			{
-				connection.Open();
-				SqlCommand command = connection.CreateCommand();
+				gvTables.EndEdit();
+			}
 
-				command.CommandType = CommandType.Text;
-				command.CommandText = @"SELECT
-											  s.NAME        AS [Schema]
-											  , o.type_desc AS [Type]
-											  , o.NAME      AS [Name]
-											FROM   sys.all_objects o
-													 INNER JOIN sys.schemas s
-																ON s.schema_id = o.schema_id
-											WHERE
-											  o.type IN ('V') 
-											  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
-											ORDER  BY o.NAME 
-											";
+			if (!SkipTableHeaderCheckboxEvent)
+			{
+				CheckBox cbx = (CheckBox)sender;
 
-				SqlDataReader reader = command.ExecuteReader();
-
-				TreeNode node = tvDBComponents.Nodes.Add("Views");
-
-				while (reader.Read())
+				if (cbx.CheckState == CheckState.Indeterminate)
 				{
-					node.Nodes.Add(reader["Name"].ToString());
+					cbx.CheckState = CheckState.Unchecked;
 				}
 
-				connection.Close();
+				SkipTableCellValueEvent = true;
+
+				for (int i = 0; i < gvTables.Rows.Count; i++)
+				{
+					gvTables.Rows[i].Cells[0].Value = cbx.Checked == true ? CheckState.Checked : CheckState.Unchecked;
+					ToggleTableOptions((CheckState)gvTables.Rows[i].Cells[0].Value, i);
+				}
+
+				SkipTableCellValueEvent = false;
 			}
 		}
 
-		private void InitializeDatabaseStoredProcedures()
+		#endregion
+
+		private void gvTables_CellValueChanged(object sender, DataGridViewCellEventArgs e)
 		{
-			string tables = string.Join("', '", TableNames);
-
-			string sql = @"SELECT
-											  s.NAME        AS [Schema]
-											  , o.type_desc AS [Type]
-											  , o.NAME      AS [Name]
-											  , Case
-													WHEN o.NAME IN ('{SPROC_NAMES}') THEN 1
-													ELSE 0
-													END AS Checked
-											FROM   sys.all_objects o
-													 INNER JOIN sys.schemas s
-																ON s.schema_id = o.schema_id
-											WHERE
-											  o.type IN ('P') 
-											  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
-											ORDER  BY o.type,o.NAME 
-											";
-
-			using (SqlConnection connection = new SqlConnection(ConnectionString))
+			if (e.ColumnIndex > -1 && e.RowIndex > -1 && !SkipTableCellValueEvent)
 			{
-				connection.Open();
-				SqlCommand command = connection.CreateCommand();
-
-				command.CommandType = CommandType.Text;
-				command.CommandText = sql.Replace("{SPROC_NAMES}", tables);
-
-				SqlDataReader reader = command.ExecuteReader();
-
-				TreeNode node = tvDBComponents.Nodes.Add("Stored Procedures");
-
-				while (reader.Read())
+				if (e.ColumnIndex == 0)
 				{
-					TreeNode newNode = new TreeNode(reader["Name"].ToString());
+					CheckState isChecked = (CheckState)gvTables[0, e.RowIndex].FormattedValue;
 
-					if (int.Parse(reader["Checked"].ToString()) == 1)
-						newNode.Checked = true;
+					CheckBox cbx = (CheckBox)gvTables.Controls.Find("TableSelectHeader", false).First();
+					
+					List<TableData> tableData = (List<TableData>)gvTables.DataSource;
 
-					node.Nodes.Add(newNode);
-				}
+					SkipTableHeaderCheckboxEvent = true;
 
-				connection.Close();
-			}
-		}
-
-		private void InitializeDatabaseFunctions()
-		{
-			using (SqlConnection connection = new SqlConnection(ConnectionString))
-			{
-				connection.Open();
-				SqlCommand command = connection.CreateCommand();
-
-				command.CommandType = CommandType.Text;
-				command.CommandText = @"SELECT
-											  s.NAME        AS [Schema]
-											  , o.type_desc AS [Type]
-											  , o.NAME      AS [Name]
-											FROM   sys.all_objects o
-													 INNER JOIN sys.schemas s
-																ON s.schema_id = o.schema_id
-											WHERE
-											  o.type IN ('FN', 'IF', 'TF') 
-											  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
-											ORDER  BY o.type,o.NAME 
-											";
-
-				SqlDataReader reader = command.ExecuteReader();
-
-				TreeNode node = tvDBComponents.Nodes.Add("Functions");
-
-				while (reader.Read())
-				{
-					node.Nodes.Add(reader["Name"].ToString());
-				}
-
-				connection.Close();
-			}
-		}
-
-		private void tvDBComponents_AfterCheck(object sender, TreeViewEventArgs e)
-		{
-			SetChildrenChecked(e.Node, e.Node.Checked);
-		}
-
-		private void SetChildrenChecked(TreeNode treeNode, bool checkedState)
-		{
-			foreach (TreeNode item in treeNode.Nodes)
-			{
-				if (item.Checked != checkedState)
-				{
-					item.Checked = checkedState;
-				}
-			}
-		}
-
-		private void btnSelect_Click(object sender, EventArgs e)
-		{
-			foreach (TreeNode mainNode in tvDBComponents.Nodes)
-			{
-				if (mainNode.Text == "Tables")
-				{
-					foreach (TreeNode node in mainNode.Nodes)
+					if (cbx.CheckState == CheckState.Checked && isChecked == CheckState.Unchecked ||
+							cbx.CheckState == CheckState.Unchecked && isChecked == CheckState.Checked)
 					{
-						if (node.Checked == true)
-							TableNames.Add(node.Text);
+						cbx.CheckState = CheckState.Indeterminate;
 					}
-				}
-				if (mainNode.Text == "Stored Procedures")
-				{
-					foreach (TreeNode node in mainNode.Nodes)
+
+					int checkedCount = tableData.Where(x => x.TableSelect == CheckState.Checked).Count();
+
+					cbx.CheckState = checkedCount > 0 ? CheckState.Checked : CheckState.Unchecked;
+
+					if (checkedCount > 0 && checkedCount < tableData.Count)
 					{
-						if (node.Checked == true)
-							StoredProcedureNames.Add(node.Text);
+						cbx.CheckState = CheckState.Indeterminate;
 					}
+
+					if (isChecked != CheckState.Indeterminate)
+					{
+						ToggleTableOptions(isChecked, e.RowIndex);
+					}
+
+					SkipTableHeaderCheckboxEvent = false;
+
+					gvTables.EndEdit();
+				}
+				else if (e.ColumnIndex >= 2 && e.ColumnIndex <= 5)
+				{
+					DataGridViewCheckBoxCell cbx = (DataGridViewCheckBoxCell)gvTables[0, e.RowIndex];
+					bool cbx1Value = (bool)gvTables[2, e.RowIndex].FormattedValue;
+					bool cbx2Value = (bool)gvTables[3, e.RowIndex].FormattedValue;
+					bool cbx3Value = (bool)gvTables[4, e.RowIndex].FormattedValue;
+					bool cbx4Value = (bool)gvTables[5, e.RowIndex].FormattedValue;
+
+					if (cbx1Value && cbx2Value && cbx3Value && cbx4Value)
+					{
+						cbx.Value = CheckState.Checked;
+					}
+					else if (!cbx1Value && !cbx2Value && !cbx3Value && !cbx4Value)
+					{
+						cbx.Value = CheckState.Unchecked;
+					}
+					else if (cbx1Value || cbx2Value || cbx3Value || cbx4Value)
+					{
+						cbx.Value = CheckState.Indeterminate;
+					}
+
+					gvTables.EndEdit();
 				}
 			}
+		}
 
-			this.Close();
+		private void gvTables_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			gvTables.CommitEdit(DataGridViewDataErrorContexts.Commit);
+		}
+
+		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
+		{
+			//TabPage tp = e.TabPage;
+
+			//int totalWidth = 0;
+
+			//if (tp.Text == "Views")
+			//{
+			//	foreach (DataGridViewColumn c in gvViews.Columns)
+			//	{
+			//		totalWidth += c.Width;
+			//	}
+
+			//	this.Width = totalWidth;
+			//}
 		}
 	}
+
+	#region Helper Classes
+
+	class TableData
+	{
+		public TableData() { }
+
+		public CheckState TableSelect { get; set; }
+		public string TableName { get; set; }
+		public bool GeneratePoco { get; set; }
+		public bool GeneratePocoInterface { get; set; }
+		public bool GenerateRepository { get; set; }
+		public bool GenerateRepositoryInterface { get; set; }
+	}
+
+	#endregion
 }
