@@ -20,10 +20,6 @@ namespace Tiger.Dal
 
 		public List<string> StoredProcedureNames { get; set; }
 
-		private bool SkipTableHeaderCheckboxEvent { get; set; }
-
-		private bool SkipTableCellValueEvent { get; set; }
-
 		public UpdateFromDatabase(string connectionStringName, List<string> tableNames, List<string> storedProcedureNames)
 		{
 			InitializeComponent();
@@ -52,14 +48,6 @@ namespace Tiger.Dal
 			cbx.ThreeState = true;
 			cbx.CheckStateChanged += new EventHandler(checkboxHeader_CheckStateChanged);
 			gvTables.Controls.Add(cbx);
-		}
-
-		private void ToggleTableOptions(CheckState state, int rowIndex)
-		{
-			gvTables[2, rowIndex].Value = state == CheckState.Checked ? true : false;
-			gvTables[3, rowIndex].Value = state == CheckState.Checked ? true : false;
-			gvTables[4, rowIndex].Value = state == CheckState.Checked ? true : false;
-			gvTables[5, rowIndex].Value = state == CheckState.Checked ? true : false;
 		}
 
 		private void InitializeDatabaseObjects()
@@ -245,36 +233,42 @@ namespace Tiger.Dal
 			SetupTableGridViewHeaderCheckbox();
 		}
 
-		public void checkboxHeader_CheckStateChanged(object sender, EventArgs e)
+		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
 		{
-			if (gvTables.IsCurrentCellInEditMode)
-			{
-				gvTables.EndEdit();
-			}
+			//TabPage tp = e.TabPage;
 
-			if (!SkipTableHeaderCheckboxEvent)
-			{
-				CheckBox cbx = (CheckBox)sender;
+			//int totalWidth = 0;
 
-				if (cbx.CheckState == CheckState.Indeterminate)
-				{
-					cbx.CheckState = CheckState.Unchecked;
-				}
+			//if (tp.Text == "Views")
+			//{
+			//	foreach (DataGridViewColumn c in gvViews.Columns)
+			//	{
+			//		totalWidth += c.Width;
+			//	}
 
-				SkipTableCellValueEvent = true;
-
-				for (int i = 0; i < gvTables.Rows.Count; i++)
-				{
-					gvTables.Rows[i].Cells[0].Value = cbx.Checked == true ? CheckState.Checked : CheckState.Unchecked;
-					ToggleTableOptions((CheckState)gvTables.Rows[i].Cells[0].Value, i);
-				}
-
-				SkipTableCellValueEvent = false;
-			}
+			//	this.Width = totalWidth;
+			//}
 		}
 
 		#endregion
 
+		#region Tables Tab
+
+		private bool SkipTableHeaderCheckboxEvent { get; set; }
+
+		private bool SkipTableCellValueEvent { get; set; }
+
+		#region Private Methods
+		private void ToggleTableOptions(CheckState state, int rowIndex)
+		{
+			gvTables[2, rowIndex].Value = state == CheckState.Checked ? true : false;
+			gvTables[3, rowIndex].Value = state == CheckState.Checked ? true : false;
+			gvTables[4, rowIndex].Value = state == CheckState.Checked ? true : false;
+			gvTables[5, rowIndex].Value = state == CheckState.Checked ? true : false;
+		}
+		#endregion
+
+		#region Events
 		private void gvTables_CellValueChanged(object sender, DataGridViewCellEventArgs e)
 		{
 			if (e.ColumnIndex > -1 && e.RowIndex > -1 && !SkipTableCellValueEvent)
@@ -360,21 +354,32 @@ namespace Tiger.Dal
 			gvTables.CommitEdit(DataGridViewDataErrorContexts.Commit);
 		}
 
-		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
+		public void checkboxHeader_CheckStateChanged(object sender, EventArgs e)
 		{
-			//TabPage tp = e.TabPage;
+			if (gvTables.IsCurrentCellInEditMode)
+			{
+				gvTables.EndEdit();
+			}
 
-			//int totalWidth = 0;
+			if (!SkipTableHeaderCheckboxEvent)
+			{
+				CheckBox cbx = (CheckBox)sender;
 
-			//if (tp.Text == "Views")
-			//{
-			//	foreach (DataGridViewColumn c in gvViews.Columns)
-			//	{
-			//		totalWidth += c.Width;
-			//	}
+				if (cbx.CheckState == CheckState.Indeterminate)
+				{
+					cbx.CheckState = CheckState.Unchecked;
+				}
 
-			//	this.Width = totalWidth;
-			//}
+				SkipTableCellValueEvent = true;
+
+				for (int i = 0; i < gvTables.Rows.Count; i++)
+				{
+					gvTables.Rows[i].Cells[0].Value = cbx.Checked == true ? CheckState.Checked : CheckState.Unchecked;
+					ToggleTableOptions((CheckState)gvTables.Rows[i].Cells[0].Value, i);
+				}
+
+				SkipTableCellValueEvent = false;
+			}
 		}
 
 		private void cbxPocos_CheckStateChanged(object sender, EventArgs e)
@@ -436,6 +441,9 @@ namespace Tiger.Dal
 				gvTables.Rows[i].Cells[5].Value = cbx.Checked == true ? true : false;
 			}
 		}
+		#endregion
+
+		#endregion
 	}
 
 	#region Helper Classes
