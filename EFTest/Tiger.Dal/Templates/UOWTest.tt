@@ -1,6 +1,6 @@
 ﻿<#@ include file="EF.Reverse.POCO.Core.ttinclude" #>
 <#@ import namespace="System.Windows.Forms" #>
-<#@ assembly name="$(SolutionDir)\Tiger.Dal\bin\Debug\Tiger.Dal.dll" #>
+
 <#
 	// v2.22.1
 	// Please make changes to the settings below.
@@ -11,30 +11,26 @@
 	ConnectionStringName = "LendDirect";	// Searches for this connection string in config files listed below in the ConfigFilenameSearchOrder setting
 	//ConnectionStringName is the only required setting
 	// Namespace = ""; // Override the default namespace here
-	DbContextName = "POCTest";
+	Setting.DatabaseContextName = "POCTest";
 	//DbContextInterfaceName = "IMyDbContext"; //Defaults to "I" + DbContextName
-	DbContextInterfaceBaseClasses = "IDisposable";	 // Specify what the base classes are for your database context interface
-	DbContextBaseClass = "DbContext";	// Specify what the base class is for your DbContext. For ASP.NET Identity use "IdentityDbContext<ApplicationUser>"
+	Setting.ContextInterfaceBaseClass = "IDisposable";	 // Specify what the base classes are for your database context interface
+	Setting.ContextBaseClass = "DbContext";	// Specify what the base class is for your DbContext. For ASP.NET Identity use "IdentityDbContext<ApplicationUser>"
 	//DefaultConstructorArgument = "EnvironmentConnectionStrings.MyDbContext"; //defaults to "Name=" + ConnectionStringName
 	TargetFrameworkVersion = "4.51"; // Please set this to your .NET framework version, 4.0, 4.5, 4.51, etc.
 	ConfigurationClassName = "Configuration"; // Configuration, Mapping, Map, etc. This is appended to the Poco class name to configure the mappings.
 	ConfigFilenameSearchOrder = new[] { "app.config", "web.config", "app.config.transform", "web.config.transform" }; // Add more here if required. The config files are searched for in the local project first, then the whole solution second.
-	MakeClassesPartial = true;
-	MakeInterfacesPartial = true;
-	MakeDbContextInterfacePartial = true;
-	GenerateSeparateFiles = true;
-	UseDataAnnotations = true;
-	UseMappingTables = true; // If true, mapping will be used and no mapping tables will be generated. If false, all tables will be generated.
-	UseCamelCase = true;	 // This will rename the tables & fields to use CamelCase. If false table & field names will be left alone.
+
+	Setting.MakeInterfacesPartial = true;
+	Setting.MakeContextInterfacePartial = true;
+	Setting.GenerateSeparateFiles = true;
+	Setting.UseDataAnnotations = true;
+	Setting.UseCamelCase = true;	 // This will rename the tables & fields to use CamelCase. If false table & field names will be left alone.
 	IncludeComments = CommentsStyle.AtEndOfField; // Adds comments to the generated code
-	IncludeViews = true;
-	IncludeStoredProcedures = true;
-	IncludeTableValuedFunctions = true; // If true, you must set IncludeStoredProcedures = true, and install the "EntityFramework.CodeFirstStoreFunctions" Nuget Package.
-	DisableGeographyTypes = false; // Turns off use of System.Data.Entity.Spatial.DbGeography and System.Data.Entity.Spatial.DbGeometry as OData doesn't support entities with geometry/geography types.
+	Setting.DisableGeographyTypes = false; // Turns off use of System.Data.Entity.Spatial.DbGeography and System.Data.Entity.Spatial.DbGeometry as OData doesn't support entities with geometry/geography types.
 	CollectionType = "System.Collections.Generic.IEnumerable";  // Determines the type of collection for the Navigation Properties. "ObservableCollection" for example. Add "System.Collections.ObjectModel" to AdditionalNamespaces if setting the CollectionType = "ObservableCollection".
-	NullableShortHand = true; //true => T?, false => Nullable<T>
+	Setting.NullableShortHand = true; //true => T?, false => Nullable<T>
 	IncludeQueryTraceOn9481Flag = false; // If SqlServer 2014 appears frozen / take a long time when this file is saved, try setting this to true (you will also need elevated privileges).
-	UsePrivateSetterForComputedColumns = true; // If the columns is computed, use a private setter.
+	Setting.PrivateSetterForComputerColumns = true; // If the columns is computed, use a private setter.
 	AdditionalNamespaces = new[] { "" };  // To include extra namespaces, include them here. i.e. "Microsoft.AspNet.Identity.EntityFramework"
 	AdditionalContextInterfaceItems = new[] // To include extra db context interface items, include them here. Also set MakeClassesPartial=true, and implement the partial DbContext class functions.
 	{
@@ -68,14 +64,28 @@
 	StoredProcedureNames = new List<string>();
 
 	InitConnectionString();
-	ProcessDatabaseXML(ref TableNames, ref StoredProcedureNames);
-
-	using (Tiger.Dal.UpdateFromDatabase frm = new Tiger.Dal.UpdateFromDatabase(ConnectionString, TableNames, StoredProcedureNames))
+	ProcessDatabaseXML();
+	
+	using (Tiger.Dal.UpdateFromDatabase frm = new Tiger.Dal.UpdateFromDatabase(ConnectionString, TableNames, StoredProcedureNames, Setting))
 	{
 		frm.ShowDialog();
 
 		TableNames = frm.TableNames;
 		StoredProcedureNames = frm.StoredProcedureNames;
+
+		/*DbContextName = frm.Setting.DatabaseContextName;
+		DbContextInterfaceBaseClasses = frm.Setting.ContextInterfaceBaseClass;
+		DbContextBaseClass = frm.Setting.ContextBaseClass;
+		MakeClassesPartial = frm.Setting.MakeClassesPartial;
+		MakeInterfacesPartial = frm.Setting.MakeInterfacesPartial;
+		MakeDbContextInterfacePartial = frm.Setting.MakeContextInterfacePartial;
+		GenerateSeparateFiles = frm.Setting.GenerateSeparateFiles;
+		UseDataAnnotations = frm.Setting.UseDataAnnotations;
+		UseCamelCase = frm.Setting.UseCamelCase;
+		DisableGeographyTypes = frm.Setting.DisableGeographyTypes;
+		NullableShortHand = frm.Setting.NullableShortHand;
+		UsePrivateSetterForComputedColumns = frm.Setting.PrivateSetterForComputerColumns;
+		*/
 	}
 
 	// Pluralization **********************************************************************************************************************
@@ -184,7 +194,7 @@
 		//	 name = name.Remove(0, 3);
 		//name = name.Replace("_AB", "");
 
-		// If you turn camel casing off (UseCamelCase = false), and use the pluralisation service, and some of your
+		// If you turn camel casing off (Setting.UseCamelCase = false), and use the pluralisation service, and some of your
 		// tables names are all UPPERCASE, some words ending in IES such as CATEGORIES get singularised as CATEGORy.
 		// Therefore you can make them lowercase by using the following
 		// return Inflector.MakeLowerIfAllCaps(name);
@@ -262,7 +272,7 @@
 		// if(t.ClassName.StartsWith("Order"))
 		//	  WriteLine("	 [SomeAttribute]");
 
-		if(!UseDataAnnotations)
+		if(Setting.UseDataAnnotations)
 		{
 			WriteLine("[Table(\"{0}\", Schema = \"{1}\")]", t.Name, t.Schema);
 		}
@@ -292,7 +302,7 @@
 
 		StringBuilder sb = new StringBuilder();
 
-		if(UseDataAnnotations)
+		if(Setting.UseDataAnnotations)
 		{
 			if(c.IsIdentity)
 				sb.AppendLine("[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");

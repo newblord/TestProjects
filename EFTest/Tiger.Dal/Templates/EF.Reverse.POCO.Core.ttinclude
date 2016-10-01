@@ -18,12 +18,14 @@
 <#@ import namespace="System.Xml.Linq" #>
 <#@ import namespace="EnvDTE" #>
 <#@ include file="TemplateFileManager.ttinclude" #>
+<#@ assembly name="$(SolutionDir)\Tiger.Dal\bin\Debug\Tiger.Dal.dll" #>
 <#@ output extension=".cs"#>
 <#
 
 	var code = new CodeGenerationTools(this);
 	string Namespace = code.VsNamespaceSuggestion() ?? "DebugMode";
 
+	
 #>
 <#+
 
@@ -35,36 +37,36 @@
 		AtEndOfField
 	};
 
+	Tiger.Dal.DatabaseGenerationSetting Setting = new Tiger.Dal.DatabaseGenerationSetting();
+
+	Setting.DatabaseContextName = "MyDbContext";
+	Setting.ContextInterfaceBaseClass = "System.IDisposable";
+	Setting.ContextBaseClass = "System.Data.Entity.DbContext";
+	Setting.MakeClassesPartial = true;
+	Setting.MakeInterfacesPartial = true;
+	Setting.MakeContextInterfacePartial = false;
+	Setting.GenerateSeparateFiles = false;
+	Setting.UseDataAnnotations = false;
+	Setting.UseCamelCase = true;
+	Setting.DisableGeographyTypes = false;
+	Setting.NullableShortHand = true;
+	Setting.PrivateSetterForComputerColumns = true;
+
 	// Settings - edit these in the main <name>.tt file *******************************************************************************
 	string ConnectionStringName = "";
-	bool IncludeViews = true;
-	bool IncludeSynonyms = false;
-	bool IncludeStoredProcedures = false;
-	bool IncludeTableValuedFunctions = false;
-	string DbContextName = "MyDbContext";
 	string _dbContextInterfaceName = null;
-	string DbContextInterfaceName {get {return _dbContextInterfaceName ?? ("I" + DbContextName);} set {_dbContextInterfaceName = value;}}
-	string DbContextInterfaceBaseClasses = "System.IDisposable";
-	string DbContextBaseClass = "System.Data.Entity.DbContext";
+	string DbContextInterfaceName {get {return _dbContextInterfaceName ?? ("I" + Setting.DatabaseContextName);} set {_dbContextInterfaceName = value;}}
 	string _defaultConstructorArgument = null;
 	string DefaultConstructorArgument {get {return _defaultConstructorArgument ?? String.Format('"' + "Name={0}" + '"',ConnectionStringName);} set {_defaultConstructorArgument = value;}}
 	string ConfigurationClassName = "Configuration";
 	string CollectionType = "System.Collections.Generic.List";
-	static bool NullableShortHand = true;
-	bool MakeClassesPartial = true;
-	bool MakeInterfacesPartial = true;
-	bool MakeDbContextInterfacePartial = false;
-	bool GenerateSeparateFiles = false;
-	bool UseDataAnnotations = false;
-	bool UseMappingTables = true;
-	bool IsSqlCe = false;
+
 	string FileExtension = ".cs";
 	string GeneratedFileExtension = ".generated.cs";
-	bool UseCamelCase = true;
-	bool UsePrivateSetterForComputedColumns = true;
+
 	CommentsStyle IncludeComments = CommentsStyle.AtEndOfField;
 	bool IncludeQueryTraceOn9481Flag = false;
-	static bool DisableGeographyTypes = false;
+	
 	bool PrependSchemaName = true;
 	Regex SchemaFilterExclude = null;
 	Regex SchemaFilterInclude = null;
@@ -229,7 +231,7 @@
 		return col.IsNullable && !NotNullable.Contains(col.PropertyType.ToLower());
 	}
 
-	public void ProcessDatabaseXML(ref List<string> tableNames, ref List<string> storedProcedureNames)
+	public void ProcessDatabaseXML()
 	{
 		string fileName = Host.TemplateFile.Replace(".tt", "") + ".xml";
 
@@ -237,11 +239,10 @@
 		{
 			var xml = XDocument.Load(fileName);
 
-			// Query the data and write out a subset of contacts
-			tableNames = (from c in xml.Root.Descendants("Table")
+			TableNames = (from c in xml.Root.Descendants("Table")
 							select c.Value).ToList();
 
-			storedProcedureNames = (from c in xml.Root.Descendants("StoredProcedure")
+			StoredProcedureNames = (from c in xml.Root.Descendants("StoredProcedure")
 							select c.Value).ToList();
 		}
 	}
@@ -520,20 +521,7 @@
 			return null;
 		}
 	}
-
-	private bool IsSqlCeConnection(DbProviderFactory factory)
-	{
-		using (DbConnection conn = factory.CreateConnection())
-		{
-			conn.ConnectionString = ConnectionString;
-			conn.Open();
-
-			if(conn.GetType().Name.ToLower() == "sqlceconnection")
-				return true;
-		}
-		return false;
-	}
-
+	
 	private Tables LoadTables(DbProviderFactory factory, List<string> tableNames)
 	{
 		if(factory == null || !(ElementsToGenerate.HasFlag(Elements.Poco) ||
@@ -549,28 +537,19 @@
 				conn.ConnectionString = ConnectionString;
 				conn.Open();
 
-				if(IsSqlCe)
-					PrependSchemaName = false;
-
 				var reader = new SqlServerSchemaReader(conn, factory, IncludeQueryTraceOn9481Flag) { Outer = this };
 				reader.TableNames = tableNames;
 
-				var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, UseCamelCase, PrependSchemaName, IncludeComments, IncludeViews, TableRename, UpdateColumn, UsePrivateSetterForComputedColumns, IncludeSynonyms);
+				var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, Setting.UseCamelCase, PrependSchemaName, IncludeComments, TableRename, UpdateColumn, Setting.PrivateSetterForComputerColumns);
 				tables.SetPrimaryKeys();
 
 				// Must be done in this order
 				var fkList = reader.ReadForeignKeys(TableRename, ForeignKeyFilter);
 				reader.IdentifyForeignKeys(fkList, tables);
-				reader.ProcessForeignKeys(fkList, tables, UseCamelCase, PrependSchemaName, CollectionType, true, IncludeComments, ForeignKeyName);
-
-				if(UseMappingTables)
-					tables.IdentifyMappingTables(fkList, UseCamelCase, CollectionType, true, IncludeComments, IsSqlCe, ForeignKeyName);
-
+				reader.ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, PrependSchemaName, CollectionType, true, IncludeComments, ForeignKeyName);
+				
 				tables.ResetNavigationProperties();
-
-				reader.ProcessForeignKeys(fkList, tables, UseCamelCase, PrependSchemaName, CollectionType, false, IncludeComments, ForeignKeyName);
-				if(UseMappingTables)
-					tables.IdentifyMappingTables(fkList, UseCamelCase, CollectionType, false, IncludeComments, IsSqlCe, ForeignKeyName);
+				reader.ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, PrependSchemaName, CollectionType, false, IncludeComments, ForeignKeyName);
 
 				foreach(var t in tables)
 					t.SetHasPrimaryKey();
@@ -595,7 +574,7 @@
 
 	private List<StoredProcedure> LoadStoredProcs(DbProviderFactory factory, List<string> storedProcedureNames)
 	{
-		if(factory == null || !IncludeStoredProcedures)
+		if(factory == null)
 			return new List<StoredProcedure>();
 
 		try
@@ -605,13 +584,10 @@
 				conn.ConnectionString = ConnectionString;
 				conn.Open();
 
-				if (IsSqlCe)
-					return new List<StoredProcedure>();
-
 				var reader = new SqlServerSchemaReader(conn, factory, IncludeQueryTraceOn9481Flag) { Outer = this };
 				reader.StoredProcedureNames = storedProcedureNames;
 
-				var storedProcs = reader.ReadStoredProcs(SchemaFilterExclude, StoredProcedureFilterExclude, UseCamelCase, PrependSchemaName, StoredProcedureRename, IncludeTableValuedFunctions);
+				var storedProcs = reader.ReadStoredProcs(SchemaFilterExclude, StoredProcedureFilterExclude, Setting.UseCamelCase, PrependSchemaName, StoredProcedureRename);
 				conn.Close();
 
 				// Remove unrequired stored procs
@@ -804,7 +780,7 @@
 		private string WrapIfNullable(string propType, Column col) {
 			if(!IsNullable(col))
 				return propType;
-			return String.Format(NullableShortHand ? "{0}?" : "Nullable<{0}>",propType);
+			return String.Format(Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>",propType);
 		}
 
 		public bool IsComputed
@@ -1022,7 +998,6 @@
 		public string NameHumanCase;
 		public List<StoredProcedureParameter> Parameters;
 		public List<List<DataColumn>> ReturnModels;	 // A list of return models, containing a list of return columns
-		public bool IsTVF;
 
 		public StoredProcedure()
 		{
@@ -1038,7 +1013,7 @@
 		public static string WrapTypeIfNullable(string propertyType, DataColumn col) {
 			if(!IsNullable(col))
 				return propertyType;
-			return String.Format(NullableShortHand ? "{0}?" : "Nullable<{0}>",propertyType);
+			return String.Format(Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>",propertyType);
 		}
 
 	}
@@ -1235,8 +1210,8 @@
 		}
 
 		public GeneratedTextTransformation Outer;
-		public abstract Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, bool includeViews, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns, bool includeSynonyms);
-		public abstract List<StoredProcedure> ReadStoredProcs(Regex SchemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName , Func<string, string, string> StoredProcedureRename, bool includeTableValuedFunctions);
+		public abstract Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns);
+		public abstract List<StoredProcedure> ReadStoredProcs(Regex SchemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName , Func<string, string, string> StoredProcedureRename);
 		public abstract List<ForeignKey> ReadForeignKeys(Func<string, string, string> tableRename, Func<ForeignKey, ForeignKey> foreignKeyFilter);
 		public abstract void ProcessForeignKeys(List<ForeignKey> fkList, Tables tables, bool useCamelCase, bool prependSchemaName, string collectionType, bool checkForFkNameClashes, CommentsStyle includeComments, Func<string, string, short, string> ForeignKeyName);
 		public abstract void IdentifyForeignKeys(List<ForeignKey> fkList, Tables tables);
@@ -1452,7 +1427,7 @@
 			return sql;
 		}
 
-		public override Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, bool includeViews, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns, bool includeSynonyms)
+		public override Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns)
 		{
 			var result = new Tables();
 			if(Cmd == null)
@@ -1492,9 +1467,6 @@
 									HasForeignKey = false,
 									HasNullableColumns = false
 								};
-
-								if (!includeViews && table.IsView)
-									continue;
 
 								tableName = tableRename(tableName, schema);
 								if (IsFilterExcluded(tableFilterExclude, null, tableName)) // Retest exclusion filter after table rename
@@ -1587,7 +1559,7 @@
 			return fkList;
 		}
 
-		public override List<StoredProcedure> ReadStoredProcs(Regex schemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName , Func<string, string, string> StoredProcedureRename, bool includeTableValuedFunctions)
+		public override List<StoredProcedure> ReadStoredProcs(Regex schemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName , Func<string, string, string> StoredProcedureRename)
 		{
 			var result = new List<StoredProcedure>();
 			if(Cmd == null)
@@ -1603,9 +1575,6 @@
 				while (rdr.Read())
 				{
 					string spType = rdr["ROUTINE_TYPE"].ToString().Trim().ToUpper();
-					bool isTVF = (spType == "FUNCTION");
-					if (isTVF && !includeTableValuedFunctions)
-							continue;
 
 					string schema = rdr["SPECIFIC_SCHEMA"].ToString().Trim();
 					if(schemaFilterExclude != null && schemaFilterExclude.IsMatch(schema))
@@ -1622,7 +1591,6 @@
 							lastSp = fullname;
 							sp = new StoredProcedure
 							{
-								IsTVF = isTVF,
 								Name = spName,
 								NameHumanCase = (useCamelCase ? Inflector.ToTitleCase(spName) : spName).Replace(" ", "").Replace("$", ""),
 								Schema = schema
@@ -1678,19 +1646,7 @@
 				var sb = new StringBuilder();
 				sb.AppendLine();
 				sb.AppendLine("SET FMTONLY OFF; SET FMTONLY ON;");
-				if (proc.IsTVF)
-				{
-					sb.Append(String.Format("SELECT * FROM [{0}].[{1}](", proc.Schema, proc.Name));
-					foreach (var param in proc.Parameters)
-							sb.Append("null, ");
-
-					if(proc.Parameters.Count > 0)
-							sb.Length -= 2;
-
-					sb.AppendLine(");");
-				}
-				else
-				{
+				
 					foreach (var param in proc.Parameters)
 							sb.AppendLine(String.Format("DECLARE {0} {1};", param.Name, param.SqlDbType == "Structured" ? param.UserDefinedTypeName : param.SqlDbType));
 
@@ -1702,7 +1658,7 @@
 							sb.Length -= 2;
 
 					sb.AppendLine(";");
-				}
+				
 				sb.AppendLine("SET FMTONLY OFF; SET FMTONLY OFF;");
 
 				var ds = new DataSet();
@@ -2153,13 +2109,13 @@
 					sysType = "byte[]";
 					break;
 				case "geography":
-					if (DisableGeographyTypes)
+					if (Setting.DisableGeographyTypes)
 							sysType = "";
 					else
 							sysType = "System.Data.Entity.Spatial.DbGeography";
 					break;
 				case "geometry":
-					if (DisableGeographyTypes)
+					if (Setting.DisableGeographyTypes)
 							sysType = "";
 					else
 							sysType = "System.Data.Entity.Spatial.DbGeometry";
@@ -2400,14 +2356,14 @@
 			}
 		}
 
-		public void AddMappingConfiguration(ForeignKey left, ForeignKey right, bool useCamelCase, string leftPropName, string rightPropName, bool isSqlCE)
+		public void AddMappingConfiguration(ForeignKey left, ForeignKey right, bool useCamelCase, string leftPropName, string rightPropName)
 		{
 			MappingConfiguration.Add(string.Format(@"HasMany(t => t.{0}).WithMany(t => t.{1}).Map(m =>
 			{{
 					m.ToTable(""{2}""{5});
 					m.MapLeftKey(""{3}"");
 					m.MapRightKey(""{4}"");
-			}});", leftPropName, rightPropName, left.FkTableName, left.FkColumn, right.FkColumn, isSqlCE ? string.Empty : ", \"" + left.FkSchema + "\""));
+			}});", leftPropName, rightPropName, left.FkTableName, left.FkColumn, right.FkColumn, ", \"" + left.FkSchema + "\""));
 		}
 
 		public void SetPrimaryKeys()
@@ -2423,7 +2379,7 @@
 			}
 		}
 
-		public void IdentifyMappingTable(List<ForeignKey> fkList, Tables tables, bool useCamelCase, string collectionType, bool checkForFkNameClashes, CommentsStyle includeComments, bool isSqlCE, Func<string, string, short, string> ForeignKeyName)
+		public void IdentifyMappingTable(List<ForeignKey> fkList, Tables tables, bool useCamelCase, string collectionType, bool checkForFkNameClashes, CommentsStyle includeComments, Func<string, string, short, string> ForeignKeyName)
 		{
 			IsMapping = false;
 
@@ -2464,7 +2420,7 @@
 
 			var leftPropName  = leftTable.GetUniqueColumnName(rightTable.NameHumanCase, right, useCamelCase, checkForFkNameClashes, false, ForeignKeyName);
 			var rightPropName = rightTable.GetUniqueColumnName(leftTable.NameHumanCase, left, useCamelCase, checkForFkNameClashes, false, ForeignKeyName);
-			leftTable.AddMappingConfiguration(left, right, useCamelCase, leftPropName, rightPropName, isSqlCE);
+			leftTable.AddMappingConfiguration(left, right, useCamelCase, leftPropName, rightPropName);
 
 			IsMapping = true;
 			rightTable.AddReverseNavigation(Relationship.ManyToMany, rightTable.NameHumanCase, leftTable, rightPropName, null, collectionType, includeComments);
@@ -2486,14 +2442,6 @@
 			foreach (var tbl in this)
 			{
 				tbl.SetPrimaryKeys();
-			}
-		}
-
-		public void IdentifyMappingTables(List<ForeignKey> fkList, bool useCamelCase, string collectionType, bool checkForFkNameClashes, CommentsStyle includeComments, bool isSqlCE, Func<string, string, short, string> ForeignKeyName)
-		{
-			foreach(var tbl in this.Where(x => x.HasForeignKey))
-			{
-				tbl.IdentifyMappingTable(fkList, this, useCamelCase, collectionType, checkForFkNameClashes, includeComments, isSqlCE, ForeignKeyName);
 			}
 		}
 

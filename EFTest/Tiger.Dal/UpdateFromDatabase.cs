@@ -14,22 +14,25 @@ namespace Tiger.Dal
 	public partial class UpdateFromDatabase : Form
 	{
 
-		private string ConnectionString { get; set; }
+		private string ConnectionStringName { get; set; }
 
 		public List<string> TableNames { get; set; }
 
 		public List<string> StoredProcedureNames { get; set; }
 
-		public UpdateFromDatabase(string connectionStringName, List<string> tableNames, List<string> storedProcedureNames)
+		public DatabaseGenerationSetting Setting { get; set; }
+
+		public UpdateFromDatabase(string connectionStringName, List<string> tableNames, List<string> storedProcedureNames, DatabaseGenerationSetting setting)
 		{
 			InitializeComponent();
 
-			ConnectionString = connectionStringName;
+			ConnectionStringName = connectionStringName;
 			TableNames = tableNames;
 			StoredProcedureNames = storedProcedureNames;
+			this.Setting = setting;
 
 			InitializeDatabaseObjects();
-
+			LoadDatabaseGenerationSettings();
 		}
 
 		#region Private Methods
@@ -48,6 +51,26 @@ namespace Tiger.Dal
 			cbx.ThreeState = true;
 			cbx.CheckStateChanged += new EventHandler(checkboxHeader_CheckStateChanged);
 			gvTables.Controls.Add(cbx);
+		}
+
+		private void LoadDatabaseGenerationSettings()
+		{
+			if(Setting != null)
+			{
+				txtDbContextName.Text = Setting.DatabaseContextName;
+				txtContextInterfaceBaseClass.Text = Setting.ContextInterfaceBaseClass;
+				txtContextBaseClass.Text = Setting.ContextBaseClass;
+
+				cbxPartialClasses.Checked = Setting.MakeClassesPartial;
+				cbxPartialInterfaces.Checked = Setting.MakeInterfacesPartial;
+				cbxPartialContextInterface.Checked = Setting.MakeContextInterfacePartial;
+				cbxGenerateSeparateFiles.Checked = Setting.GenerateSeparateFiles;
+				cbxUseDataAnnotations.Checked = Setting.UseDataAnnotations;
+				cbxUseCamelCase.Checked = Setting.UseCamelCase;
+				cbxDisableGeographyTypes.Checked = Setting.DisableGeographyTypes;
+				cbxNullableShortHand.Checked = Setting.NullableShortHand;
+				cbxPrivateSetterForComputedColumns.Checked = Setting.PrivateSetterForComputerColumns;
+			}
 		}
 
 		private void InitializeDatabaseObjects()
@@ -80,7 +103,7 @@ namespace Tiger.Dal
 							ORDER  BY s.NAME,o.NAME 
 							";
 
-			using (SqlConnection connection = new SqlConnection(ConnectionString))
+			using (SqlConnection connection = new SqlConnection(ConnectionStringName))
 			{
 				connection.Open();
 				SqlCommand command = connection.CreateCommand();
@@ -252,7 +275,7 @@ namespace Tiger.Dal
 
 		#endregion
 
-		#region Tables Tab
+		#region Tab - Tables
 
 		private bool SkipTableHeaderCheckboxEvent { get; set; }
 
@@ -277,18 +300,13 @@ namespace Tiger.Dal
 				{
 					CheckState isChecked = (CheckState)gvTables[0, e.RowIndex].FormattedValue;
 
+					TableData row = (TableData)gvTables.Rows[e.RowIndex].DataBoundItem;
+
 					CheckBox cbx = (CheckBox)gvTables.Controls.Find("TableSelectHeader", false).First();
 
 					List<TableData> tableData = (List<TableData>)gvTables.DataSource;
 
 					SkipTableHeaderCheckboxEvent = true;
-
-					if (cbx.CheckState == CheckState.Checked && isChecked == CheckState.Unchecked ||
-							cbx.CheckState == CheckState.Unchecked && isChecked == CheckState.Checked ||
-							cbx.CheckState == CheckState.Unchecked && isChecked == CheckState.Indeterminate)
-					{
-						cbx.CheckState = CheckState.Indeterminate;
-					}
 
 					int checkedCount = tableData.Where(x => x.TableSelect == CheckState.Checked || x.TableSelect == CheckState.Indeterminate).Count();
 
@@ -305,9 +323,22 @@ namespace Tiger.Dal
 						cbx.CheckState = CheckState.Unchecked;
 					}
 
-					if (isChecked != CheckState.Indeterminate)
+					if (cbx.CheckState == CheckState.Checked && isChecked == CheckState.Unchecked ||
+							cbx.CheckState == CheckState.Unchecked && isChecked == CheckState.Checked ||
+							cbx.CheckState == CheckState.Unchecked && isChecked == CheckState.Indeterminate)
+					{
+						cbx.CheckState = CheckState.Indeterminate;
+					}
+					else if (isChecked != CheckState.Indeterminate)
 					{
 						ToggleTableOptions(isChecked, e.RowIndex);
+					}
+					else if (isChecked == CheckState.Indeterminate)
+					{
+						SkipTableCellValueEvent = true;
+						gvTables[0, e.RowIndex].Value = CheckState.Unchecked;
+						ToggleTableOptions(CheckState.Unchecked, e.RowIndex);
+						SkipTableCellValueEvent = false;
 					}
 
 					SkipTableHeaderCheckboxEvent = false;
@@ -371,6 +402,11 @@ namespace Tiger.Dal
 				}
 
 				SkipTableCellValueEvent = true;
+
+				cbxPocos.Checked = cbx.Checked;
+				cbxPocoInterfaces.Checked = cbx.Checked;
+				cbxRepositories.Checked = cbx.Checked;
+				cbxRepositoryInterfaces.Checked = cbx.Checked;
 
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
@@ -447,6 +483,22 @@ namespace Tiger.Dal
 	}
 
 	#region Helper Classes
+
+	public class DatabaseGenerationSetting
+	{
+		public string DatabaseContextName { get; set; }
+		public string ContextInterfaceBaseClass { get; set; }
+		public string ContextBaseClass { get; set; }
+		public bool MakeClassesPartial { get; set; }
+		public bool MakeInterfacesPartial { get; set; }
+		public bool MakeContextInterfacePartial { get; set; }
+		public bool GenerateSeparateFiles { get; set; }
+		public bool UseDataAnnotations { get; set; }
+		public bool UseCamelCase { get; set; }
+		public bool DisableGeographyTypes { get; set; }
+		public bool NullableShortHand { get; set; }
+		public bool PrivateSetterForComputerColumns { get; set; }
+	}
 
 	class TableData
 	{

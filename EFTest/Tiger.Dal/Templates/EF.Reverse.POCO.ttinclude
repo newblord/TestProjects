@@ -31,14 +31,14 @@
 			WriteLine("using System.Threading.Tasks;");
 		}
 
-		if(IncludeTableValuedFunctions && storedProcs.Any())
+		if(storedProcs.Any())
 		{
 			WriteLine("using System.Linq;");
 		}
 		WriteLine("");
 
 		BeginNamespace(UnitOfWorkNamespace);
-		BeginInterface(DbContextInterfaceName, MakeDbContextInterfacePartial, DbContextInterfaceBaseClasses);
+		BeginInterface(DbContextInterfaceName, Setting.MakeContextInterfacePartial, Setting.ContextInterfaceBaseClass);
 
 		foreach (Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
@@ -65,7 +65,7 @@
 		{ 
 			WriteLine("");
 			WriteLine("// Stored Procedures");
-			foreach (StoredProcedure sp in storedProcs.Where(s => !s.IsTVF))
+			foreach (StoredProcedure sp in storedProcs)
 			{
 				int returnModelsCount = sp.ReturnModels.Count;
 				if (returnModelsCount == 1)
@@ -91,18 +91,6 @@
 				} 
 			}
 
-			if (IncludeTableValuedFunctions) 
-			{ 
-				WriteLine("");
-				WriteLine("// Table Valued Functions");
-
-				foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
-				{
-					string spExecName = WriteStoredProcFunctionName(sp);
-					string spReturnClassName = WriteStoredProcReturnModelName(sp);
-					WriteLine("IQueryable<{0}> {1}({2});", spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
-				}
-			}
 		}
 
 		CloseBrace();
@@ -115,7 +103,7 @@
 
 	if(ElementsToGenerate.HasFlag(Elements.Context))
 	{ 
-		fileManager.StartNewFile(DbContextName + FileExtension, ContextProjectName, ContextFolderName);
+		fileManager.StartNewFile(Setting.DatabaseContextName + FileExtension, ContextProjectName, ContextFolderName);
 
 		CreateHeader();
 
@@ -139,7 +127,7 @@
 		WriteLine("");
 
 		BeginNamespace(ContextNamespace);
-		BeginClass(DbContextName, MakeClassesPartial, string.Format("{0}, {1}", DbContextBaseClass, DbContextInterfaceName));
+		BeginClass(Setting.DatabaseContextName, Setting.MakeClassesPartial, string.Format("{0}, {1}", Setting.ContextBaseClass, DbContextInterfaceName));
 	
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
@@ -147,32 +135,32 @@
 		} 
 
 		WriteLine("");
-		WriteLine("static {0}()", DbContextName);
+		WriteLine("static {0}()", Setting.DatabaseContextName);
 		OpenMethodBrace();
-		WriteLine("Database.SetInitializer<{0}>(null);",DbContextName);
+		WriteLine("Database.SetInitializer<{0}>(null);",Setting.DatabaseContextName);
 		CloseMethodBrace();
 
-		WriteLine("public {0}()", DbContextName);
+		WriteLine("public {0}()", Setting.DatabaseContextName);
 		WriteLine("\t: base({0})",DefaultConstructorArgument);
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(string connectionString)", DbContextName);
+		WriteLine("public {0}(string connectionString)", Setting.DatabaseContextName);
 		WriteLine("\t: base(connectionString)");
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(string connectionString, DbCompiledModel model)", DbContextName);
+		WriteLine("public {0}(string connectionString, DbCompiledModel model)", Setting.DatabaseContextName);
 		WriteLine("\t: base(connectionString, model)");
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(DbConnection existingConnection, bool contextOwnsConnection)", DbContextName);
+		WriteLine("public {0}(DbConnection existingConnection, bool contextOwnsConnection)", Setting.DatabaseContextName);
 		WriteLine("\t: base(existingConnection, contextOwnsConnection)");
 		OpenMethodBrace();
 		CloseMethodBrace();
 
-		WriteLine("public {0}(DbConnection existingConnection, DbCompiledModel model, bool contextOwnsConnection)", DbContextName);
+		WriteLine("public {0}(DbConnection existingConnection, DbCompiledModel model, bool contextOwnsConnection)", Setting.DatabaseContextName);
 		WriteLine("\t: base(existingConnection, model, contextOwnsConnection)");
 		OpenMethodBrace();
 		CloseMethodBrace();
@@ -196,15 +184,6 @@
 		WriteLine("protected override void OnModelCreating(DbModelBuilder modelBuilder)");
 		OpenMethodBrace();
 		WriteLine("base.OnModelCreating(modelBuilder);");
-
-		if(storedProcs.Any() && IncludeTableValuedFunctions)
-		{
-			WriteLine("modelBuilder.Conventions.Add(new CodeFirstStoreFunctions.FunctionsConvention<{0}>(\"dbo\"));",DbContextName);
-			foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
-			{
-				WriteLine("modelBuilder.ComplexType<{0}>();",WriteStoredProcReturnModelName(sp));
-			} 
-		}
 
 		if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
 		{
@@ -232,7 +211,7 @@
 
 		if (storedProcs.Any())
 		{
-			foreach (StoredProcedure sp in storedProcs.Where(s => !s.IsTVF))
+			foreach (StoredProcedure sp in storedProcs)
 			{
 				string spReturnClassName = WriteStoredProcReturnModelName(sp);
 				string spExecName = WriteStoredProcFunctionName(sp);
@@ -375,25 +354,6 @@
 				}
 			}
 
-			if (IncludeTableValuedFunctions)
-			{ 
-				WriteLine("// Table Valued Functions");
-
-				foreach (StoredProcedure sp in storedProcs.Where(s => s.IsTVF))
-				{
-					string spExecName = WriteStoredProcFunctionName(sp);
-					string spReturnClassName = WriteStoredProcReturnModelName(sp);
-
-					WriteLine("[.DbFunction(\"{0}\", \"{1}\")]",DbContextName, sp.Name);
-					WriteLine("[CodeFirstStoreFunctions.DbFunctionDetails(DatabaseSchema = \"{0}\")]",sp.Schema);
-					WriteLine("public IQueryable<{0}> {1}({2})",spReturnClassName, spExecName, WriteStoredProcFunctionParams(sp, false));
-					OpenMethodBrace();
-					WriteLine("{0} ",WriteTableValuedFunctionDeclareSqlParameter(sp));
-					WriteLine("return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<{0}>(\"[{1}].[{2}]({3})\", {4});",spReturnClassName, DbContextName, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteTableValuedFunctionSqlParameterAnonymousArray(sp));
-					CloseMethodBrace();
-
-				} 
-			} 
 		}
 		CloseBrace();
 		CloseBrace();
@@ -402,7 +362,7 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 	fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
@@ -431,10 +391,10 @@
 			BeginNamespace(PocoNamespace);
 
 			WritePocoClassAttributes(tbl);
-			BeginClass(tbl.NameHumanCase, MakeClassesPartial, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
+			BeginClass(tbl.NameHumanCase, Setting.MakeClassesPartial, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
 			WritePocoBaseClassBody(tbl); 
 
-			if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || MakeClassesPartial) 
+			if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial) 
 			{
 				WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2214:DoNotCallOverridableMethodsInConstructors\")]"); 
 				WriteLine("public {0}()",tbl.NameHumanCase);
@@ -492,7 +452,7 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 	fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
@@ -513,7 +473,7 @@
 			WriteLine("");
 
 			BeginNamespace(PocoInterfaceNamespace);
-			BeginInterface("I" + tbl.NameHumanCase, MakeInterfacesPartial, "");
+			BeginInterface("I" + tbl.NameHumanCase, Setting.MakeInterfacesPartial, "");
 
 			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 			{
@@ -554,7 +514,7 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 	fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
@@ -580,13 +540,13 @@
 			WriteLine("");
 
 			BeginNamespace(RepositoryInterfaceNamespace);
-			BeginClass(className, MakeClassesPartial, "I" + tbl.NameHumanCase + "Repository");
+			BeginClass(className, Setting.MakeClassesPartial, "I" + tbl.NameHumanCase + "Repository");
 
-			WriteLine("private readonly {0} Context;", DbContextName);
+			WriteLine("private readonly {0} Context;", Setting.DatabaseContextName);
 
 			WriteLine("public {0}()",className);
 			OpenMethodBrace();
-			WriteLine("Context = new {0}();", DbContextName);
+			WriteLine("Context = new {0}();", Setting.DatabaseContextName);
 			CloseMethodBrace();
 
 			WriteLine("public {0} Insert({0} data)", tbl.NameHumanCase);
@@ -641,7 +601,7 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 	fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
@@ -661,7 +621,7 @@
 			WriteLine("");
 
 			BeginNamespace(RepositoryInterfaceNamespace);
-			BeginInterface("I" + tbl.NameHumanCase + "Repository", MakeInterfacesPartial, "");
+			BeginInterface("I" + tbl.NameHumanCase + "Repository", Setting.MakeInterfacesPartial, "");
 
 			WriteLine("{0} Insert({0} data);", tbl.NameHumanCase);
 			WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
@@ -678,14 +638,14 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 	fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
 
 	#region POCO Configuration
 
-	if(!UseDataAnnotations)
+	if(!Setting.UseDataAnnotations)
 	{
 		foreach(Table tbl in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase))
 		{
@@ -699,7 +659,7 @@
 			WriteLine("");
 
 			BeginNamespace(PocoConfigurationNamespace);
-			BeginClass(tbl.NameHumanCase + ConfigurationClassName, MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
+			BeginClass(tbl.NameHumanCase + ConfigurationClassName, Setting.MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
 
 			WriteLine("public {0}()",tbl.NameHumanCase + ConfigurationClassName);
 			WriteLine(": this( \"{0}\" )", string.IsNullOrEmpty(tbl.Schema) ? "" : tbl.Schema);
@@ -744,7 +704,7 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 	fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
@@ -801,7 +761,7 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 	fileManager = TemplateFileManager.Create(this);
 	fileManager.StartHeader();
@@ -836,7 +796,7 @@
 	#endregion
 
 	fileManager.EndBlock();
-	fileManager.Process(GenerateSeparateFiles);
+	fileManager.Process(Setting.GenerateSeparateFiles);
 
 #>
 
