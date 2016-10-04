@@ -33,8 +33,8 @@
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			this.cbxUseCamelCase = new System.Windows.Forms.CheckBox();
 			this.cbxDisableGeographyTypes = new System.Windows.Forms.CheckBox();
-			this.cbxPrivateSetterForComputedColumns = new System.Windows.Forms.CheckBox();
 			this.cbxNullableShortHand = new System.Windows.Forms.CheckBox();
+			this.cbxPrivateSetterForComputedColumns = new System.Windows.Forms.CheckBox();
 			this.label4 = new System.Windows.Forms.Label();
 			this.txtContextInterfaceBaseClass = new System.Windows.Forms.TextBox();
 			this.txtContextBaseClass = new System.Windows.Forms.TextBox();
@@ -70,6 +70,9 @@
 			this.gvStoredProcedures = new System.Windows.Forms.DataGridView();
 			this.tpEnums = new System.Windows.Forms.TabPage();
 			this.gvEnums = new System.Windows.Forms.DataGridView();
+			this.btnGenerate = new System.Windows.Forms.Button();
+			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
+			this.btnCancel = new System.Windows.Forms.Button();
 			this.tcDatabaseObjects.SuspendLayout();
 			this.tpSettings.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
@@ -83,20 +86,23 @@
 			((System.ComponentModel.ISupportInitialize)(this.gvStoredProcedures)).BeginInit();
 			this.tpEnums.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.gvEnums)).BeginInit();
+			this.flowLayoutPanel3.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// tcDatabaseObjects
 			// 
+			this.tcDatabaseObjects.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tcDatabaseObjects.Controls.Add(this.tpSettings);
 			this.tcDatabaseObjects.Controls.Add(this.tpTables);
 			this.tcDatabaseObjects.Controls.Add(this.tpViews);
 			this.tcDatabaseObjects.Controls.Add(this.tpStoredProcedures);
 			this.tcDatabaseObjects.Controls.Add(this.tpEnums);
-			this.tcDatabaseObjects.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.tcDatabaseObjects.Location = new System.Drawing.Point(0, 0);
 			this.tcDatabaseObjects.Name = "tcDatabaseObjects";
 			this.tcDatabaseObjects.SelectedIndex = 0;
-			this.tcDatabaseObjects.Size = new System.Drawing.Size(592, 431);
+			this.tcDatabaseObjects.Size = new System.Drawing.Size(584, 432);
 			this.tcDatabaseObjects.TabIndex = 0;
 			this.tcDatabaseObjects.Selected += new System.Windows.Forms.TabControlEventHandler(this.tcDatabaseObjects_Selected);
 			// 
@@ -113,7 +119,7 @@
 			this.tpSettings.Location = new System.Drawing.Point(4, 22);
 			this.tpSettings.Name = "tpSettings";
 			this.tpSettings.Padding = new System.Windows.Forms.Padding(3);
-			this.tpSettings.Size = new System.Drawing.Size(584, 405);
+			this.tpSettings.Size = new System.Drawing.Size(576, 406);
 			this.tpSettings.TabIndex = 4;
 			this.tpSettings.Text = "Settings";
 			this.tpSettings.UseVisualStyleBackColor = true;
@@ -125,9 +131,9 @@
 			this.flowLayoutPanel1.Controls.Add(this.cbxNullableShortHand);
 			this.flowLayoutPanel1.Controls.Add(this.cbxPrivateSetterForComputedColumns);
 			this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-			this.flowLayoutPanel1.Location = new System.Drawing.Point(305, 81);
+			this.flowLayoutPanel1.Location = new System.Drawing.Point(298, 81);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(269, 321);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(269, 319);
 			this.flowLayoutPanel1.TabIndex = 26;
 			// 
 			// cbxUseCamelCase
@@ -154,18 +160,6 @@
 			this.cbxDisableGeographyTypes.Text = "Disable Geography Types:";
 			this.cbxDisableGeographyTypes.UseVisualStyleBackColor = true;
 			// 
-			// cbxPrivateSetterForComputedColumns
-			// 
-			this.cbxPrivateSetterForComputedColumns.AutoSize = true;
-			this.cbxPrivateSetterForComputedColumns.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.cbxPrivateSetterForComputedColumns.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPrivateSetterForComputedColumns.Location = new System.Drawing.Point(10, 78);
-			this.cbxPrivateSetterForComputedColumns.Name = "cbxPrivateSetterForComputedColumns";
-			this.cbxPrivateSetterForComputedColumns.Size = new System.Drawing.Size(256, 19);
-			this.cbxPrivateSetterForComputedColumns.TabIndex = 19;
-			this.cbxPrivateSetterForComputedColumns.Text = "Use Private Setter For Computer Columns:";
-			this.cbxPrivateSetterForComputedColumns.UseVisualStyleBackColor = true;
-			// 
 			// cbxNullableShortHand
 			// 
 			this.cbxNullableShortHand.AutoSize = true;
@@ -177,6 +171,18 @@
 			this.cbxNullableShortHand.TabIndex = 20;
 			this.cbxNullableShortHand.Text = "Nullable Short Hand:";
 			this.cbxNullableShortHand.UseVisualStyleBackColor = true;
+			// 
+			// cbxPrivateSetterForComputedColumns
+			// 
+			this.cbxPrivateSetterForComputedColumns.AutoSize = true;
+			this.cbxPrivateSetterForComputedColumns.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.cbxPrivateSetterForComputedColumns.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxPrivateSetterForComputedColumns.Location = new System.Drawing.Point(10, 78);
+			this.cbxPrivateSetterForComputedColumns.Name = "cbxPrivateSetterForComputedColumns";
+			this.cbxPrivateSetterForComputedColumns.Size = new System.Drawing.Size(256, 19);
+			this.cbxPrivateSetterForComputedColumns.TabIndex = 19;
+			this.cbxPrivateSetterForComputedColumns.Text = "Use Private Setter For Computer Columns:";
+			this.cbxPrivateSetterForComputedColumns.UseVisualStyleBackColor = true;
 			// 
 			// label4
 			// 
@@ -335,7 +341,7 @@
 			this.tpTables.Location = new System.Drawing.Point(4, 22);
 			this.tpTables.Name = "tpTables";
 			this.tpTables.Padding = new System.Windows.Forms.Padding(3);
-			this.tpTables.Size = new System.Drawing.Size(584, 405);
+			this.tpTables.Size = new System.Drawing.Size(577, 315);
 			this.tpTables.TabIndex = 0;
 			this.tpTables.Text = "Tables";
 			this.tpTables.UseVisualStyleBackColor = true;
@@ -355,23 +361,23 @@
             this.TableRepository,
             this.TableIRepository});
 			this.gvTables.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gvTables.Location = new System.Drawing.Point(3, 101);
+			this.gvTables.Location = new System.Drawing.Point(3, 85);
 			this.gvTables.Name = "gvTables";
 			this.gvTables.RowHeadersVisible = false;
 			this.gvTables.ShowEditingIcon = false;
-			this.gvTables.Size = new System.Drawing.Size(578, 301);
+			this.gvTables.Size = new System.Drawing.Size(571, 227);
 			this.gvTables.TabIndex = 2;
 			this.gvTables.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellContentClick);
 			this.gvTables.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellValueChanged);
 			// 
 			// TableSelect
 			// 
-			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
 			this.TableSelect.DataPropertyName = "TableSelect";
 			this.TableSelect.HeaderText = "";
 			this.TableSelect.Name = "TableSelect";
 			this.TableSelect.ThreeState = true;
-			this.TableSelect.Width = 5;
+			this.TableSelect.Width = 20;
 			// 
 			// TableName
 			// 
@@ -424,7 +430,7 @@
 			this.gbTables.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.gbTables.Location = new System.Drawing.Point(3, 3);
 			this.gbTables.Name = "gbTables";
-			this.gbTables.Size = new System.Drawing.Size(578, 98);
+			this.gbTables.Size = new System.Drawing.Size(571, 82);
 			this.gbTables.TabIndex = 0;
 			this.gbTables.TabStop = false;
 			this.gbTables.Text = "Table Settings";
@@ -487,7 +493,7 @@
 			this.tpViews.Location = new System.Drawing.Point(4, 22);
 			this.tpViews.Name = "tpViews";
 			this.tpViews.Padding = new System.Windows.Forms.Padding(3);
-			this.tpViews.Size = new System.Drawing.Size(584, 405);
+			this.tpViews.Size = new System.Drawing.Size(577, 315);
 			this.tpViews.TabIndex = 1;
 			this.tpViews.Text = "Views";
 			this.tpViews.UseVisualStyleBackColor = true;
@@ -505,7 +511,7 @@
 			this.gvViews.Location = new System.Drawing.Point(3, 3);
 			this.gvViews.Name = "gvViews";
 			this.gvViews.RowHeadersVisible = false;
-			this.gvViews.Size = new System.Drawing.Size(578, 399);
+			this.gvViews.Size = new System.Drawing.Size(571, 309);
 			this.gvViews.TabIndex = 0;
 			// 
 			// ViewSelect
@@ -525,7 +531,7 @@
 			this.tpStoredProcedures.Location = new System.Drawing.Point(4, 22);
 			this.tpStoredProcedures.Name = "tpStoredProcedures";
 			this.tpStoredProcedures.Padding = new System.Windows.Forms.Padding(3);
-			this.tpStoredProcedures.Size = new System.Drawing.Size(584, 405);
+			this.tpStoredProcedures.Size = new System.Drawing.Size(577, 315);
 			this.tpStoredProcedures.TabIndex = 2;
 			this.tpStoredProcedures.Text = "Stored Procedures";
 			this.tpStoredProcedures.UseVisualStyleBackColor = true;
@@ -541,7 +547,7 @@
 			this.gvStoredProcedures.Location = new System.Drawing.Point(3, 3);
 			this.gvStoredProcedures.Name = "gvStoredProcedures";
 			this.gvStoredProcedures.RowHeadersVisible = false;
-			this.gvStoredProcedures.Size = new System.Drawing.Size(578, 399);
+			this.gvStoredProcedures.Size = new System.Drawing.Size(571, 309);
 			this.gvStoredProcedures.TabIndex = 0;
 			// 
 			// tpEnums
@@ -550,7 +556,7 @@
 			this.tpEnums.Location = new System.Drawing.Point(4, 22);
 			this.tpEnums.Name = "tpEnums";
 			this.tpEnums.Padding = new System.Windows.Forms.Padding(3);
-			this.tpEnums.Size = new System.Drawing.Size(584, 405);
+			this.tpEnums.Size = new System.Drawing.Size(577, 315);
 			this.tpEnums.TabIndex = 3;
 			this.tpEnums.Text = "Enums";
 			this.tpEnums.UseVisualStyleBackColor = true;
@@ -563,12 +569,46 @@
 			this.gvEnums.Size = new System.Drawing.Size(240, 150);
 			this.gvEnums.TabIndex = 0;
 			// 
+			// btnGenerate
+			// 
+			this.btnGenerate.Location = new System.Drawing.Point(428, 3);
+			this.btnGenerate.Name = "btnGenerate";
+			this.btnGenerate.Size = new System.Drawing.Size(75, 23);
+			this.btnGenerate.TabIndex = 0;
+			this.btnGenerate.Text = "Generate";
+			this.btnGenerate.UseVisualStyleBackColor = true;
+			this.btnGenerate.Click += new System.EventHandler(this.btnGenerate_Click);
+			// 
+			// flowLayoutPanel3
+			// 
+			this.flowLayoutPanel3.Controls.Add(this.btnCancel);
+			this.flowLayoutPanel3.Controls.Add(this.btnGenerate);
+			this.flowLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Bottom;
+			this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+			this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 431);
+			this.flowLayoutPanel3.Name = "flowLayoutPanel3";
+			this.flowLayoutPanel3.Size = new System.Drawing.Size(587, 34);
+			this.flowLayoutPanel3.TabIndex = 1;
+			// 
+			// btnCancel
+			// 
+			this.btnCancel.Location = new System.Drawing.Point(509, 3);
+			this.btnCancel.Name = "btnCancel";
+			this.btnCancel.Size = new System.Drawing.Size(75, 23);
+			this.btnCancel.TabIndex = 1;
+			this.btnCancel.Text = "Cancel";
+			this.btnCancel.UseVisualStyleBackColor = true;
+			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+			// 
 			// UpdateFromDatabase
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(592, 431);
+			this.ClientSize = new System.Drawing.Size(587, 465);
+			this.ControlBox = false;
+			this.Controls.Add(this.flowLayoutPanel3);
 			this.Controls.Add(this.tcDatabaseObjects);
+			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Name = "UpdateFromDatabase";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -591,6 +631,7 @@
 			((System.ComponentModel.ISupportInitialize)(this.gvStoredProcedures)).EndInit();
 			this.tpEnums.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.gvEnums)).EndInit();
+			this.flowLayoutPanel3.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -610,12 +651,6 @@
 		private System.Windows.Forms.TabPage tpSettings;
 		private System.Windows.Forms.CheckBox cbxGenerateContextClass;
 		private System.Windows.Forms.DataGridView gvTables;
-		private System.Windows.Forms.DataGridViewCheckBoxColumn TableSelect;
-		private System.Windows.Forms.DataGridViewTextBoxColumn TableName;
-		private System.Windows.Forms.DataGridViewCheckBoxColumn TablePoco;
-		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIPoco;
-		private System.Windows.Forms.DataGridViewCheckBoxColumn TableRepository;
-		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIRepository;
 		private System.Windows.Forms.GroupBox gbTables;
 		private System.Windows.Forms.CheckBox cbxRepositoryInterfaces;
 		private System.Windows.Forms.CheckBox cbxRepositories;
@@ -639,5 +674,14 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.TextBox txtDbContextName;
 		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Button btnGenerate;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn TableSelect;
+		private System.Windows.Forms.DataGridViewTextBoxColumn TableName;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn TablePoco;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIPoco;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn TableRepository;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIRepository;
+		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
+		private System.Windows.Forms.Button btnCancel;
 	}
 }

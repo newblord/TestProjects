@@ -17,7 +17,7 @@
  
 	if (ElementsToGenerate.HasFlag(Elements.UnitOfWork))
 	{
-		fileManager.StartNewFile(DbContextInterfaceName + FileExtension, ContextProjectName, ContextFolderName);
+		fileManager.StartNewFile(Setting.DatabaseContextInterfaceName + Setting.FileExtension, ContextProjectName, ContextFolderName);
 	
 		CreateHeader();
 
@@ -38,11 +38,11 @@
 		WriteLine("");
 
 		BeginNamespace(UnitOfWorkNamespace);
-		BeginInterface(DbContextInterfaceName, Setting.MakeContextInterfacePartial, Setting.ContextInterfaceBaseClass);
+		BeginInterface(Setting.DatabaseContextInterfaceName, Setting.MakeContextInterfacePartial, Setting.ContextInterfaceBaseClass);
 
 		foreach (Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			WriteLine("DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+			WriteLine("DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		}
 	
 		WriteLine("");
@@ -103,7 +103,7 @@
 
 	if(ElementsToGenerate.HasFlag(Elements.Context))
 	{ 
-		fileManager.StartNewFile(Setting.DatabaseContextName + FileExtension, ContextProjectName, ContextFolderName);
+		fileManager.StartNewFile(Setting.DatabaseContextName + Setting.FileExtension, ContextProjectName, ContextFolderName);
 
 		CreateHeader();
 
@@ -127,11 +127,11 @@
 		WriteLine("");
 
 		BeginNamespace(ContextNamespace);
-		BeginClass(Setting.DatabaseContextName, Setting.MakeClassesPartial, string.Format("{0}, {1}", Setting.ContextBaseClass, DbContextInterfaceName));
+		BeginClass(Setting.DatabaseContextName, Setting.MakeClassesPartial, string.Format("{0}, {1}", Setting.ContextBaseClass, Setting.DatabaseContextInterfaceName));
 	
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+			WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		} 
 
 		WriteLine("");
@@ -189,7 +189,7 @@
 		{
 			foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 			{
-				WriteLine("modelBuilder.Configurations.Add(new {0}());",tbl.NameHumanCase + ConfigurationClassName);
+				WriteLine("modelBuilder.Configurations.Add(new {0}());",tbl.NameHumanCase + Setting.ConfigurationClassName);
 			}
 		}
 
@@ -202,7 +202,7 @@
 		{
 			foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 			{
-				WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + ConfigurationClassName);
+				WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + Setting.ConfigurationClassName);
 			}
 		}
 
@@ -373,7 +373,7 @@
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
-			fileManager.StartNewFile(tbl.NameHumanCase + GeneratedFileExtension, ModelProjectName, ModelFolderName);
+			fileManager.StartNewFile(tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelProjectName, ModelFolderName);
 			if(!tbl.HasPrimaryKey) 
 			{ 
 				WriteLine("// The table '{0}' is not usable by entity framework because it",tbl.Name);
@@ -410,7 +410,7 @@
 
 			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 			{
-				if((IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
+				if((Setting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
 				{
 					WriteLine("///<summary>");
 					WriteLine("/// {0}",col.SummaryComments);
@@ -463,7 +463,7 @@
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
-			fileManager.StartNewFile("I" + tbl.NameHumanCase + GeneratedFileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
+			fileManager.StartNewFile("I" + tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
 
 			CreateHeader();
 
@@ -527,7 +527,7 @@
 		{
 			string className = tbl.NameHumanCase + "Repository";
 
-			fileManager.StartNewFile(className + GeneratedFileExtension, RepositoryProjectName, RepositoryFolderName);
+			fileManager.StartNewFile(className + Setting.GeneratedFileExtension, RepositoryProjectName, RepositoryFolderName);
 
 			CreateHeader();
 
@@ -612,7 +612,7 @@
 	{
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 		{
-			fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + GeneratedFileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
+			fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + Setting.GeneratedFileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
 
 			CreateHeader();
 
@@ -649,7 +649,7 @@
 	{
 		foreach(Table tbl in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase))
 		{
-			fileManager.StartNewFile(tbl.NameHumanCase + ConfigurationClassName + FileExtension, ConfigurationProjectName, ConfigurationFolderName);
+			fileManager.StartNewFile(tbl.NameHumanCase + Setting.ConfigurationClassName + Setting.FileExtension, ConfigurationProjectName, ConfigurationFolderName);
 		
 			CreateHeader();
 
@@ -659,14 +659,14 @@
 			WriteLine("");
 
 			BeginNamespace(PocoConfigurationNamespace);
-			BeginClass(tbl.NameHumanCase + ConfigurationClassName, Setting.MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
+			BeginClass(tbl.NameHumanCase + Setting.ConfigurationClassName, Setting.MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
 
-			WriteLine("public {0}()",tbl.NameHumanCase + ConfigurationClassName);
+			WriteLine("public {0}()",tbl.NameHumanCase + Setting.ConfigurationClassName);
 			WriteLine(": this( \"{0}\" )", string.IsNullOrEmpty(tbl.Schema) ? "" : tbl.Schema);
 			OpenMethodBrace();
 			CloseMethodBrace();
 
-			WriteLine("public {0}(string schema)",tbl.NameHumanCase + ConfigurationClassName);
+			WriteLine("public {0}(string schema)",tbl.NameHumanCase + Setting.ConfigurationClassName);
 			OpenMethodBrace();
 			if (!string.IsNullOrEmpty(tbl.Schema)) 
 			{ 
@@ -713,11 +713,11 @@
 
 	if(storedProcs.Any() && ElementsToGenerate.HasFlag(Elements.Poco))
 	{
-		foreach(StoredProcedure sp in storedProcs.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureReturnTypes.ContainsKey(x.Name)))
+		foreach(StoredProcedure sp in storedProcs.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !ReversePocoCore.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !ReversePocoCore.StoredProcedureReturnTypes.ContainsKey(x.Name)))
 		{
 			string spReturnClassName = WriteStoredProcReturnModelName(sp);
 		
-			fileManager.StartNewFile(spReturnClassName + FileExtension);
+			fileManager.StartNewFile(spReturnClassName + Setting.FileExtension);
 		
 			CreateHeader();
 
