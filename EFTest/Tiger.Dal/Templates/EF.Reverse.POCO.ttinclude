@@ -70,23 +70,23 @@
 				int returnModelsCount = sp.ReturnModels.Count;
 				if (returnModelsCount == 1)
 				{ 
-					WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
-					WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, true));
+					WriteLine("{0} {1}({2});", ReversePocoCore.WriteStoredProcReturnType(sp), ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, false));
+					WriteLine("{0} {1}({2});", ReversePocoCore.WriteStoredProcReturnType(sp), ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, true));
 				} 
 				else 
 				{ 
-					WriteLine("{0} {1}({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+					WriteLine("{0} {1}({2});", ReversePocoCore.WriteStoredProcReturnType(sp), ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, false));
 				}
 
 				if (IsSupportedFrameworkVersion("4.5"))
 				{
-					if(StoredProcHasOutParams(sp) || sp.ReturnModels.Count == 0) 
+					if(ReversePocoCore.StoredProcHasOutParams(sp) || sp.ReturnModels.Count == 0) 
 					{ 
-						WriteLine("// {0}Async cannot be created due to having out parameters, or is relying on the procedure result ({1})", WriteStoredProcFunctionName(sp), WriteStoredProcReturnType(sp));
+						WriteLine("// {0}Async cannot be created due to having out parameters, or is relying on the procedure result ({1})", ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcReturnType(sp));
 					} 
 					else 
 					{ 
-						WriteLine("Task<{0}> {1}Async({2});", WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+						WriteLine("Task<{0}> {1}Async({2});", ReversePocoCore.WriteStoredProcReturnType(sp), ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, false));
 					} 
 				} 
 			}
@@ -213,39 +213,39 @@
 		{
 			foreach (StoredProcedure sp in storedProcs)
 			{
-				string spReturnClassName = WriteStoredProcReturnModelName(sp);
-				string spExecName = WriteStoredProcFunctionName(sp);
+				string spReturnClassName = ReversePocoCore.WriteStoredProcReturnModelName(sp);
+				string spExecName = ReversePocoCore.WriteStoredProcFunctionName(sp);
 				int returnModelsCount = sp.ReturnModels.Count;
 				if (returnModelsCount > 0)
 				{
 					if (returnModelsCount == 1)
 					{
-						WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+						WriteLine("public {0} {1}({2})", ReversePocoCore.WriteStoredProcReturnType(sp) , ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, false));
 						OpenMethodBrace();
 						WriteLine("int procResult;");
-						WriteLine("return {0}({1});",spExecName, WriteStoredProcFunctionOverloadCall(sp));
+						WriteLine("return {0}({1});",spExecName, ReversePocoCore.WriteStoredProcFunctionOverloadCall(sp));
 						CloseMethodBrace();
 
-						WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, true));
+						WriteLine("public {0} {1}({2})", ReversePocoCore.WriteStoredProcReturnType(sp) , ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, true));
 					} 
 					else 
 					{
-						WriteLine("public {0} {1}({2})", WriteStoredProcReturnType(sp) , WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+						WriteLine("public {0} {1}({2})", ReversePocoCore.WriteStoredProcReturnType(sp) , ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, false));
 					}
 					OpenMethodBrace();
-					WriteLine(WriteStoredProcFunctionDeclareSqlParameter(sp, true));
+					WriteLine(ReversePocoCore.WriteStoredProcFunctionDeclareSqlParameter(sp, true));
 
 					if (returnModelsCount == 1)
 					{
-						var exec = string.Format("EXEC @procResult = [{0}].[{1}] {2}", sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp));
-						WriteLine("var procResultData = Database.SqlQuery<{0}>(\"{1}\", {2}).ToList();",spReturnClassName, exec, WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
-						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+						var exec = string.Format("EXEC @procResult = [{0}].[{1}] {2}", sp.Schema, sp.Name, ReversePocoCore.WriteStoredProcFunctionSqlAtParams(sp));
+						WriteLine("var procResultData = Database.SqlQuery<{0}>(\"{1}\", {2}).ToList();",spReturnClassName, exec, ReversePocoCore.WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
+						WriteLine("{0}",ReversePocoCore.WriteStoredProcFunctionSetSqlParameters(sp, false));
 						WriteLine("procResult = (int) procResultParam.Value;");
 					}
 					else
 					{
 						var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name); 
-						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+						WriteLine("{0}",ReversePocoCore.WriteStoredProcFunctionSetSqlParameters(sp, false));
 						WriteLine("var procResultData = new {0}();",spReturnClassName);
 						WriteLine("var cmd = Database.Connection.CreateCommand();");
 						WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
@@ -253,7 +253,7 @@
 
 						foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
 						{ 
-							WriteLine("cmd.Parameters.Add({0});",WriteStoredProcSqlParameterName(p));
+							WriteLine("cmd.Parameters.Add({0});",ReversePocoCore.WriteStoredProcSqlParameterName(p));
 						} 
 
 						WriteLine("try");
@@ -286,48 +286,48 @@
 				}
 				else
 				{ 
-					WriteLine("public int {0}({1})",spExecName, WriteStoredProcFunctionParams(sp, true));
+					WriteLine("public int {0}({1})",spExecName, ReversePocoCore.WriteStoredProcFunctionParams(sp, true));
 					OpenMethodBrace();
-					WriteLine("{0} ",WriteStoredProcFunctionDeclareSqlParameter(sp, true));
-					WriteLine("Database.ExecuteSqlCommand(\"EXEC @procResult = [{0}].[{1}] {2}\", {3});",sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp), WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
-					WriteLine("{0} ",WriteStoredProcFunctionSetSqlParameters(sp, false));
+					WriteLine("{0} ",ReversePocoCore.WriteStoredProcFunctionDeclareSqlParameter(sp, true));
+					WriteLine("Database.ExecuteSqlCommand(\"EXEC @procResult = [{0}].[{1}] {2}\", {3});",sp.Schema, sp.Name, ReversePocoCore.WriteStoredProcFunctionSqlAtParams(sp), ReversePocoCore.WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
+					WriteLine("{0} ",ReversePocoCore.WriteStoredProcFunctionSetSqlParameters(sp, false));
 					WriteLine("return (int) procResultParam.Value;");
 					CloseMethodBrace();
 
 				}
 
 				// Async
-				if (IsSupportedFrameworkVersion("4.5") && !StoredProcHasOutParams(sp) && returnModelsCount > 0)
+				if (IsSupportedFrameworkVersion("4.5") && !ReversePocoCore.StoredProcHasOutParams(sp) && returnModelsCount > 0)
 				{
-					WriteLine("public async Task<{0}> {1}Async({2})",WriteStoredProcReturnType(sp), WriteStoredProcFunctionName(sp), WriteStoredProcFunctionParams(sp, false));
+					WriteLine("public async Task<{0}> {1}Async({2})",ReversePocoCore.WriteStoredProcReturnType(sp), ReversePocoCore.WriteStoredProcFunctionName(sp), ReversePocoCore.WriteStoredProcFunctionParams(sp, false));
 					OpenMethodBrace();
-					WriteLine("{0}",WriteStoredProcFunctionDeclareSqlParameter(sp, false));
+					WriteLine("{0}",ReversePocoCore.WriteStoredProcFunctionDeclareSqlParameter(sp, false));
 					if (returnModelsCount == 1)
 					{
-						var parameters = WriteStoredProcFunctionSqlParameterAnonymousArray(sp, false);
+						var parameters = ReversePocoCore.WriteStoredProcFunctionSqlParameterAnonymousArray(sp, false);
 						if (!string.IsNullOrWhiteSpace(parameters))
 							parameters = ", " + parameters;
-						var exec = string.Format("EXEC [{0}].[{1}] {2}", sp.Schema, sp.Name, WriteStoredProcFunctionSqlAtParams(sp));
+						var exec = string.Format("EXEC [{0}].[{1}] {2}", sp.Schema, sp.Name, ReversePocoCore.WriteStoredProcFunctionSqlAtParams(sp));
 						WriteLine("var procResultData = await Database.SqlQuery<{0}>(\"{1}\"{2}).ToListAsync();",spReturnClassName, exec, parameters);
-						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+						WriteLine("{0}",ReversePocoCore.WriteStoredProcFunctionSetSqlParameters(sp, false));
 					}
 					else		
 					{
 						var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name); 
-						WriteLine("{0}",WriteStoredProcFunctionSetSqlParameters(sp, false));
+						WriteLine("{0}",ReversePocoCore.WriteStoredProcFunctionSetSqlParameters(sp, false));
 						WriteLine("var procResultData = new {0}();",spReturnClassName);
 						WriteLine("var cmd = Database.Connection.CreateCommand();");
 						WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
 						WriteLine("cmd.CommandText = \"{0}\";",exec);
 						foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
 						{ 
-							WriteLine("cmd.Parameters.Add({0});",WriteStoredProcSqlParameterName(p));
+							WriteLine("cmd.Parameters.Add({0});",ReversePocoCore.WriteStoredProcSqlParameterName(p));
 						} 
 
 						WriteLine("try");
 						OpenMethodBrace();
 						WriteLine("Database.Connection.Open();");
-						WriteLine("var reader = await cmd.ExecuteReaderAsync();");
+						WriteLine("var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);");
 						WriteLine("var objectContext = ((IObjectContextAdapter) this).ObjectContext;");
 
 						int n = 0;
@@ -338,7 +338,7 @@
 							WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();",n, spReturnClassName);
 							if (n < returnModelCount)
 							{ 
-								WriteLine("await reader.NextResultAsync();");
+								WriteLine("await reader.NextResultAsync().ConfigureAwait(false);");
 							} 
 						} 
 
@@ -715,7 +715,7 @@
 	{
 		foreach(StoredProcedure sp in storedProcs.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !ReversePocoCore.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !ReversePocoCore.StoredProcedureReturnTypes.ContainsKey(x.Name)))
 		{
-			string spReturnClassName = WriteStoredProcReturnModelName(sp);
+			string spReturnClassName = ReversePocoCore.WriteStoredProcReturnModelName(sp);
 		
 			fileManager.StartNewFile(spReturnClassName + Setting.FileExtension);
 		
@@ -732,7 +732,7 @@
 			{
 				foreach (var returnColumn in sp.ReturnModels.First())
 				{ 
-					WriteLine("{0}",WriteStoredProcReturnColumn(returnColumn));
+					WriteLine("{0}",ReversePocoCore.WriteStoredProcReturnColumn(returnColumn));
 				}
 			} 
 			else 
@@ -746,7 +746,7 @@
 				
 					foreach (var returnColumn in returnModel)
 					{ 
-						WriteLine("{0}",WriteStoredProcReturnColumn(returnColumn));
+						WriteLine("{0}",ReversePocoCore.WriteStoredProcReturnColumn(returnColumn));
 					}
 					CloseMethodBrace();
 

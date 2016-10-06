@@ -134,6 +134,10 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				Default = Default.Substring(1, Default.Length - 2);
 			}
 
+			// Remove unicode prefix
+			if (IsUnicode && Default.StartsWith("N") && !Default.Equals("NULL", StringComparison.InvariantCultureIgnoreCase))
+				Default = Default.Substring(1, Default.Length - 1);
+
 			if (Default.First() == '\'' && Default.Last() == '\'' && Default.Length >= 2)
 				Default = string.Format("\"{0}\"", Default.Substring(1, Default.Length - 2));
 

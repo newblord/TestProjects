@@ -370,10 +370,11 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 						continue;
 
 					string spName = rdr["SPECIFIC_NAME"].ToString().Trim();
-					if (storedProcedureFilterExclude != null && storedProcedureFilterExclude.IsMatch(spName))
-						continue;
 
 					var fullname = schema + "." + spName;
+
+					if (storedProcedureFilterExclude != null && (storedProcedureFilterExclude.IsMatch(spName) || storedProcedureFilterExclude.IsMatch(fullname)))
+						continue;
 
 					if (lastSp != fullname || sp == null)
 					{
@@ -388,6 +389,9 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 							sp.NameHumanCase = schema + "_" + sp.NameHumanCase;
 
 						sp.NameHumanCase = StoredProcedureRename(sp.NameHumanCase, schema);
+
+						if (storedProcedureFilterExclude != null && storedProcedureFilterExclude.IsMatch(sp.NameHumanCase))
+							continue;
 
 						result.Add(sp);
 					}
@@ -477,11 +481,13 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 
 		public void ProcessForeignKeys(List<ForeignKey> fkList, Tables tables, bool useCamelCase, bool prependSchemaName, string collectionType, bool checkForFkNameClashes, CommentsStyle includeComments, Func<string, string, short, string> ForeignKeyName)
 		{
-			var constraints = fkList.Select(x => x.ConstraintName).Distinct();
+			var constraints = fkList.Select(x => x.FkSchema + "." + x.ConstraintName).Distinct();
 			foreach (var constraint in constraints)
 			{
-				var localConstraint = constraint;
-				var foreignKeys = fkList.Where(x => x.ConstraintName == localConstraint).ToList();
+				var foreignKeys = fkList
+						.Where(x => string.Format("{0}.{1}", x.FkSchema, x.ConstraintName).Equals(constraint, StringComparison.InvariantCultureIgnoreCase))
+						.ToList();
+
 				var foreignKey = foreignKeys.First();
 
 				Table fkTable = tables.GetTable(foreignKey.FkTableName, foreignKey.FkSchema);
@@ -528,8 +534,9 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				string manyToManyMapping, mapKey;
 				if (foreignKeys.Count > 1)
 				{
-					manyToManyMapping = string.Format("c => new {{ {0} }}", string.Join(", ", fkCols.OrderBy(o => o.fkOrdinal).Select(x => "c." + x.col.NameHumanCase).ToArray()));
-					mapKey = string.Format("{0}", string.Join(",", fkCols.OrderBy(o => o.fkOrdinal).Select(x => "\"" + x.col.Name + "\"").ToArray()));
+					var cols = fkCols.OrderBy(o => o.fkOrdinal).Distinct().ToList();
+					manyToManyMapping = string.Format("c => new {{ {0} }}", string.Join(", ", cols.Select(x => "c." + x.col.NameHumanCase).ToArray()));
+					mapKey = string.Format("{0}", string.Join(",", cols.Select(x => "\"" + x.col.Name + "\"").ToArray()));
 				}
 				else
 				{
@@ -651,6 +658,9 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				IsForeignKey = rdr["IsForeignKey"].ToString().Trim().ToLower() == "true",
 				ParentTable = table
 			};
+
+			if (col.MaxLength == -1 && col.SqlPropertyType.EndsWith("varchar", StringComparison.InvariantCultureIgnoreCase))
+				col.SqlPropertyType += "(max)";
 
 			if (col.IsPrimaryKey && !col.IsIdentity && col.IsStoreGenerated && typename == "uniqueidentifier")
 			{

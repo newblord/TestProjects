@@ -56,21 +56,21 @@ namespace Tiger.Dal
 
 		private void LoadDatabaseGenerationSettings()
 		{
-			if(Setting != null)
+			if (Setting != null)
 			{
-				txtDbContextName.Text = Setting.DatabaseContextName;
-				txtContextInterfaceBaseClass.Text = Setting.ContextInterfaceBaseClass;
-				txtContextBaseClass.Text = Setting.ContextBaseClass;
+				txtDbContextName.DataBindings.Add("Text", Setting, "DatabaseContextName");
+				txtContextInterfaceBaseClass.DataBindings.Add("Text", Setting, "ContextInterfaceBaseClass");
+				txtContextBaseClass.DataBindings.Add("Text", Setting, "ContextBaseClass");
 
-				cbxPartialClasses.Checked = Setting.MakeClassesPartial;
-				cbxPartialInterfaces.Checked = Setting.MakeInterfacesPartial;
-				cbxPartialContextInterface.Checked = Setting.MakeContextInterfacePartial;
-				cbxGenerateSeparateFiles.Checked = Setting.GenerateSeparateFiles;
-				cbxUseDataAnnotations.Checked = Setting.UseDataAnnotations;
-				cbxUseCamelCase.Checked = Setting.UseCamelCase;
-				cbxDisableGeographyTypes.Checked = Setting.DisableGeographyTypes;
-				cbxNullableShortHand.Checked = Setting.NullableShortHand;
-				cbxPrivateSetterForComputedColumns.Checked = Setting.PrivateSetterForComputerColumns;
+				cbxPartialClasses.DataBindings.Add("Checked", Setting, "MakeClassesPartial");
+				cbxPartialInterfaces.DataBindings.Add("Checked", Setting, "MakeInterfacesPartial");
+				cbxPartialContextInterface.DataBindings.Add("Checked", Setting, "MakeContextInterfacePartial");
+				cbxGenerateSeparateFiles.DataBindings.Add("Checked", Setting, "GenerateSeparateFiles");
+				cbxUseDataAnnotations.DataBindings.Add("Checked", Setting, "UseDataAnnotations");
+				cbxUseCamelCase.DataBindings.Add("Checked", Setting, "UseCamelCase");
+				cbxDisableGeographyTypes.DataBindings.Add("Checked", Setting, "DisableGeographyTypes");
+				cbxNullableShortHand.DataBindings.Add("Checked", Setting, "NullableShortHand");
+				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", Setting, "PrivateSetterForComputerColumns");
 			}
 		}
 
@@ -122,7 +122,7 @@ namespace Tiger.Dal
 					bool isChecked = bool.Parse(reader["Checked"].ToString());
 
 					data.TableName = reader["Name"].ToString();
-					data.TableSelect = isChecked == true ? CheckState.Checked : CheckState.Unchecked;
+					data.TableSelect = isChecked;
 
 					tableData.Add(data);
 				}
@@ -283,13 +283,42 @@ namespace Tiger.Dal
 		private bool SkipTableCellValueEvent { get; set; }
 
 		#region Private Methods
-		private void ToggleTableOptions(CheckState state, int rowIndex)
+		private void ToggleTableFileOptions(bool state, int rowIndex)
 		{
-			gvTables[2, rowIndex].Value = state == CheckState.Checked ? true : false;
-			gvTables[3, rowIndex].Value = state == CheckState.Checked ? true : false;
-			gvTables[4, rowIndex].Value = state == CheckState.Checked ? true : false;
-			gvTables[5, rowIndex].Value = state == CheckState.Checked ? true : false;
+			gvTables[2, rowIndex].Value = state;
+			gvTables[3, rowIndex].Value = state;
+			gvTables[4, rowIndex].Value = state;
+			gvTables[5, rowIndex].Value = state;
 		}
+
+		private void HandleTableSelectChange(bool isChecked)
+		{
+			CheckBox cbxHeader = (CheckBox)gvTables.Controls.Find("TableSelectHeader", false).First();
+
+			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+
+			int checkedCount = tableData.Where(x => x.TableSelect == true).Count();
+
+			if (checkedCount > 0 && checkedCount < tableData.Count)
+			{
+				cbxHeader.CheckState = CheckState.Indeterminate;
+			}
+			else if (checkedCount == tableData.Count)
+			{
+				cbxHeader.CheckState = CheckState.Checked;
+			}
+			else
+			{
+				cbxHeader.CheckState = CheckState.Unchecked;
+			}
+
+			if (cbxHeader.CheckState == CheckState.Checked && !isChecked ||
+					cbxHeader.CheckState == CheckState.Unchecked && isChecked)
+			{
+				cbxHeader.CheckState = CheckState.Indeterminate;
+			}
+		}
+		
 		#endregion
 
 		#region Events
@@ -297,89 +326,54 @@ namespace Tiger.Dal
 		{
 			if (e.ColumnIndex > -1 && e.RowIndex > -1 && !SkipTableCellValueEvent)
 			{
-				if (e.ColumnIndex == 0)
+				DataGridViewCheckBoxCell cbx = (DataGridViewCheckBoxCell)gvTables[e.ColumnIndex, e.RowIndex];
+
+				if (cbx.EditingCellValueChanged)
 				{
-					DataGridViewCheckBoxCell cbxSelect = (DataGridViewCheckBoxCell)gvTables[0, e.RowIndex];
-					CheckState isChecked = (CheckState)cbxSelect.FormattedValue;
-
-					TableData row = (TableData)gvTables.Rows[e.RowIndex].DataBoundItem;
-
-					CheckBox cbxHeader = (CheckBox)gvTables.Controls.Find("TableSelectHeader", false).First();
-
-					List<TableData> tableData = (List<TableData>)gvTables.DataSource;
-
-					SkipTableHeaderCheckboxEvent = true;
-
-					int checkedCount = tableData.Where(x => x.TableSelect == CheckState.Checked || x.TableSelect == CheckState.Indeterminate).Count();
-
-					if (checkedCount > 0 && checkedCount < tableData.Count)
+					if (e.ColumnIndex == 0)
 					{
-						cbxHeader.CheckState = CheckState.Indeterminate;
-					}
-					else if (checkedCount == tableData.Count)
-					{
-						cbxHeader.CheckState = CheckState.Checked;
-					}
-					else
-					{
-						cbxHeader.CheckState = CheckState.Unchecked;
-					}
+						bool isChecked = (bool)gvTables[0, e.RowIndex].FormattedValue;
 
-					if (cbxHeader.CheckState == CheckState.Checked && isChecked == CheckState.Unchecked ||
-							cbxHeader.CheckState == CheckState.Unchecked && isChecked == CheckState.Checked ||
-							cbxHeader.CheckState == CheckState.Unchecked && isChecked == CheckState.Indeterminate)
-					{
-						cbxHeader.CheckState = CheckState.Indeterminate;
+						HandleTableSelectChange(isChecked);
+
+						ToggleTableFileOptions(isChecked, e.RowIndex);
+
+						gvTables.EndEdit();
 					}
-					else if (isChecked != CheckState.Indeterminate)
+					else if (e.ColumnIndex >= 2 && e.ColumnIndex <= 5)
 					{
 						SkipTableCellValueEvent = true;
-						ToggleTableOptions(isChecked, e.RowIndex);
+
+						DataGridViewCheckBoxCell cbxSelect = (DataGridViewCheckBoxCell)gvTables[0, e.RowIndex];
+						bool pocoValue = (bool)gvTables[2, e.RowIndex].FormattedValue;
+						bool iPocoValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
+						bool repoValue = (bool)gvTables[4, e.RowIndex].FormattedValue;
+						bool iRepoValue = (bool)gvTables[5, e.RowIndex].FormattedValue;
+
+						if (pocoValue || iPocoValue || repoValue || iRepoValue)
+						{
+							cbxSelect.Value = true;
+							HandleTableSelectChange(true);
+						}
+						else
+						{
+							cbxSelect.Value = false;
+							HandleTableSelectChange(false);
+						}
+
+						if (!pocoValue)
+							cbxPocos.Checked = false;
+						if (!iPocoValue)
+							cbxPocoInterfaces.Checked = false;
+						if (!repoValue)
+							cbxRepositories.Checked = false;
+						if (!iRepoValue)
+							cbxRepositoryInterfaces.Checked = false;
+
 						SkipTableCellValueEvent = false;
-					}
-					else if (isChecked == CheckState.Indeterminate)
-					{
-						SkipTableCellValueEvent = true;
-						cbxSelect.Value = CheckState.Unchecked;
-						ToggleTableOptions(CheckState.Unchecked, e.RowIndex);
-						SkipTableCellValueEvent = false;
-					}
 
-					SkipTableHeaderCheckboxEvent = false;
-
-					gvTables.EndEdit();
-				}
-				else if (e.ColumnIndex >= 2 && e.ColumnIndex <= 5)
-				{
-					DataGridViewCheckBoxCell cbx = (DataGridViewCheckBoxCell)gvTables[0, e.RowIndex];
-					bool pocoValue = (bool)gvTables[2, e.RowIndex].FormattedValue;
-					bool iPocoValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
-					bool repoValue = (bool)gvTables[4, e.RowIndex].FormattedValue;
-					bool iRepoValue = (bool)gvTables[5, e.RowIndex].FormattedValue;
-
-					if (pocoValue && iPocoValue && repoValue && iRepoValue)
-					{
-						cbx.Value = CheckState.Checked;
+						gvTables.EndEdit();
 					}
-					else if (!pocoValue && !iPocoValue && !repoValue && !iRepoValue)
-					{
-						cbx.Value = CheckState.Unchecked;
-					}
-					else if (pocoValue || iPocoValue || repoValue || iRepoValue)
-					{
-						cbx.Value = CheckState.Indeterminate;
-					}
-
-					if (!pocoValue)
-						cbxPocos.CheckState = CheckState.Unchecked;
-					if (!iPocoValue)
-						cbxPocoInterfaces.CheckState = CheckState.Unchecked;
-					if (!repoValue)
-						cbxRepositories.CheckState = CheckState.Unchecked;
-					if (!iRepoValue)
-						cbxRepositoryInterfaces.CheckState = CheckState.Unchecked;
-
-					gvTables.EndEdit();
 				}
 			}
 		}
@@ -396,10 +390,10 @@ namespace Tiger.Dal
 				gvTables.EndEdit();
 			}
 
-			if (!SkipTableHeaderCheckboxEvent)
-			{
-				CheckBox cbx = (CheckBox)sender;
+			CheckBox cbx = (CheckBox)sender;
 
+			if (cbx.Focused)
+			{
 				if (cbx.CheckState == CheckState.Indeterminate)
 				{
 					cbx.CheckState = CheckState.Unchecked;
@@ -414,91 +408,86 @@ namespace Tiger.Dal
 
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
-					gvTables.Rows[i].Cells[0].Value = cbx.Checked == true ? CheckState.Checked : CheckState.Unchecked;
-					ToggleTableOptions((CheckState)gvTables.Rows[i].Cells[0].Value, i);
+					gvTables.Rows[i].Cells[0].Value = cbx.Checked;
+					ToggleTableFileOptions((bool)gvTables.Rows[i].Cells[0].Value, i);
 				}
-
 				SkipTableCellValueEvent = false;
 			}
 		}
 
 		private void cbxPocos_CheckStateChanged(object sender, EventArgs e)
 		{
-			if (!SkipTableCellValueEvent)
-			{
-				CheckBox cbx = (CheckBox)sender;
+			CheckBox cbx = (CheckBox)sender;
 
+			if (cbx.Focused)
+			{
 				if (cbx.CheckState == CheckState.Indeterminate)
 				{
 					cbx.CheckState = CheckState.Unchecked;
 				}
 
-				SkipTableCellValueEvent = true;
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
-					gvTables.Rows[i].Cells[2].Value = cbx.Checked == true ? true : false;
+					((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[2]).EditingCellValueChanged = true;
+					gvTables.Rows[i].Cells[2].Value = cbx.Checked;
 				}
-				SkipTableCellValueEvent = false;
 			}
 		}
 
 		private void cbxPocoInterfaces_CheckStateChanged(object sender, EventArgs e)
 		{
-			if (!SkipTableCellValueEvent)
-			{
-				CheckBox cbx = (CheckBox)sender;
+			CheckBox cbx = (CheckBox)sender;
 
+			if (cbx.Focused)
+			{
 				if (cbx.CheckState == CheckState.Indeterminate)
 				{
 					cbx.CheckState = CheckState.Unchecked;
 				}
 
-				SkipTableCellValueEvent = true;
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
-					gvTables.Rows[i].Cells[3].Value = cbx.Checked == true ? true : false;
+					((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[3]).EditingCellValueChanged = true;
+					gvTables.Rows[i].Cells[3].Value = cbx.Checked;
 				}
-				SkipTableCellValueEvent = false;
 			}
 		}
 
 		private void cbxRepositories_CheckStateChanged(object sender, EventArgs e)
 		{
-			if (!SkipTableCellValueEvent)
-			{
-				CheckBox cbx = (CheckBox)sender;
+			CheckBox cbx = (CheckBox)sender;
 
+			if (cbx.Focused)
+			{
 				if (cbx.CheckState == CheckState.Indeterminate)
 				{
 					cbx.CheckState = CheckState.Unchecked;
 				}
 
-				SkipTableCellValueEvent = true;
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
-					gvTables.Rows[i].Cells[4].Value = cbx.Checked == true ? true : false;
+					((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[4]).EditingCellValueChanged = true;
+					gvTables.Rows[i].Cells[4].Value = cbx.Checked;
 				}
-				SkipTableCellValueEvent = false;
 			}
 		}
 
 		private void cbxRepositoryInterfaces_CheckStateChanged(object sender, EventArgs e)
 		{
-			if (!SkipTableCellValueEvent)
-			{
-				CheckBox cbx = (CheckBox)sender;
+			CheckBox cbx = (CheckBox)sender;
 
+			if (cbx.Focused)
+			{
 				if (cbx.CheckState == CheckState.Indeterminate)
 				{
 					cbx.CheckState = CheckState.Unchecked;
 				}
 
-				SkipTableCellValueEvent = true;
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
-					gvTables.Rows[i].Cells[5].Value = cbx.Checked == true ? true : false;
+					((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[5]).EditingCellValueChanged = true;
+					gvTables.Rows[i].Cells[5].Value = cbx.Checked;
 				}
-				SkipTableCellValueEvent = false;
 			}
 		}
 		#endregion
@@ -509,7 +498,7 @@ namespace Tiger.Dal
 		{
 			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
 
-			TableNames = tableData.Where(x => x.TableSelect == CheckState.Checked || x.TableSelect == CheckState.Indeterminate).Select(x => x.TableName).ToList();
+			TableNames = tableData.Where(x => x.TableSelect == true).Select(x => x.TableName).ToList();
 
 			this.Close();
 		}
@@ -527,7 +516,7 @@ namespace Tiger.Dal
 
 	class TableData
 	{
-		public CheckState TableSelect { get; set; }
+		public bool TableSelect { get; set; }
 		public string TableName { get; set; }
 		public bool GeneratePoco { get; set; }
 		public bool GeneratePocoInterface { get; set; }

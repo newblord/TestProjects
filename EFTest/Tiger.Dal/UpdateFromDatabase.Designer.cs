@@ -30,6 +30,8 @@
 		{
 			this.tcDatabaseObjects = new System.Windows.Forms.TabControl();
 			this.tpSettings = new System.Windows.Forms.TabPage();
+			this.textBox1 = new System.Windows.Forms.TextBox();
+			this.label2 = new System.Windows.Forms.Label();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			this.cbxUseCamelCase = new System.Windows.Forms.CheckBox();
 			this.cbxDisableGeographyTypes = new System.Windows.Forms.CheckBox();
@@ -51,12 +53,6 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.tpTables = new System.Windows.Forms.TabPage();
 			this.gvTables = new System.Windows.Forms.DataGridView();
-			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.TablePoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableIPoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.gbTables = new System.Windows.Forms.GroupBox();
 			this.cbxRepositoryInterfaces = new System.Windows.Forms.CheckBox();
 			this.cbxRepositories = new System.Windows.Forms.CheckBox();
@@ -73,6 +69,12 @@
 			this.btnGenerate = new System.Windows.Forms.Button();
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			this.btnCancel = new System.Windows.Forms.Button();
+			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.TablePoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableIPoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.tcDatabaseObjects.SuspendLayout();
 			this.tpSettings.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
@@ -102,12 +104,14 @@
 			this.tcDatabaseObjects.Location = new System.Drawing.Point(0, 0);
 			this.tcDatabaseObjects.Name = "tcDatabaseObjects";
 			this.tcDatabaseObjects.SelectedIndex = 0;
-			this.tcDatabaseObjects.Size = new System.Drawing.Size(584, 432);
+			this.tcDatabaseObjects.Size = new System.Drawing.Size(642, 492);
 			this.tcDatabaseObjects.TabIndex = 0;
 			this.tcDatabaseObjects.Selected += new System.Windows.Forms.TabControlEventHandler(this.tcDatabaseObjects_Selected);
 			// 
 			// tpSettings
 			// 
+			this.tpSettings.Controls.Add(this.textBox1);
+			this.tpSettings.Controls.Add(this.label2);
 			this.tpSettings.Controls.Add(this.flowLayoutPanel1);
 			this.tpSettings.Controls.Add(this.label4);
 			this.tpSettings.Controls.Add(this.txtContextInterfaceBaseClass);
@@ -119,10 +123,27 @@
 			this.tpSettings.Location = new System.Drawing.Point(4, 22);
 			this.tpSettings.Name = "tpSettings";
 			this.tpSettings.Padding = new System.Windows.Forms.Padding(3);
-			this.tpSettings.Size = new System.Drawing.Size(576, 406);
+			this.tpSettings.Size = new System.Drawing.Size(634, 466);
 			this.tpSettings.TabIndex = 4;
 			this.tpSettings.Text = "Settings";
 			this.tpSettings.UseVisualStyleBackColor = true;
+			// 
+			// textBox1
+			// 
+			this.textBox1.Location = new System.Drawing.Point(203, 32);
+			this.textBox1.Name = "textBox1";
+			this.textBox1.Size = new System.Drawing.Size(122, 20);
+			this.textBox1.TabIndex = 29;
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label2.Location = new System.Drawing.Point(3, 33);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(194, 15);
+			this.label2.TabIndex = 28;
+			this.label2.Text = "Database Context Interface Name:";
 			// 
 			// flowLayoutPanel1
 			// 
@@ -131,9 +152,9 @@
 			this.flowLayoutPanel1.Controls.Add(this.cbxNullableShortHand);
 			this.flowLayoutPanel1.Controls.Add(this.cbxPrivateSetterForComputedColumns);
 			this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-			this.flowLayoutPanel1.Location = new System.Drawing.Point(298, 81);
+			this.flowLayoutPanel1.Location = new System.Drawing.Point(331, 106);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(269, 319);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(300, 321);
 			this.flowLayoutPanel1.TabIndex = 26;
 			// 
 			// cbxUseCamelCase
@@ -141,7 +162,7 @@
 			this.cbxUseCamelCase.AutoSize = true;
 			this.cbxUseCamelCase.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxUseCamelCase.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxUseCamelCase.Location = new System.Drawing.Point(145, 3);
+			this.cbxUseCamelCase.Location = new System.Drawing.Point(176, 3);
 			this.cbxUseCamelCase.Name = "cbxUseCamelCase";
 			this.cbxUseCamelCase.Size = new System.Drawing.Size(121, 19);
 			this.cbxUseCamelCase.TabIndex = 12;
@@ -153,7 +174,7 @@
 			this.cbxDisableGeographyTypes.AutoSize = true;
 			this.cbxDisableGeographyTypes.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxDisableGeographyTypes.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxDisableGeographyTypes.Location = new System.Drawing.Point(97, 28);
+			this.cbxDisableGeographyTypes.Location = new System.Drawing.Point(128, 28);
 			this.cbxDisableGeographyTypes.Name = "cbxDisableGeographyTypes";
 			this.cbxDisableGeographyTypes.Size = new System.Drawing.Size(169, 19);
 			this.cbxDisableGeographyTypes.TabIndex = 11;
@@ -165,7 +186,7 @@
 			this.cbxNullableShortHand.AutoSize = true;
 			this.cbxNullableShortHand.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxNullableShortHand.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxNullableShortHand.Location = new System.Drawing.Point(126, 53);
+			this.cbxNullableShortHand.Location = new System.Drawing.Point(157, 53);
 			this.cbxNullableShortHand.Name = "cbxNullableShortHand";
 			this.cbxNullableShortHand.Size = new System.Drawing.Size(140, 19);
 			this.cbxNullableShortHand.TabIndex = 20;
@@ -177,7 +198,7 @@
 			this.cbxPrivateSetterForComputedColumns.AutoSize = true;
 			this.cbxPrivateSetterForComputedColumns.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPrivateSetterForComputedColumns.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPrivateSetterForComputedColumns.Location = new System.Drawing.Point(10, 78);
+			this.cbxPrivateSetterForComputedColumns.Location = new System.Drawing.Point(41, 78);
 			this.cbxPrivateSetterForComputedColumns.Name = "cbxPrivateSetterForComputedColumns";
 			this.cbxPrivateSetterForComputedColumns.Size = new System.Drawing.Size(256, 19);
 			this.cbxPrivateSetterForComputedColumns.TabIndex = 19;
@@ -188,7 +209,7 @@
 			// 
 			this.label4.AutoSize = true;
 			this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label4.Location = new System.Drawing.Point(3, 8);
+			this.label4.Location = new System.Drawing.Point(386, 10);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(115, 15);
 			this.label4.TabIndex = 9;
@@ -196,23 +217,22 @@
 			// 
 			// txtContextInterfaceBaseClass
 			// 
-			this.txtContextInterfaceBaseClass.Location = new System.Drawing.Point(174, 38);
+			this.txtContextInterfaceBaseClass.Location = new System.Drawing.Point(506, 32);
 			this.txtContextInterfaceBaseClass.Name = "txtContextInterfaceBaseClass";
 			this.txtContextInterfaceBaseClass.Size = new System.Drawing.Size(122, 20);
 			this.txtContextInterfaceBaseClass.TabIndex = 8;
 			// 
 			// txtContextBaseClass
 			// 
-			this.txtContextBaseClass.Location = new System.Drawing.Point(124, 6);
+			this.txtContextBaseClass.Location = new System.Drawing.Point(507, 5);
 			this.txtContextBaseClass.Name = "txtContextBaseClass";
 			this.txtContextBaseClass.Size = new System.Drawing.Size(121, 20);
 			this.txtContextBaseClass.TabIndex = 7;
 			// 
 			// label3
 			// 
-			this.label3.AutoSize = true;
 			this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label3.Location = new System.Drawing.Point(3, 39);
+			this.label3.Location = new System.Drawing.Point(336, 33);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(165, 15);
 			this.label3.TabIndex = 6;
@@ -228,9 +248,9 @@
 			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateContextClass);
 			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateUnitOfWork);
 			this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-			this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 81);
+			this.flowLayoutPanel2.Location = new System.Drawing.Point(6, 106);
 			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-			this.flowLayoutPanel2.Size = new System.Drawing.Size(289, 321);
+			this.flowLayoutPanel2.Size = new System.Drawing.Size(306, 321);
 			this.flowLayoutPanel2.TabIndex = 27;
 			// 
 			// cbxPartialClasses
@@ -238,7 +258,7 @@
 			this.cbxPartialClasses.AutoSize = true;
 			this.cbxPartialClasses.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPartialClasses.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPartialClasses.Location = new System.Drawing.Point(142, 3);
+			this.cbxPartialClasses.Location = new System.Drawing.Point(159, 3);
 			this.cbxPartialClasses.Name = "cbxPartialClasses";
 			this.cbxPartialClasses.Size = new System.Drawing.Size(144, 19);
 			this.cbxPartialClasses.TabIndex = 10;
@@ -250,7 +270,7 @@
 			this.cbxPartialInterfaces.AutoSize = true;
 			this.cbxPartialInterfaces.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPartialInterfaces.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPartialInterfaces.Location = new System.Drawing.Point(132, 28);
+			this.cbxPartialInterfaces.Location = new System.Drawing.Point(149, 28);
 			this.cbxPartialInterfaces.Name = "cbxPartialInterfaces";
 			this.cbxPartialInterfaces.Size = new System.Drawing.Size(154, 19);
 			this.cbxPartialInterfaces.TabIndex = 16;
@@ -262,7 +282,7 @@
 			this.cbxPartialContextInterface.AutoSize = true;
 			this.cbxPartialContextInterface.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPartialContextInterface.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPartialContextInterface.Location = new System.Drawing.Point(38, 53);
+			this.cbxPartialContextInterface.Location = new System.Drawing.Point(55, 53);
 			this.cbxPartialContextInterface.Name = "cbxPartialContextInterface";
 			this.cbxPartialContextInterface.Size = new System.Drawing.Size(248, 19);
 			this.cbxPartialContextInterface.TabIndex = 15;
@@ -274,7 +294,7 @@
 			this.cbxGenerateSeparateFiles.AutoSize = true;
 			this.cbxGenerateSeparateFiles.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxGenerateSeparateFiles.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxGenerateSeparateFiles.Location = new System.Drawing.Point(124, 78);
+			this.cbxGenerateSeparateFiles.Location = new System.Drawing.Point(141, 78);
 			this.cbxGenerateSeparateFiles.Name = "cbxGenerateSeparateFiles";
 			this.cbxGenerateSeparateFiles.Size = new System.Drawing.Size(162, 19);
 			this.cbxGenerateSeparateFiles.TabIndex = 14;
@@ -286,7 +306,7 @@
 			this.cbxUseDataAnnotations.AutoSize = true;
 			this.cbxUseDataAnnotations.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxUseDataAnnotations.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxUseDataAnnotations.Location = new System.Drawing.Point(139, 103);
+			this.cbxUseDataAnnotations.Location = new System.Drawing.Point(156, 103);
 			this.cbxUseDataAnnotations.Name = "cbxUseDataAnnotations";
 			this.cbxUseDataAnnotations.Size = new System.Drawing.Size(147, 19);
 			this.cbxUseDataAnnotations.TabIndex = 13;
@@ -298,7 +318,7 @@
 			this.cbxGenerateContextClass.AutoSize = true;
 			this.cbxGenerateContextClass.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxGenerateContextClass.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxGenerateContextClass.Location = new System.Drawing.Point(129, 128);
+			this.cbxGenerateContextClass.Location = new System.Drawing.Point(146, 128);
 			this.cbxGenerateContextClass.Name = "cbxGenerateContextClass";
 			this.cbxGenerateContextClass.Size = new System.Drawing.Size(157, 19);
 			this.cbxGenerateContextClass.TabIndex = 1;
@@ -310,7 +330,7 @@
 			this.cbxGenerateUnitOfWork.AutoSize = true;
 			this.cbxGenerateUnitOfWork.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxGenerateUnitOfWork.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxGenerateUnitOfWork.Location = new System.Drawing.Point(135, 153);
+			this.cbxGenerateUnitOfWork.Location = new System.Drawing.Point(152, 153);
 			this.cbxGenerateUnitOfWork.Name = "cbxGenerateUnitOfWork";
 			this.cbxGenerateUnitOfWork.Size = new System.Drawing.Size(151, 19);
 			this.cbxGenerateUnitOfWork.TabIndex = 25;
@@ -319,7 +339,7 @@
 			// 
 			// txtDbContextName
 			// 
-			this.txtDbContextName.Location = new System.Drawing.Point(401, 7);
+			this.txtDbContextName.Location = new System.Drawing.Point(203, 5);
 			this.txtDbContextName.Name = "txtDbContextName";
 			this.txtDbContextName.Size = new System.Drawing.Size(122, 20);
 			this.txtDbContextName.TabIndex = 5;
@@ -328,7 +348,7 @@
 			// 
 			this.label1.AutoSize = true;
 			this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label1.Location = new System.Drawing.Point(251, 8);
+			this.label1.Location = new System.Drawing.Point(53, 6);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(144, 15);
 			this.label1.TabIndex = 4;
@@ -341,7 +361,7 @@
 			this.tpTables.Location = new System.Drawing.Point(4, 22);
 			this.tpTables.Name = "tpTables";
 			this.tpTables.Padding = new System.Windows.Forms.Padding(3);
-			this.tpTables.Size = new System.Drawing.Size(577, 315);
+			this.tpTables.Size = new System.Drawing.Size(634, 466);
 			this.tpTables.TabIndex = 0;
 			this.tpTables.Text = "Tables";
 			this.tpTables.UseVisualStyleBackColor = true;
@@ -365,60 +385,10 @@
 			this.gvTables.Name = "gvTables";
 			this.gvTables.RowHeadersVisible = false;
 			this.gvTables.ShowEditingIcon = false;
-			this.gvTables.Size = new System.Drawing.Size(571, 227);
+			this.gvTables.Size = new System.Drawing.Size(628, 378);
 			this.gvTables.TabIndex = 2;
 			this.gvTables.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellContentClick);
 			this.gvTables.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellValueChanged);
-			// 
-			// TableSelect
-			// 
-			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableSelect.DataPropertyName = "TableSelect";
-			this.TableSelect.HeaderText = "";
-			this.TableSelect.Name = "TableSelect";
-			this.TableSelect.ThreeState = true;
-			this.TableSelect.Width = 20;
-			// 
-			// TableName
-			// 
-			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-			this.TableName.DataPropertyName = "TableName";
-			this.TableName.HeaderText = "Name";
-			this.TableName.MinimumWidth = 150;
-			this.TableName.Name = "TableName";
-			this.TableName.ReadOnly = true;
-			// 
-			// TablePoco
-			// 
-			this.TablePoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TablePoco.DataPropertyName = "GeneratePoco";
-			this.TablePoco.HeaderText = "POCO";
-			this.TablePoco.Name = "TablePoco";
-			this.TablePoco.Width = 50;
-			// 
-			// TableIPoco
-			// 
-			this.TableIPoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIPoco.DataPropertyName = "GeneratePocoInterface";
-			this.TableIPoco.HeaderText = "POCO Interface";
-			this.TableIPoco.Name = "TableIPoco";
-			this.TableIPoco.Width = 60;
-			// 
-			// TableRepository
-			// 
-			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableRepository.DataPropertyName = "GenerateRepository";
-			this.TableRepository.HeaderText = "Repository";
-			this.TableRepository.Name = "TableRepository";
-			this.TableRepository.Width = 65;
-			// 
-			// TableIRepository
-			// 
-			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
-			this.TableIRepository.HeaderText = "Repository Interface";
-			this.TableIRepository.Name = "TableIRepository";
-			this.TableIRepository.Width = 65;
 			// 
 			// gbTables
 			// 
@@ -430,7 +400,7 @@
 			this.gbTables.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.gbTables.Location = new System.Drawing.Point(3, 3);
 			this.gbTables.Name = "gbTables";
-			this.gbTables.Size = new System.Drawing.Size(571, 82);
+			this.gbTables.Size = new System.Drawing.Size(628, 82);
 			this.gbTables.TabIndex = 0;
 			this.gbTables.TabStop = false;
 			this.gbTables.Text = "Table Settings";
@@ -493,7 +463,7 @@
 			this.tpViews.Location = new System.Drawing.Point(4, 22);
 			this.tpViews.Name = "tpViews";
 			this.tpViews.Padding = new System.Windows.Forms.Padding(3);
-			this.tpViews.Size = new System.Drawing.Size(577, 315);
+			this.tpViews.Size = new System.Drawing.Size(634, 466);
 			this.tpViews.TabIndex = 1;
 			this.tpViews.Text = "Views";
 			this.tpViews.UseVisualStyleBackColor = true;
@@ -511,7 +481,7 @@
 			this.gvViews.Location = new System.Drawing.Point(3, 3);
 			this.gvViews.Name = "gvViews";
 			this.gvViews.RowHeadersVisible = false;
-			this.gvViews.Size = new System.Drawing.Size(571, 309);
+			this.gvViews.Size = new System.Drawing.Size(628, 460);
 			this.gvViews.TabIndex = 0;
 			// 
 			// ViewSelect
@@ -531,7 +501,7 @@
 			this.tpStoredProcedures.Location = new System.Drawing.Point(4, 22);
 			this.tpStoredProcedures.Name = "tpStoredProcedures";
 			this.tpStoredProcedures.Padding = new System.Windows.Forms.Padding(3);
-			this.tpStoredProcedures.Size = new System.Drawing.Size(577, 315);
+			this.tpStoredProcedures.Size = new System.Drawing.Size(634, 466);
 			this.tpStoredProcedures.TabIndex = 2;
 			this.tpStoredProcedures.Text = "Stored Procedures";
 			this.tpStoredProcedures.UseVisualStyleBackColor = true;
@@ -547,7 +517,7 @@
 			this.gvStoredProcedures.Location = new System.Drawing.Point(3, 3);
 			this.gvStoredProcedures.Name = "gvStoredProcedures";
 			this.gvStoredProcedures.RowHeadersVisible = false;
-			this.gvStoredProcedures.Size = new System.Drawing.Size(571, 309);
+			this.gvStoredProcedures.Size = new System.Drawing.Size(628, 460);
 			this.gvStoredProcedures.TabIndex = 0;
 			// 
 			// tpEnums
@@ -556,7 +526,7 @@
 			this.tpEnums.Location = new System.Drawing.Point(4, 22);
 			this.tpEnums.Name = "tpEnums";
 			this.tpEnums.Padding = new System.Windows.Forms.Padding(3);
-			this.tpEnums.Size = new System.Drawing.Size(577, 315);
+			this.tpEnums.Size = new System.Drawing.Size(634, 466);
 			this.tpEnums.TabIndex = 3;
 			this.tpEnums.Text = "Enums";
 			this.tpEnums.UseVisualStyleBackColor = true;
@@ -571,7 +541,7 @@
 			// 
 			// btnGenerate
 			// 
-			this.btnGenerate.Location = new System.Drawing.Point(428, 3);
+			this.btnGenerate.Location = new System.Drawing.Point(486, 3);
 			this.btnGenerate.Name = "btnGenerate";
 			this.btnGenerate.Size = new System.Drawing.Size(75, 23);
 			this.btnGenerate.TabIndex = 0;
@@ -585,14 +555,14 @@
 			this.flowLayoutPanel3.Controls.Add(this.btnGenerate);
 			this.flowLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Bottom;
 			this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-			this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 431);
+			this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 491);
 			this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-			this.flowLayoutPanel3.Size = new System.Drawing.Size(587, 34);
+			this.flowLayoutPanel3.Size = new System.Drawing.Size(645, 34);
 			this.flowLayoutPanel3.TabIndex = 1;
 			// 
 			// btnCancel
 			// 
-			this.btnCancel.Location = new System.Drawing.Point(509, 3);
+			this.btnCancel.Location = new System.Drawing.Point(567, 3);
 			this.btnCancel.Name = "btnCancel";
 			this.btnCancel.Size = new System.Drawing.Size(75, 23);
 			this.btnCancel.TabIndex = 1;
@@ -600,11 +570,60 @@
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
 			// 
+			// TableSelect
+			// 
+			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableSelect.DataPropertyName = "TableSelect";
+			this.TableSelect.HeaderText = "";
+			this.TableSelect.Name = "TableSelect";
+			this.TableSelect.Width = 20;
+			// 
+			// TableName
+			// 
+			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+			this.TableName.DataPropertyName = "TableName";
+			this.TableName.HeaderText = "Name";
+			this.TableName.MinimumWidth = 150;
+			this.TableName.Name = "TableName";
+			this.TableName.ReadOnly = true;
+			// 
+			// TablePoco
+			// 
+			this.TablePoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TablePoco.DataPropertyName = "GeneratePoco";
+			this.TablePoco.HeaderText = "POCO";
+			this.TablePoco.Name = "TablePoco";
+			this.TablePoco.Width = 50;
+			// 
+			// TableIPoco
+			// 
+			this.TableIPoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIPoco.DataPropertyName = "GeneratePocoInterface";
+			this.TableIPoco.HeaderText = "POCO Interface";
+			this.TableIPoco.Name = "TableIPoco";
+			this.TableIPoco.Width = 60;
+			// 
+			// TableRepository
+			// 
+			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableRepository.DataPropertyName = "GenerateRepository";
+			this.TableRepository.HeaderText = "Repository";
+			this.TableRepository.Name = "TableRepository";
+			this.TableRepository.Width = 65;
+			// 
+			// TableIRepository
+			// 
+			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
+			this.TableIRepository.HeaderText = "Repository Interface";
+			this.TableIRepository.Name = "TableIRepository";
+			this.TableIRepository.Width = 65;
+			// 
 			// UpdateFromDatabase
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(587, 465);
+			this.ClientSize = new System.Drawing.Size(645, 525);
 			this.ControlBox = false;
 			this.Controls.Add(this.flowLayoutPanel3);
 			this.Controls.Add(this.tcDatabaseObjects);
@@ -675,13 +694,15 @@
 		private System.Windows.Forms.TextBox txtDbContextName;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button btnGenerate;
+		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
+		private System.Windows.Forms.Button btnCancel;
+		private System.Windows.Forms.TextBox textBox1;
+		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableSelect;
 		private System.Windows.Forms.DataGridViewTextBoxColumn TableName;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TablePoco;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIPoco;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableRepository;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIRepository;
-		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
-		private System.Windows.Forms.Button btnCancel;
 	}
 }
