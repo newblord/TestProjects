@@ -69,6 +69,24 @@
   <ItemGroup>
     <Compile Include="TemplateFileManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Templates\DatabaseObjects\Column.cs" />
+    <Compile Include="Templates\DatabaseObjects\DatabaseGenerationSetting.cs" />
+    <Compile Include="Templates\DatabaseObjects\DatabaseObjectEnums.cs" />
+    <Compile Include="Templates\DatabaseObjects\EnumDefinition.cs" />
+    <Compile Include="Templates\DatabaseObjects\ForeignKey.cs" />
+    <Compile Include="Templates\DatabaseObjects\Inflector.cs" />
+    <Compile Include="Templates\DatabaseObjects\SchemaReader.cs" />
+    <Compile Include="Templates\DatabaseObjects\StoredProcedure.cs" />
+    <Compile Include="Templates\DatabaseObjects\StoredProcedureParameter.cs" />
+    <Compile Include="Templates\DatabaseObjects\Table.cs" />
+    <Compile Include="Templates\DatabaseObjects\Tables.cs" />
+    <Compile Include="Templates\DatabaseObjects\UniqueIndex.cs" />
+    <Compile Include="Templates\ReversePocoCore.cs" />
+    <Compile Include="Templates\UOWTest.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>UOWTest.tt</DependentUpon>
+    </Compile>
     <Compile Include="UpdateFromDatabase.cs">
       <SubType>Form</SubType>
     </Compile>

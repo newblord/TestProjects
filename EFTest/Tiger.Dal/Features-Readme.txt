@@ -20,3 +20,7 @@
 	10) Add Custom Property change management for POCO classes
 	11) Add support for Entity Framework Entity Graph management
 	12) Add Enum support
+	13) Refactor Database Reverse Engineering for mass table generation
+		 - Done with partial testing
+	14) Refactor UpdateFromDatabase WinForm
+		- Tables Tab has been recreated
