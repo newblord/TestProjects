@@ -27,15 +27,17 @@
 	Setting.MakeContextInterfacePartial = true;
 	Setting.GenerateSeparateFiles = true;
 	Setting.UseDataAnnotations = true; // Setting this to true will use DataAnnotations and false will use FluentAPI Configuration
+	Setting.GenerateContextClass = true;
+	Setting.GenerateUnitOfWorkInterface = true;
 	Setting.UseCamelCase = true;	 // This will rename the tables & fields to use CamelCase. If false table & field names will be left alone.
 	Setting.DisableGeographyTypes = false; // Turns off use of System.Data.Entity.Spatial.DbGeography and System.Data.Entity.Spatial.DbGeometry as OData doesn't support entities with geometry/geography types.
 	Setting.NullableShortHand = true; //true => T?, false => Nullable<T>
-	Setting.PrivateSetterForComputerColumns = true; // If the columns is computed, use a private setter.
+	Setting.PrivateSetterForComputedColumns = true; // If the columns is computed, use a private setter.
 	Setting.FileExtension = ".cs"; // File Extension used for context and Unit of Work files
 	Setting.GeneratedFileExtension = ".generated.cs"; // File Extension used for TT generated files
 	Setting.PrependSchemaName = true;	// Control if the schema name is prepended to the table name
 	Setting.ConfigurationClassName = "Configuration"; // Configuration, Mapping, Map, etc. This is appended to the Poco class name to configure the mappings.
-	Setting.CollectionType = "System.Collections.Generic.IEnumerable";  // Determines the type of collection for the Navigation Properties. "ObservableCollection" for example. Add "System.Collections.ObjectModel" to AdditionalNamespaces if setting the CollectionType = "ObservableCollection".
+	Setting.CollectionType = "HashSet";  // Determines the type of collection for the Navigation Properties. "ObservableCollection" for example. Add "System.Collections.ObjectModel" to AdditionalNamespaces if setting the CollectionType = "ObservableCollection".
 	Setting.IncludeComments = CommentsStyle.AtEndOfField; // Adds comments to the generated code
 	Setting.IncludeQueryTraceOn9481Flag = false; // If SqlServer 2014 appears frozen / take a long time when this file is saved, try setting this to true (you will also need elevated privileges).
 

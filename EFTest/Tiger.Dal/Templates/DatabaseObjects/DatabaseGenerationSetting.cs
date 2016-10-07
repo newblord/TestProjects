@@ -29,10 +29,12 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public bool MakeContextInterfacePartial { get; set; }
 		public bool GenerateSeparateFiles { get; set; }
 		public bool UseDataAnnotations { get; set; }
+		public bool GenerateContextClass { get; set; }
+		public bool GenerateUnitOfWorkInterface { get; set; }
 		public bool UseCamelCase { get; set; }
 		public bool DisableGeographyTypes { get; set; }
 		public bool NullableShortHand { get; set; }
-		public bool PrivateSetterForComputerColumns { get; set; }
+		public bool PrivateSetterForComputedColumns { get; set; }
 		public string FileExtension { get; set; }
 		public string GeneratedFileExtension { get; set; }
 		public bool PrependSchemaName { get; set; }

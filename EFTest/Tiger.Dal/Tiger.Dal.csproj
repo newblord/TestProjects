@@ -73,6 +73,7 @@
     <Compile Include="Templates\DatabaseObjects\DatabaseGenerationSetting.cs" />
     <Compile Include="Templates\DatabaseObjects\DatabaseObjectEnums.cs" />
     <Compile Include="Templates\DatabaseObjects\EnumDefinition.cs" />
+    <Compile Include="Templates\DatabaseObjects\EnumValue.cs" />
     <Compile Include="Templates\DatabaseObjects\ForeignKey.cs" />
     <Compile Include="Templates\DatabaseObjects\Inflector.cs" />
     <Compile Include="Templates\DatabaseObjects\SchemaReader.cs" />
@@ -108,6 +109,9 @@
     <Content Include="Templates\UOWTest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>UOWTest.cs</LastGenOutput>
+    </Content>
+    <Content Include="Templates\UOWTest.xml">
+      <DependentUpon>UOWTest.tt</DependentUpon>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -32,6 +32,7 @@ namespace Tiger.Dal
 			StoredProcedureNames = storedProcedureNames;
 			this.Setting = setting;
 
+			PopulateDropDownLists();
 			InitializeDatabaseObjects();
 			LoadDatabaseGenerationSettings();
 		}
@@ -54,6 +55,26 @@ namespace Tiger.Dal
 			gvTables.Controls.Add(cbx);
 		}
 
+		private void PopulateDropDownLists()
+		{
+			ddlCollectionType.Items.Add("HashSet");
+			ddlCollectionType.Items.Add("ICollection");
+			ddlCollectionType.Items.Add("IEnumerable");
+			ddlCollectionType.Items.Add("IList");
+			ddlCollectionType.Items.Add("List");
+
+			List<EnumValue> values = new List<EnumValue>();
+
+
+			values.Add(new EnumValue { Name = "None", Value = 0 });
+			values.Add(new EnumValue { Name = "In Summary Block", Value = 1 });
+			values.Add(new EnumValue { Name = "End of Field", Value = 2 });
+			ddlIncludeComments.DataSource = values;
+			ddlIncludeComments.DisplayMember = "Name";
+			ddlIncludeComments.ValueMember = "Value";
+
+		}
+
 		private void LoadDatabaseGenerationSettings()
 		{
 			if (Setting != null)
@@ -61,16 +82,23 @@ namespace Tiger.Dal
 				txtDbContextName.DataBindings.Add("Text", Setting, "DatabaseContextName");
 				txtContextInterfaceBaseClass.DataBindings.Add("Text", Setting, "ContextInterfaceBaseClass");
 				txtContextBaseClass.DataBindings.Add("Text", Setting, "ContextBaseClass");
+				txtConfigurationClassName.DataBindings.Add("Text", Setting, "ConfigurationClassName");
+				ddlCollectionType.DataBindings.Add("SelectedItem", Setting, "CollectionType");
+				ddlIncludeComments.SelectedValue = (int)Setting.IncludeComments;
 
 				cbxPartialClasses.DataBindings.Add("Checked", Setting, "MakeClassesPartial");
 				cbxPartialInterfaces.DataBindings.Add("Checked", Setting, "MakeInterfacesPartial");
 				cbxPartialContextInterface.DataBindings.Add("Checked", Setting, "MakeContextInterfacePartial");
 				cbxGenerateSeparateFiles.DataBindings.Add("Checked", Setting, "GenerateSeparateFiles");
 				cbxUseDataAnnotations.DataBindings.Add("Checked", Setting, "UseDataAnnotations");
+				cbxGenerateContextClass.DataBindings.Add("Checked", Setting, "GenerateContextClass");
+				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", Setting, "GenerateUnitOfWorkInterface");
 				cbxUseCamelCase.DataBindings.Add("Checked", Setting, "UseCamelCase");
 				cbxDisableGeographyTypes.DataBindings.Add("Checked", Setting, "DisableGeographyTypes");
 				cbxNullableShortHand.DataBindings.Add("Checked", Setting, "NullableShortHand");
-				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", Setting, "PrivateSetterForComputerColumns");
+				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", Setting, "PrivateSetterForComputedColumns");
+				cbxPrependSchema.DataBindings.Add("Checked", Setting, "PrependSchemaName");
+				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", Setting, "IncludeQueryTraceOn9481Flag");
 			}
 		}
 
@@ -277,8 +305,6 @@ namespace Tiger.Dal
 		#endregion
 
 		#region Tab - Tables
-
-		private bool SkipTableHeaderCheckboxEvent { get; set; }
 
 		private bool SkipTableCellValueEvent { get; set; }
 
@@ -499,6 +525,8 @@ namespace Tiger.Dal
 			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
 
 			TableNames = tableData.Where(x => x.TableSelect == true).Select(x => x.TableName).ToList();
+
+			Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
 
 			this.Close();
 		}

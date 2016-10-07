@@ -383,6 +383,7 @@
 			CreateHeader();
 
 			WriteLine("using System;");
+			WriteLine("using System.Collections.Generic;");
 			WriteLine("using System.ComponentModel.DataAnnotations;");
 			WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
 			WriteLine("using {0};",PocoInterfaceNamespace);
@@ -403,7 +404,15 @@
 				foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
 				{
 					WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
-				} 
+				}
+
+				if(tbl.ReverseNavigationCtor.Count() > 0)
+				{
+					foreach(string s in tbl.ReverseNavigationCtor.OrderBy(x => x))
+					{
+						WriteLine("{0}", s);
+					}
+				}
 
 				CloseMethodBrace();
 			}

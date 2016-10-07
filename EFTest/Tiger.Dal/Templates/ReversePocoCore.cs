@@ -495,7 +495,7 @@ namespace Tiger.Dal.Templates
 					var reader = new SchemaReader(conn, factory, Setting.IncludeQueryTraceOn9481Flag);
 					reader.TableNames = tableNames;
 
-					var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.IncludeComments, TableRename, UpdateColumn, Setting.PrivateSetterForComputerColumns);
+					var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.IncludeComments, TableRename, UpdateColumn, Setting.PrivateSetterForComputedColumns);
 					tables.SetPrimaryKeys();
 
 					// Must be done in this order

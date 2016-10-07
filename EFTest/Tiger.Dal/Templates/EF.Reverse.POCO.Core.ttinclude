@@ -35,15 +35,17 @@
 	Setting.MakeContextInterfacePartial = false;
 	Setting.GenerateSeparateFiles = false;
 	Setting.UseDataAnnotations = false;
+	Setting.GenerateContextClass = true;
+	Setting.GenerateUnitOfWorkInterface = true;
 	Setting.UseCamelCase = true;
 	Setting.DisableGeographyTypes = false;
 	Setting.NullableShortHand = true;
-	Setting.PrivateSetterForComputerColumns = true;
+	Setting.PrivateSetterForComputedColumns = true;
 	Setting.FileExtension = ".cs";
 	Setting.GeneratedFileExtension = ".generated.cs";
 	Setting.PrependSchemaName = true;
 	Setting.ConfigurationClassName = "Configuration";
-	Setting.CollectionType = "System.Collections.Generic.List";
+	Setting.CollectionType = "List";
 	Setting.IncludeComments = CommentsStyle.AtEndOfField;
 	Setting.IncludeQueryTraceOn9481Flag = false;
 
