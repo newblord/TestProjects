@@ -111,6 +111,13 @@ namespace <#= Namespace #>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
 <#
             }
+
+				if (navigationProperty.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.One)
+            {
+#>
+		  [Required]
+<#
+				}
 #>
         public virtual <#= code.Type(navigationProperty) #> <#= code.Property(navigationProperty) #> { get; set; }
 <#
