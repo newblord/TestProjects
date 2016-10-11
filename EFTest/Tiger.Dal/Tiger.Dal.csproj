@@ -80,14 +80,10 @@
     <Compile Include="Templates\DatabaseObjects\StoredProcedure.cs" />
     <Compile Include="Templates\DatabaseObjects\StoredProcedureParameter.cs" />
     <Compile Include="Templates\DatabaseObjects\Table.cs" />
+    <Compile Include="Templates\DatabaseObjects\TableData.cs" />
     <Compile Include="Templates\DatabaseObjects\Tables.cs" />
     <Compile Include="Templates\DatabaseObjects\UniqueIndex.cs" />
     <Compile Include="Templates\ReversePocoCore.cs" />
-    <Compile Include="Templates\UOWTest.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>UOWTest.tt</DependentUpon>
-    </Compile>
     <Compile Include="UpdateFromDatabase.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -109,9 +105,6 @@
     <Content Include="Templates\UOWTest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>UOWTest.cs</LastGenOutput>
-    </Content>
-    <Content Include="Templates\UOWTest.xml">
-      <DependentUpon>UOWTest.tt</DependentUpon>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -10,6 +10,8 @@ using System.Xml.Linq;
 using Tiger.Dal.Templates.DatabaseObjects;
 using System.Data.Entity.Infrastructure.Pluralization;
 using System.Data;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace Tiger.Dal.Templates
 {
@@ -460,7 +462,7 @@ namespace Tiger.Dal.Templates
 			return col.IsNullable && !NotNullable.Contains(col.PropertyType.ToLower());
 		}
 
-		public static void ProcessDatabaseXML(string templateFileName, ref List<string> tableNames, ref List<string> storedProcedureNames)
+		public static void ProcessDatabaseXML(string templateFileName, ref List<TableData> tableNames, ref List<string> storedProcedureNames, ref DatabaseGenerationSetting setting)
 		{
 			string fileName = templateFileName.Replace(".tt", "") + ".xml";
 
@@ -468,8 +470,23 @@ namespace Tiger.Dal.Templates
 			{
 				var xml = XDocument.Load(fileName);
 
-				tableNames = (from c in xml.Root.Descendants("Table")
-								  select c.Value).ToList();
+				XElement settingNode = xml.Root.Descendants("DatabaseGenerationSetting").FirstOrDefault();
+				XmlSerializer serializer = new XmlSerializer(typeof(DatabaseGenerationSetting));
+
+				if (settingNode != null)
+				{
+					StringReader rdr = new StringReader(settingNode.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+					setting = (DatabaseGenerationSetting)serializer.Deserialize(rdr);
+				}
+
+				List<XElement> tableNodes = (from c in xml.Root.Descendants("TableData") select c).ToList();
+				serializer = new XmlSerializer(typeof(TableData));
+
+				foreach (XElement item in tableNodes)
+				{
+					StringReader rdr = new StringReader(item.ToString().Replace(">True<",">true<").Replace(">False<",">false<"));
+					tableNames.Add((TableData)serializer.Deserialize(rdr));
+				}
 
 				storedProcedureNames = (from c in xml.Root.Descendants("StoredProcedure")
 												select c.Value).ToList();
@@ -477,7 +494,7 @@ namespace Tiger.Dal.Templates
 		}
 
 		#region Database Object Generation
-		public Tables LoadTables(DbProviderFactory factory, string connectionString, List<string> tableNames)
+		public Tables LoadTables(DbProviderFactory factory, string connectionString, List<TableData> selectedTables)
 		{
 			//if (factory == null || !(ElementsToGenerate.HasFlag(Elements.Poco) ||
 			//								ElementsToGenerate.HasFlag(Elements.Context) ||
@@ -493,7 +510,7 @@ namespace Tiger.Dal.Templates
 					conn.Open();
 
 					var reader = new SchemaReader(conn, factory, Setting.IncludeQueryTraceOn9481Flag);
-					reader.TableNames = tableNames;
+					reader.SelectedTables = selectedTables;
 
 					var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.IncludeComments, TableRename, UpdateColumn, Setting.PrivateSetterForComputedColumns);
 					tables.SetPrimaryKeys();

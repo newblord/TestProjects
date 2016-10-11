@@ -15,20 +15,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		DoNotUse
 	}
 
-	[Flags]
-	public enum Elements
-	{
-		None = 0,
-		Poco = 1,
-		Context = 2,
-		UnitOfWork = 4,
-		PocoConfiguration = 8,
-		PocoInterface = 16,
-		Repository = 32,
-		RepositoryInterface = 64
-	}
-
-	[Flags]
 	public enum CommentsStyle
 	{
 		None,

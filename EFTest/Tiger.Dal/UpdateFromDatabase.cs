@@ -17,13 +17,13 @@ namespace Tiger.Dal
 
 		private string ConnectionStringName { get; set; }
 
-		public List<string> TableNames { get; set; }
+		public List<TableData> TableNames { get; set; }
 
 		public List<string> StoredProcedureNames { get; set; }
 
 		public DatabaseGenerationSetting Setting { get; set; }
 
-		public UpdateFromDatabase(string connectionStringName, List<string> tableNames, List<string> storedProcedureNames, DatabaseGenerationSetting setting)
+		public UpdateFromDatabase(string connectionStringName, List<TableData> tableNames, List<string> storedProcedureNames, DatabaseGenerationSetting setting)
 		{
 			InitializeComponent();
 
@@ -112,17 +112,12 @@ namespace Tiger.Dal
 
 		private void InitializeDatabaseTables()
 		{
-			string tables = string.Join("', '", TableNames);
 			List<TableData> tableData = new List<TableData>();
 
 			string sql = @"SELECT
 								s.NAME        AS [Schema]
 								, o.type_desc AS [Type]
 								, o.NAME      AS [Name]
-								, CAST(Case
-									WHEN o.NAME IN ('{TABLE_NAMES}') THEN 1
-									ELSE 0
-									END AS BIT) AS Checked
 							FROM   sys.all_objects o
 										INNER JOIN sys.schemas s
 												ON s.schema_id = o.schema_id
@@ -138,19 +133,22 @@ namespace Tiger.Dal
 				SqlCommand command = connection.CreateCommand();
 
 				command.CommandType = CommandType.Text;
-				command.CommandText = sql.Replace("{TABLE_NAMES}", tables);
+				command.CommandText = sql;
 
 				SqlDataReader reader = command.ExecuteReader();
 
 
 				while (reader.Read())
 				{
-					TableData data = new TableData();
+					TableData data = TableNames.Where(x => x.TableName == reader["Name"].ToString()).FirstOrDefault();
 
-					bool isChecked = bool.Parse(reader["Checked"].ToString());
+					if (data == null)
+					{
+						data = new TableData();
 
-					data.TableName = reader["Name"].ToString();
-					data.TableSelect = isChecked;
+						data.TableName = reader["Name"].ToString();
+						data.TableSelect = false;
+					}
 
 					tableData.Add(data);
 				}
@@ -300,6 +298,25 @@ namespace Tiger.Dal
 
 			//	this.Width = totalWidth;
 			//}
+		}
+
+		private void btnGenerate_Click(object sender, EventArgs e)
+		{
+			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+
+			TableNames = tableData.Where(x => x.TableSelect == true).ToList();
+
+			Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
+
+			this.Close();
+		}
+
+		private void btnCancel_Click(object sender, EventArgs e)
+		{
+			TableNames = new List<TableData>();
+			StoredProcedureNames = new List<string>();
+
+			this.Close();
 		}
 
 		#endregion
@@ -519,38 +536,7 @@ namespace Tiger.Dal
 		#endregion
 
 		#endregion
-
-		private void btnGenerate_Click(object sender, EventArgs e)
-		{
-			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
-
-			TableNames = tableData.Where(x => x.TableSelect == true).Select(x => x.TableName).ToList();
-
-			Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
-
-			this.Close();
-		}
-
-		private void btnCancel_Click(object sender, EventArgs e)
-		{
-			TableNames = new List<string>();
-			StoredProcedureNames = new List<string>();
-
-			this.Close();
-		}
+		
 	}
 
-	#region Helper Classes
-
-	class TableData
-	{
-		public bool TableSelect { get; set; }
-		public string TableName { get; set; }
-		public bool GeneratePoco { get; set; }
-		public bool GeneratePocoInterface { get; set; }
-		public bool GenerateRepository { get; set; }
-		public bool GenerateRepositoryInterface { get; set; }
-	}
-
-	#endregion
 }
