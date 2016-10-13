@@ -134,7 +134,7 @@
 	
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+			WriteLine("public DbSet<{0}> {1}s {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		} 
 
 		WriteLine("");
