@@ -101,6 +101,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			INNER JOIN sys.columns AS FkCol
 				ON f.parent_object_id = FkCol.object_id
 					AND k.parent_column_id = FkCol.column_id
+			WHERE FK.name IN ('{TABLE_NAMES}') AND PK.name IN ('{TABLE_NAMES}')
 			ORDER BY FK_Table, FK_Column";
 
 		private const string StoredProcedureSQL = @"
@@ -202,6 +203,12 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		private string ProcessStoredProcSQL()
 		{
 			string sql = StoredProcedureSQL.Replace("{SPROC_NAMES}", string.Join("', '", StoredProcedureNames));
+			return sql;
+		}
+
+		private string ProcessForeignKeySQL()
+		{
+			string sql = ForeignKeySQL.Replace("{TABLE_NAMES}", string.Join("', '", SelectedTables.Select(x => x.TableName).ToList()));
 			return sql;
 		}
 
@@ -318,7 +325,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			if (Cmd == null)
 				return fkList;
 
-			Cmd.CommandText = ForeignKeySQL + IncludeQueryTraceOn9481();
+			Cmd.CommandText = ProcessForeignKeySQL() + IncludeQueryTraceOn9481();
 			Cmd.CommandTimeout = 600;
 
 			using (DbDataReader rdr = Cmd.ExecuteReader())

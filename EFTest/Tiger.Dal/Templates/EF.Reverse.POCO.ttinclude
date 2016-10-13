@@ -707,10 +707,6 @@
 				} 
 			} 
 
-			foreach (string s in tbl.MappingConfiguration)
-			{
-				WriteLine("{0}",s);
-			}
 			CloseMethodBrace(); 
 			CloseBrace();
 			CloseBrace();

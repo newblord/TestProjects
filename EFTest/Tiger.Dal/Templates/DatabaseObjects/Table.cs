@@ -21,8 +21,8 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public TableData TableData;
 
 		public List<Column> Columns;
+		public List<ForeignKey> ForeignKeys;
 		public List<string> ReverseNavigationProperty;
-		public List<string> MappingConfiguration;
 		public List<string> ReverseNavigationCtor;
 		public List<string> ReverseNavigationUniquePropName;
 		public List<string> ReverseNavigationUniquePropNameClashes;
@@ -36,7 +36,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 
 		public void ResetNavigationProperties()
 		{
-			MappingConfiguration = new List<string>();
 			ReverseNavigationProperty = new List<string>();
 			ReverseNavigationCtor = new List<string>();
 			ReverseNavigationUniquePropName = new List<string>();
@@ -189,16 +188,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			}
 		}
 
-		public void AddMappingConfiguration(ForeignKey left, ForeignKey right, bool useCamelCase, string leftPropName, string rightPropName)
-		{
-			MappingConfiguration.Add(string.Format(@"HasMany(t => t.{0}).WithMany(t => t.{1}).Map(m =>
-			{{
-					m.ToTable(""{2}""{5});
-					m.MapLeftKey(""{3}"");
-					m.MapRightKey(""{4}"");
-			}});", leftPropName, rightPropName, left.FkTableName, left.FkColumn, right.FkColumn, ", \"" + left.FkSchema + "\""));
-		}
-
 		public void SetPrimaryKeys()
 		{
 			if (PrimaryKeys.Any())
@@ -211,53 +200,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				col.IsPrimaryKey = true;
 			}
 		}
-
-		public void IdentifyMappingTable(List<ForeignKey> fkList, Tables tables, bool useCamelCase, string collectionType, bool checkForFkNameClashes, CommentsStyle includeComments, Func<string, string, short, string> ForeignKeyName)
-		{
-			IsMapping = false;
-
-			var nonReadOnlyColumns = Columns.Where(c => !c.IsIdentity && !c.IsRowVersion && !c.IsStoreGenerated && !c.Hidden).ToList();
-
-			// Ignoring read-only columns, it must have only 2 columns to be a mapping table
-			if (nonReadOnlyColumns.Count != 2)
-				return;
-
-			// Must have 2 primary keys
-			if (nonReadOnlyColumns.Count(x => x.IsPrimaryKey) != 2)
-				return;
-
-			// No columns should be nullable
-			if (nonReadOnlyColumns.Any(x => x.IsNullable))
-				return;
-
-			// Find the foreign keys for this table
-			var foreignKeys = fkList.Where(x =>
-													String.Compare(x.FkTableName, Name, StringComparison.OrdinalIgnoreCase) == 0 &&
-													String.Compare(x.FkSchema, Schema, StringComparison.OrdinalIgnoreCase) == 0)
-											.ToList();
-
-			// Each column must have a foreign key, therefore check column and foreign key counts match
-			if (foreignKeys.Select(x => x.FkColumn).Distinct().Count() != 2)
-				return;
-
-			ForeignKey left = foreignKeys[0];
-			ForeignKey right = foreignKeys[1];
-
-			Table leftTable = tables.GetTable(left.PkTableName, left.PkSchema);
-			if (leftTable == null)
-				return;
-
-			Table rightTable = tables.GetTable(right.PkTableName, right.PkSchema);
-			if (rightTable == null)
-				return;
-
-			var leftPropName = leftTable.GetUniqueColumnName(rightTable.NameHumanCase, right, useCamelCase, checkForFkNameClashes, false, ForeignKeyName);
-			var rightPropName = rightTable.GetUniqueColumnName(leftTable.NameHumanCase, left, useCamelCase, checkForFkNameClashes, false, ForeignKeyName);
-			leftTable.AddMappingConfiguration(left, right, useCamelCase, leftPropName, rightPropName);
-
-			IsMapping = true;
-			rightTable.AddReverseNavigation(Relationship.ManyToMany, rightTable.NameHumanCase, leftTable, rightPropName, null, collectionType, includeComments);
-			leftTable.AddReverseNavigation(Relationship.ManyToMany, leftTable.NameHumanCase, rightTable, leftPropName, null, collectionType, includeComments);
-		}
+		
 	}
 }
