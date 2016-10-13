@@ -13,7 +13,10 @@
 	6)   Data Annotation validations for POCO Interfaces
 			- Might not need this for future implementation
 	7)   Add Repository support
-			- Done
+			- Add CRUD methods - Done
+			- Add FindBy methods for Foreign Keys
+			- Add FindBy methods for Unique Keys
+			- Add FindBy methods for Indexes
 	8)   Add proper Entity Framework Add/Attach/Entity support to Repository files
 	9)   Add Custom Property change management for POCO classes
 			- Might be be able to piggy back on EF property management
