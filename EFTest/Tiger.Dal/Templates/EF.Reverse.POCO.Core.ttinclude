@@ -17,6 +17,7 @@
 <#@ import namespace="System.Windows.Forms" #>
 <#@ import namespace="System.Xml.Linq" #>
 <#@ import namespace="EnvDTE" #>
+<#@ import namespace="Tiger.Dal.Templates.DatabaseObjects" #>
 <#@ include file="TemplateFileManager.ttinclude" #>
 <#@ assembly name="$(SolutionDir)\Tiger.Dal\bin\Debug\Tiger.Dal.dll" #>
 <#@ output extension=".cs"#>
@@ -25,7 +26,7 @@
 	var code = new CodeGenerationTools(this);
 	string Namespace = code.VsNamespaceSuggestion() ?? "DebugMode";
 
-	Tiger.Dal.Templates.DatabaseObjects.DatabaseGenerationSetting Setting = new Tiger.Dal.Templates.DatabaseObjects.DatabaseGenerationSetting();
+	DatabaseGenerationSetting Setting = new DatabaseGenerationSetting();
 
 	Setting.DatabaseContextName = "MyDbContext";
 	Setting.ContextInterfaceBaseClass = "System.IDisposable";
@@ -35,15 +36,17 @@
 	Setting.MakeContextInterfacePartial = false;
 	Setting.GenerateSeparateFiles = false;
 	Setting.UseDataAnnotations = false;
+	Setting.GenerateContextClass = true;
+	Setting.GenerateUnitOfWorkInterface = true;
 	Setting.UseCamelCase = true;
 	Setting.DisableGeographyTypes = false;
 	Setting.NullableShortHand = true;
-	Setting.PrivateSetterForComputerColumns = true;
+	Setting.PrivateSetterForComputedColumns = true;
 	Setting.FileExtension = ".cs";
 	Setting.GeneratedFileExtension = ".generated.cs";
 	Setting.PrependSchemaName = true;
 	Setting.ConfigurationClassName = "Configuration";
-	Setting.CollectionType = "System.Collections.Generic.List";
+	Setting.CollectionType = "List";
 	Setting.IncludeComments = CommentsStyle.AtEndOfField;
 	Setting.IncludeQueryTraceOn9481Flag = false;
 
@@ -64,14 +67,11 @@
 	string ContextProjectName, ContextFolderName, ConfigurationProjectName, ConfigurationFolderName, ModelProjectName, ModelFolderName,
 				ModelInterfaceProjectName, ModelInterfaceFolderName, RepositoryProjectName, RepositoryFolderName, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName = "";
 
-	List<string> TableNames = null;
+	List<TableData> TableNames = null;
 	List<string> StoredProcedureNames = null;
 
 	// Settings to allow selective code generation
 	
-
-	Elements ElementsToGenerate = Elements.Poco | Elements.Context | Elements.UnitOfWork | Elements.PocoInterface 
-											| Elements.Repository | Elements.RepositoryInterface;
 
 	string PocoNamespace, ContextNamespace, UnitOfWorkNamespace, 
 				PocoConfigurationNamespace, PocoInterfaceNamespace, RepositoryNamespace, RepositoryInterfaceNamespace = "";

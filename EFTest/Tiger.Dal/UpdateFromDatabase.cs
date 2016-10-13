@@ -17,13 +17,13 @@ namespace Tiger.Dal
 
 		private string ConnectionStringName { get; set; }
 
-		public List<string> TableNames { get; set; }
+		public List<TableData> TableNames { get; set; }
 
 		public List<string> StoredProcedureNames { get; set; }
 
 		public DatabaseGenerationSetting Setting { get; set; }
 
-		public UpdateFromDatabase(string connectionStringName, List<string> tableNames, List<string> storedProcedureNames, DatabaseGenerationSetting setting)
+		public UpdateFromDatabase(string connectionStringName, List<TableData> tableNames, List<string> storedProcedureNames, DatabaseGenerationSetting setting)
 		{
 			InitializeComponent();
 
@@ -32,6 +32,7 @@ namespace Tiger.Dal
 			StoredProcedureNames = storedProcedureNames;
 			this.Setting = setting;
 
+			PopulateDropDownLists();
 			InitializeDatabaseObjects();
 			LoadDatabaseGenerationSettings();
 		}
@@ -50,8 +51,31 @@ namespace Tiger.Dal
 			cbx.Location = rect.Location;
 			cbx.BackColor = Color.Transparent;
 			cbx.ThreeState = true;
+
+			HandleTableSelectHeaderChange(ref cbx);
+
 			cbx.CheckStateChanged += new EventHandler(checkboxHeader_CheckStateChanged);
 			gvTables.Controls.Add(cbx);
+		}
+
+		private void PopulateDropDownLists()
+		{
+			ddlCollectionType.Items.Add("HashSet");
+			ddlCollectionType.Items.Add("ICollection");
+			ddlCollectionType.Items.Add("IEnumerable");
+			ddlCollectionType.Items.Add("IList");
+			ddlCollectionType.Items.Add("List");
+
+			List<EnumValue> values = new List<EnumValue>();
+
+
+			values.Add(new EnumValue { Name = "None", Value = 0 });
+			values.Add(new EnumValue { Name = "In Summary Block", Value = 1 });
+			values.Add(new EnumValue { Name = "End of Field", Value = 2 });
+			ddlIncludeComments.DataSource = values;
+			ddlIncludeComments.DisplayMember = "Name";
+			ddlIncludeComments.ValueMember = "Value";
+
 		}
 
 		private void LoadDatabaseGenerationSettings()
@@ -61,16 +85,23 @@ namespace Tiger.Dal
 				txtDbContextName.DataBindings.Add("Text", Setting, "DatabaseContextName");
 				txtContextInterfaceBaseClass.DataBindings.Add("Text", Setting, "ContextInterfaceBaseClass");
 				txtContextBaseClass.DataBindings.Add("Text", Setting, "ContextBaseClass");
+				txtConfigurationClassName.DataBindings.Add("Text", Setting, "ConfigurationClassName");
+				ddlCollectionType.DataBindings.Add("SelectedItem", Setting, "CollectionType");
+				ddlIncludeComments.SelectedValue = (int)Setting.IncludeComments;
 
 				cbxPartialClasses.DataBindings.Add("Checked", Setting, "MakeClassesPartial");
 				cbxPartialInterfaces.DataBindings.Add("Checked", Setting, "MakeInterfacesPartial");
 				cbxPartialContextInterface.DataBindings.Add("Checked", Setting, "MakeContextInterfacePartial");
 				cbxGenerateSeparateFiles.DataBindings.Add("Checked", Setting, "GenerateSeparateFiles");
 				cbxUseDataAnnotations.DataBindings.Add("Checked", Setting, "UseDataAnnotations");
+				cbxGenerateContextClass.DataBindings.Add("Checked", Setting, "GenerateContextClass");
+				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", Setting, "GenerateUnitOfWorkInterface");
 				cbxUseCamelCase.DataBindings.Add("Checked", Setting, "UseCamelCase");
 				cbxDisableGeographyTypes.DataBindings.Add("Checked", Setting, "DisableGeographyTypes");
 				cbxNullableShortHand.DataBindings.Add("Checked", Setting, "NullableShortHand");
-				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", Setting, "PrivateSetterForComputerColumns");
+				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", Setting, "PrivateSetterForComputedColumns");
+				cbxPrependSchema.DataBindings.Add("Checked", Setting, "PrependSchemaName");
+				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", Setting, "IncludeQueryTraceOn9481Flag");
 			}
 		}
 
@@ -84,17 +115,12 @@ namespace Tiger.Dal
 
 		private void InitializeDatabaseTables()
 		{
-			string tables = string.Join("', '", TableNames);
 			List<TableData> tableData = new List<TableData>();
 
 			string sql = @"SELECT
 								s.NAME        AS [Schema]
 								, o.type_desc AS [Type]
 								, o.NAME      AS [Name]
-								, CAST(Case
-									WHEN o.NAME IN ('{TABLE_NAMES}') THEN 1
-									ELSE 0
-									END AS BIT) AS Checked
 							FROM   sys.all_objects o
 										INNER JOIN sys.schemas s
 												ON s.schema_id = o.schema_id
@@ -110,19 +136,22 @@ namespace Tiger.Dal
 				SqlCommand command = connection.CreateCommand();
 
 				command.CommandType = CommandType.Text;
-				command.CommandText = sql.Replace("{TABLE_NAMES}", tables);
+				command.CommandText = sql;
 
 				SqlDataReader reader = command.ExecuteReader();
 
 
 				while (reader.Read())
 				{
-					TableData data = new TableData();
+					TableData data = TableNames.Where(x => x.TableName == reader["Name"].ToString()).FirstOrDefault();
 
-					bool isChecked = bool.Parse(reader["Checked"].ToString());
+					if (data == null)
+					{
+						data = new TableData();
 
-					data.TableName = reader["Name"].ToString();
-					data.TableSelect = isChecked;
+						data.TableName = reader["Name"].ToString();
+						data.TableSelect = false;
+					}
 
 					tableData.Add(data);
 				}
@@ -255,11 +284,22 @@ namespace Tiger.Dal
 		private void UpdateFromDatabase_Load(object sender, EventArgs e)
 		{
 			SetupTableGridViewHeaderCheckbox();
+
+			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+
+			if (tableData.Where(x => x.GeneratePoco).Count() == tableData.Count)
+				cbxPocos.Checked = true;
+			if (tableData.Where(x => x.GeneratePocoInterface).Count() == tableData.Count)
+				cbxPocoInterfaces.Checked = true;
+			if (tableData.Where(x => x.GenerateRepository).Count() == tableData.Count)
+				cbxRepositories.Checked = true;
+			if (tableData.Where(x => x.GenerateRepositoryInterface).Count() == tableData.Count)
+				cbxRepositoryInterfaces.Checked = true;
 		}
 
 		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
 		{
-			//TabPage tp = e.TabPage;
+			TabPage tp = e.TabPage;
 
 			//int totalWidth = 0;
 
@@ -274,11 +314,28 @@ namespace Tiger.Dal
 			//}
 		}
 
+		private void btnGenerate_Click(object sender, EventArgs e)
+		{
+			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+
+			TableNames = tableData.Where(x => x.TableSelect == true).ToList();
+
+			Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
+
+			this.Close();
+		}
+
+		private void btnCancel_Click(object sender, EventArgs e)
+		{
+			TableNames = new List<TableData>();
+			StoredProcedureNames = new List<string>();
+
+			this.Close();
+		}
+
 		#endregion
 
 		#region Tab - Tables
-
-		private bool SkipTableHeaderCheckboxEvent { get; set; }
 
 		private bool SkipTableCellValueEvent { get; set; }
 
@@ -295,22 +352,7 @@ namespace Tiger.Dal
 		{
 			CheckBox cbxHeader = (CheckBox)gvTables.Controls.Find("TableSelectHeader", false).First();
 
-			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
-
-			int checkedCount = tableData.Where(x => x.TableSelect == true).Count();
-
-			if (checkedCount > 0 && checkedCount < tableData.Count)
-			{
-				cbxHeader.CheckState = CheckState.Indeterminate;
-			}
-			else if (checkedCount == tableData.Count)
-			{
-				cbxHeader.CheckState = CheckState.Checked;
-			}
-			else
-			{
-				cbxHeader.CheckState = CheckState.Unchecked;
-			}
+			HandleTableSelectHeaderChange(ref cbxHeader);
 
 			if (cbxHeader.CheckState == CheckState.Checked && !isChecked ||
 					cbxHeader.CheckState == CheckState.Unchecked && isChecked)
@@ -318,7 +360,27 @@ namespace Tiger.Dal
 				cbxHeader.CheckState = CheckState.Indeterminate;
 			}
 		}
-		
+
+		private void HandleTableSelectHeaderChange(ref CheckBox cbx)
+		{
+			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+
+			int checkedCount = tableData.Where(x => x.TableSelect == true).Count();
+
+			if (checkedCount > 0 && checkedCount < tableData.Count)
+			{
+				cbx.CheckState = CheckState.Indeterminate;
+			}
+			else if (checkedCount == tableData.Count)
+			{
+				cbx.CheckState = CheckState.Checked;
+			}
+			else
+			{
+				cbx.CheckState = CheckState.Unchecked;
+			}
+		}
+
 		#endregion
 
 		#region Events
@@ -494,35 +556,6 @@ namespace Tiger.Dal
 
 		#endregion
 
-		private void btnGenerate_Click(object sender, EventArgs e)
-		{
-			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
-
-			TableNames = tableData.Where(x => x.TableSelect == true).Select(x => x.TableName).ToList();
-
-			this.Close();
-		}
-
-		private void btnCancel_Click(object sender, EventArgs e)
-		{
-			TableNames = new List<string>();
-			StoredProcedureNames = new List<string>();
-
-			this.Close();
-		}
 	}
 
-	#region Helper Classes
-
-	class TableData
-	{
-		public bool TableSelect { get; set; }
-		public string TableName { get; set; }
-		public bool GeneratePoco { get; set; }
-		public bool GeneratePocoInterface { get; set; }
-		public bool GenerateRepository { get; set; }
-		public bool GenerateRepositoryInterface { get; set; }
-	}
-
-	#endregion
 }

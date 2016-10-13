@@ -18,6 +18,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public bool HasForeignKey;
 		public bool HasNullableColumns;
 		public bool HasPrimaryKey;
+		public TableData TableData;
 
 		public List<Column> Columns;
 		public List<string> ReverseNavigationProperty;

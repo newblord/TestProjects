@@ -4,6 +4,9 @@
 <#@ import namespace="EnvDTE" #>
 <#@ import namespace="System" #>
 <#@ import namespace="System.Globalization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Xml.Serialization" #>
+<#@ import namespace="System.IO" #>
 <#@ assembly name="envdte80" #>
 
 <#
@@ -15,7 +18,7 @@
 
 	#region Unit of work
  
-	if (ElementsToGenerate.HasFlag(Elements.UnitOfWork))
+	if (Setting.GenerateUnitOfWorkInterface)
 	{
 		fileManager.StartNewFile(Setting.DatabaseContextInterfaceName + Setting.FileExtension, ContextProjectName, ContextFolderName);
 	
@@ -23,7 +26,7 @@
 
 		WriteLine("using System;");
 		WriteLine("using System.Data.Entity;");
-		WriteLine("using {0};",PocoNamespace);
+		WriteLine("using {0};", PocoNamespace);
 
 		if (IsSupportedFrameworkVersion("4.5")) 
 		{ 
@@ -101,7 +104,7 @@
 
 	#region Database context
 
-	if(ElementsToGenerate.HasFlag(Elements.Context))
+	if(Setting.GenerateContextClass)
 	{ 
 		fileManager.StartNewFile(Setting.DatabaseContextName + Setting.FileExtension, ContextProjectName, ContextFolderName);
 
@@ -120,7 +123,7 @@
 			WriteLine("using System.Threading.Tasks;");
 		}
 
-		if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
+		if(!Setting.UseDataAnnotations)
 		{
 			WriteLine("using {0};", PocoConfigurationNamespace);
 		}
@@ -131,7 +134,7 @@
 	
 		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+			WriteLine("public DbSet<{0}> {1}s {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		} 
 
 		WriteLine("");
@@ -150,6 +153,7 @@
 		OpenMethodBrace();
 		CloseMethodBrace();
 
+		/*
 		WriteLine("public {0}(string connectionString, DbCompiledModel model)", Setting.DatabaseContextName);
 		WriteLine("\t: base(connectionString, model)");
 		OpenMethodBrace();
@@ -169,6 +173,7 @@
 		OpenMethodBrace();
 		WriteLine("base.Dispose(disposing);");
 		CloseMethodBrace();
+		*/
 	
 		WriteLine("public bool IsSqlParameterNull(SqlParameter param)");
 		OpenMethodBrace();
@@ -185,7 +190,7 @@
 		OpenMethodBrace();
 		WriteLine("base.OnModelCreating(modelBuilder);");
 
-		if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
+		if(!Setting.UseDataAnnotations)
 		{
 			foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 			{
@@ -198,7 +203,7 @@
 		WriteLine("public static DbModelBuilder CreateModel(DbModelBuilder modelBuilder, string schema)");
 		OpenMethodBrace();
 		
-		if(ElementsToGenerate.HasFlag(Elements.PocoConfiguration))
+		if(!Setting.UseDataAnnotations)
 		{
 			foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 			{
@@ -369,84 +374,98 @@
 
 	#region POCO classes
 
-	if(ElementsToGenerate.HasFlag(Elements.Poco))
+	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.TableData.GeneratePoco).OrderBy(x => x.NameHumanCase) select t)
 	{
-		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
-		{
-			fileManager.StartNewFile(tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelProjectName, ModelFolderName);
-			if(!tbl.HasPrimaryKey) 
-			{ 
-				WriteLine("// The table '{0}' is not usable by entity framework because it",tbl.Name);
-				WriteLine("// does not have a primary key. It is listed here for completeness.");
-			}
+		string baseClasses = string.Empty;
 
-			CreateHeader();
-
-			WriteLine("using System;");
-			WriteLine("using System.ComponentModel.DataAnnotations;");
-			WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
-			WriteLine("using {0};",PocoInterfaceNamespace);
-			WriteLine("");
-
-			BeginNamespace(PocoNamespace);
-
-			WritePocoClassAttributes(tbl);
-			BeginClass(tbl.NameHumanCase, Setting.MakeClassesPartial, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
-			WritePocoBaseClassBody(tbl); 
-
-			if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial) 
-			{
-				WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2214:DoNotCallOverridableMethodsInConstructors\")]"); 
-				WriteLine("public {0}()",tbl.NameHumanCase);
-				OpenMethodBrace();
-
-				foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
-				{
-					WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
-				} 
-
-				CloseMethodBrace();
-			}
-
-			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
-			{
-				if((Setting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
-				{
-					WriteLine("///<summary>");
-					WriteLine("/// {0}",col.SummaryComments);
-					WriteLine("///</summary>");
-				} 
-				WriteLine("{0}",WritePocoColumn(col));
-			} 
-
-			if(tbl.ReverseNavigationProperty.Count() > 0)
-			{
-				foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
-				{
-					foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
-					{
-						WriteLine("[{0}]",rnpda);
-					}
-					WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2227:CollectionPropertiesShouldBeReadOnly\")]");	 
-					WriteLine("{0}",s);
-				} 
-			} 
-
-			if(tbl.HasForeignKey) { 
-
-				foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
-				{
-					foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
-					{
-						WriteLine("[{0}]",fkda);
-					} 
-					WriteLine("{0}",entityFk);
-				}
-			} 
-			
-			CloseBrace();
-			CloseBrace();
+		fileManager.StartNewFile(tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelProjectName, ModelFolderName);
+		if(!tbl.HasPrimaryKey) 
+		{ 
+			WriteLine("// The table '{0}' is not usable by entity framework because it",tbl.Name);
+			WriteLine("// does not have a primary key. It is listed here for completeness.");
 		}
+
+		CreateHeader();
+
+		WriteLine("using System;");
+		WriteLine("using System.Collections.Generic;");
+		WriteLine("using System.ComponentModel.DataAnnotations;");
+		WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
+
+		if(tbl.TableData.GeneratePocoInterface)
+		{
+			WriteLine("using {0};",PocoInterfaceNamespace);
+			baseClasses = string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase);
+		}
+
+		WriteLine("");
+
+		BeginNamespace(PocoNamespace);
+
+		WritePocoClassAttributes(tbl);
+		BeginClass(tbl.NameHumanCase, Setting.MakeClassesPartial, baseClasses);
+		WritePocoBaseClassBody(tbl); 
+
+		if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial) 
+		{
+			WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2214:DoNotCallOverridableMethodsInConstructors\")]"); 
+			WriteLine("public {0}()",tbl.NameHumanCase);
+			OpenMethodBrace();
+
+			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
+			{
+				WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
+			}
+
+			if(tbl.ReverseNavigationCtor.Count() > 0)
+			{
+				foreach(string s in tbl.ReverseNavigationCtor.OrderBy(x => x))
+				{
+					WriteLine("{0}", s);
+				}
+			}
+
+			CloseMethodBrace();
+		}
+
+		foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
+		{
+			if((Setting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
+			{
+				WriteLine("///<summary>");
+				WriteLine("/// {0}",col.SummaryComments);
+				WriteLine("///</summary>");
+			} 
+			WriteLine("{0}",WritePocoColumn(col));
+		} 
+
+		if(tbl.ReverseNavigationProperty.Count() > 0)
+		{
+			foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
+			{
+				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
+				{
+					WriteLine("[{0}]",rnpda);
+				}
+				WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2227:CollectionPropertiesShouldBeReadOnly\")]");	 
+				WriteLine("{0}",s);
+			} 
+		} 
+
+		if(tbl.HasForeignKey) { 
+
+			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
+			{
+				foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
+				{
+					WriteLine("[{0}]",fkda);
+				} 
+				WriteLine("{0}",entityFk);
+			}
+		} 
+			
+		CloseBrace();
+		CloseBrace();
 	}
 
 	#endregion
@@ -459,56 +478,53 @@
 
 	#region POCO Interfaces
 
-	if(ElementsToGenerate.HasFlag(Elements.PocoInterface))
+	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.TableData.GeneratePocoInterface).OrderBy(x => x.NameHumanCase) select t)
 	{
-		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
+		fileManager.StartNewFile("I" + tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
+
+		CreateHeader();
+
+		WriteLine("using System;");
+		WriteLine("using System.Collections.Generic;");
+		WriteLine("using {0};",PocoNamespace);
+		WriteLine("");
+
+		BeginNamespace(PocoInterfaceNamespace);
+		BeginInterface("I" + tbl.NameHumanCase, Setting.MakeInterfacesPartial, "");
+
+		foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 		{
-			fileManager.StartNewFile("I" + tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
-
-			CreateHeader();
-
-			WriteLine("using System;");
-			WriteLine("using System.Collections.Generic;");
-			WriteLine("using {0};",PocoNamespace);
-			WriteLine("");
-
-			BeginNamespace(PocoInterfaceNamespace);
-			BeginInterface("I" + tbl.NameHumanCase, Setting.MakeInterfacesPartial, "");
-
-			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
+			if(!col.IsComputed) 
 			{
-				if(!col.IsComputed) 
-				{
-					WriteLine("{0}", WritePocoInterfaceColumn(col));
-				}
+				WriteLine("{0}", WritePocoInterfaceColumn(col));
 			}
-
-			if(tbl.ReverseNavigationProperty.Count() > 0)
-			{
-				foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
-				{
-					foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
-					{
-						WriteLine("  [{0}]",rnpda);
-					} 
-					WriteLine("{0}",s.Replace("public virtual",""));
-				} 
-			} 
-
-			if(tbl.HasForeignKey) 
-			{ 
-				foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
-				{
-					foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
-					{
-						WriteLine("[{0}]",fkda);
-					} 
-					WriteLine("{0}",entityFk.Replace("public virtual",""));
-				}
-			} 
-			CloseBrace();
-			CloseBrace();
 		}
+
+		if(tbl.ReverseNavigationProperty.Count() > 0)
+		{
+			foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
+			{
+				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
+				{
+					WriteLine("  [{0}]",rnpda);
+				} 
+				WriteLine("{0}",s.Replace("public virtual",""));
+			} 
+		} 
+
+		if(tbl.HasForeignKey) 
+		{ 
+			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
+			{
+				foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
+				{
+					WriteLine("[{0}]",fkda);
+				} 
+				WriteLine("{0}",entityFk.Replace("public virtual",""));
+			}
+		} 
+		CloseBrace();
+		CloseBrace();
 	}
 
 	#endregion
@@ -521,81 +537,84 @@
 
 	#region Repositories
 
-	if(ElementsToGenerate.HasFlag(Elements.Repository))
+	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.TableData.GenerateRepository).OrderBy(x => x.NameHumanCase) select t)
 	{
-		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
+		string className = tbl.NameHumanCase + "Repository";
+
+		fileManager.StartNewFile(className + Setting.GeneratedFileExtension, RepositoryProjectName, RepositoryFolderName);
+
+		CreateHeader();
+
+		WriteLine("using System;");
+		WriteLine("using System.Collections.Generic;");
+		WriteLine("using System.Data.Entity;");
+		WriteLine("using System.Linq;");
+		WriteLine("using Tiger.Dal.Context;");
+		WriteLine("using {0};",PocoNamespace);
+
+		if(tbl.TableData.GenerateRepositoryInterface)
 		{
-			string className = tbl.NameHumanCase + "Repository";
-
-			fileManager.StartNewFile(className + Setting.GeneratedFileExtension, RepositoryProjectName, RepositoryFolderName);
-
-			CreateHeader();
-
-			WriteLine("using System;");
-			WriteLine("using System.Collections.Generic;");
-			WriteLine("using System.Data.Entity;");
-			WriteLine("using System.Linq;");
-			WriteLine("using Tiger.Dal.Context;");
-			WriteLine("using {0};",PocoNamespace);
-			WriteLine("");
-
-			BeginNamespace(RepositoryInterfaceNamespace);
-			BeginClass(className, Setting.MakeClassesPartial, "I" + tbl.NameHumanCase + "Repository");
-
-			WriteLine("private readonly {0} Context;", Setting.DatabaseContextName);
-
-			WriteLine("public {0}()",className);
-			OpenMethodBrace();
-			WriteLine("Context = new {0}();", Setting.DatabaseContextName);
-			CloseMethodBrace();
-
-			WriteLine("public {0} Insert({0} data)", tbl.NameHumanCase);
-			OpenMethodBrace();
-			WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot insert null value in {0}.Insert\"); }}", className);
-			WriteLine("");
-			WriteLine("Context.{0}s.Add(data);", tbl.NameHumanCase);
-			WriteLine("Context.SaveChanges();");
-			WriteLine("");
-			WriteLine("return data;");
-			CloseMethodBrace();
-
-			WriteLine("public {0} Update({0} data)", tbl.NameHumanCase);
-			OpenMethodBrace();
-			WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot update null value in {0}.Update\"); }}", className);
-			WriteLine("");
-			WriteLine("Context.Entry(data).State = EntityState.Modified;");
-			WriteLine("Context.SaveChanges();");
-			WriteLine("");
-			WriteLine("return data;");
-			CloseMethodBrace();
-
-			WriteLine("public void Delete(int id)");
-			OpenMethodBrace();
-			WriteLine("{0} data = FindById(id);", tbl.NameHumanCase);
-			WriteLine("Delete(data);");
-			CloseMethodBrace();
-
-			WriteLine("public void Delete({0} data)", tbl.NameHumanCase);
-			OpenMethodBrace();
-			WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot delete null value in {0}.Delete\"); }}", className);
-			WriteLine("");
-			WriteLine("Context.{0}s.Remove(data);", tbl.NameHumanCase);
-			WriteLine("Context.SaveChanges();");
-			CloseMethodBrace();
-
-			WriteLine("public {0} FindById(int id)", tbl.NameHumanCase);
-			OpenMethodBrace();
-			WriteLine("return Context.{0}s.Where(x => x.Id == id).FirstOrDefault();",tbl.NameHumanCase);
-			CloseMethodBrace();
-
-			WriteLine("public IEnumerable<{0}> GetAll()", tbl.NameHumanCase);
-			OpenMethodBrace();
-			WriteLine("return Context.{0}s.AsEnumerable();", tbl.NameHumanCase);
-			CloseMethodBrace();
-			
-			CloseBrace();
-			CloseBrace();
+			WriteLine("using {0};", RepositoryInterfaceNamespace);
 		}
+
+		WriteLine("");
+
+		BeginNamespace(RepositoryNamespace);
+		BeginClass(className, Setting.MakeClassesPartial, tbl.TableData.GenerateRepositoryInterface ? "I" + tbl.NameHumanCase + "Repository" : "" );
+
+		WriteLine("private readonly {0} Context;", Setting.DatabaseContextName);
+
+		WriteLine("public {0}()",className);
+		OpenMethodBrace();
+		WriteLine("Context = new {0}();", Setting.DatabaseContextName);
+		CloseMethodBrace();
+
+		WriteLine("public {0} Insert({0} data)", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot insert null value in {0}.Insert\"); }}", className);
+		WriteLine("");
+		WriteLine("Context.{0}s.Add(data);", tbl.NameHumanCase);
+		WriteLine("Context.SaveChanges();");
+		WriteLine("");
+		WriteLine("return data;");
+		CloseMethodBrace();
+
+		WriteLine("public {0} Update({0} data)", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot update null value in {0}.Update\"); }}", className);
+		WriteLine("");
+		WriteLine("Context.Entry(data).State = EntityState.Modified;");
+		WriteLine("Context.SaveChanges();");
+		WriteLine("");
+		WriteLine("return data;");
+		CloseMethodBrace();
+
+		WriteLine("public void Delete(int id)");
+		OpenMethodBrace();
+		WriteLine("{0} data = FindById(id);", tbl.NameHumanCase);
+		WriteLine("Delete(data);");
+		CloseMethodBrace();
+
+		WriteLine("public void Delete({0} data)", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot delete null value in {0}.Delete\"); }}", className);
+		WriteLine("");
+		WriteLine("Context.{0}s.Remove(data);", tbl.NameHumanCase);
+		WriteLine("Context.SaveChanges();");
+		CloseMethodBrace();
+
+		WriteLine("public {0} FindById(int id)", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("return Context.{0}s.Where(x => x.Id == id).FirstOrDefault();",tbl.NameHumanCase);
+		CloseMethodBrace();
+
+		WriteLine("public IEnumerable<{0}> GetAll()", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("return Context.{0}s.AsEnumerable();", tbl.NameHumanCase);
+		CloseMethodBrace();
+			
+		CloseBrace();
+		CloseBrace();
 	}
 
 	#endregion
@@ -608,31 +627,28 @@
 
 	#region Repository Interfaces
 
-	if(ElementsToGenerate.HasFlag(Elements.RepositoryInterface))
+	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.TableData.GenerateRepositoryInterface).OrderBy(x => x.NameHumanCase) select t)
 	{
-		foreach(Table tbl in from t in tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
-		{
-			fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + Setting.GeneratedFileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
+		fileManager.StartNewFile("I" + tbl.NameHumanCase + "Repository" + Setting.GeneratedFileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
 
-			CreateHeader();
+		CreateHeader();
 
-			WriteLine("using System.Collections.Generic;");
-			WriteLine("using {0};",PocoNamespace);
-			WriteLine("");
+		WriteLine("using System.Collections.Generic;");
+		WriteLine("using {0};",PocoNamespace);
+		WriteLine("");
 
-			BeginNamespace(RepositoryInterfaceNamespace);
-			BeginInterface("I" + tbl.NameHumanCase + "Repository", Setting.MakeInterfacesPartial, "");
+		BeginNamespace(RepositoryInterfaceNamespace);
+		BeginInterface("I" + tbl.NameHumanCase + "Repository", Setting.MakeInterfacesPartial, "");
 
-			WriteLine("{0} Insert({0} data);", tbl.NameHumanCase);
-			WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
-			WriteLine("void Delete(int id);");
-			WriteLine("void Delete({0} data);", tbl.NameHumanCase);
-			WriteLine("{0} FindById(int id);", tbl.NameHumanCase);
-			WriteLine("IEnumerable<{0}> GetAll();", tbl.NameHumanCase);
+		WriteLine("{0} Insert({0} data);", tbl.NameHumanCase);
+		WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
+		WriteLine("void Delete(int id);");
+		WriteLine("void Delete({0} data);", tbl.NameHumanCase);
+		WriteLine("{0} FindById(int id);", tbl.NameHumanCase);
+		WriteLine("IEnumerable<{0}> GetAll();", tbl.NameHumanCase);
 			
-			CloseBrace();
-			CloseBrace();
-		}
+		CloseBrace();
+		CloseBrace();
 	}
 
 	#endregion
@@ -647,7 +663,7 @@
 
 	if(!Setting.UseDataAnnotations)
 	{
-		foreach(Table tbl in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase))
+		foreach(Table tbl in tables.Where(t => !t.IsMapping && t.HasPrimaryKey && t.TableData.GeneratePoco).OrderBy(x => x.NameHumanCase))
 		{
 			fileManager.StartNewFile(tbl.NameHumanCase + Setting.ConfigurationClassName + Setting.FileExtension, ConfigurationProjectName, ConfigurationFolderName);
 		
@@ -711,7 +727,7 @@
 
 	#region Stored procedure return models
 
-	if(storedProcs.Any() && ElementsToGenerate.HasFlag(Elements.Poco))
+	if(storedProcs.Any() && TableNames.Where(x => x.GeneratePoco).Count() > 0)
 	{
 		foreach(StoredProcedure sp in storedProcs.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !ReversePocoCore.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !ReversePocoCore.StoredProcedureReturnTypes.ContainsKey(x.Name)))
 		{
@@ -773,11 +789,54 @@
 	WriteLine("<Database>");
 	PushIndent("\t");
 
+	WriteLine("<DatabaseGenerationSetting>");
+	PushIndent("\t");
+	
+	WriteLine("<ConnectionString>{0}</ConnectionString>", Setting.ConnectionString);
+	WriteLine("<DatabaseContextName>{0}</DatabaseContextName>", Setting.DatabaseContextName);
+	WriteLine("<DatabaseContextInterfaceName>{0}</DatabaseContextInterfaceName>", Setting.DatabaseContextInterfaceName);
+	WriteLine("<ContextInterfaceBaseClass>{0}</ContextInterfaceBaseClass>", Setting.ContextInterfaceBaseClass);
+	WriteLine("<ContextBaseClass>{0}</ContextBaseClass>", Setting.ContextBaseClass);
+	WriteLine("<MakeClassesPartial>{0}</MakeClassesPartial>", Setting.MakeClassesPartial);
+	WriteLine("<MakeInterfacesPartial>{0}</MakeInterfacesPartial>", Setting.MakeInterfacesPartial);
+	WriteLine("<MakeContextInterfacePartial>{0}</MakeContextInterfacePartial>", Setting.MakeContextInterfacePartial);
+	WriteLine("<GenerateSeparateFiles>{0}</GenerateSeparateFiles>", Setting.GenerateSeparateFiles);
+	WriteLine("<UseDataAnnotations>{0}</UseDataAnnotations>", Setting.UseDataAnnotations);
+	WriteLine("<GenerateContextClass>{0}</GenerateContextClass>", Setting.GenerateContextClass);
+	WriteLine("<GenerateUnitOfWorkInterface>{0}</GenerateUnitOfWorkInterface>", Setting.GenerateUnitOfWorkInterface);
+	WriteLine("<UseCamelCase>{0}</UseCamelCase>", Setting.UseCamelCase);
+	WriteLine("<DisableGeographyTypes>{0}</DisableGeographyTypes>", Setting.DisableGeographyTypes);
+	WriteLine("<NullableShortHand>{0}</NullableShortHand>", Setting.NullableShortHand);
+	WriteLine("<PrivateSetterForComputedColumns>{0}</PrivateSetterForComputedColumns>", Setting.PrivateSetterForComputedColumns);
+	WriteLine("<FileExtension>{0}</FileExtension>", Setting.FileExtension);
+	WriteLine("<GeneratedFileExtension>{0}</GeneratedFileExtension>", Setting.GeneratedFileExtension);
+	WriteLine("<PrependSchemaName>{0}</PrependSchemaName>", Setting.PrependSchemaName);
+	WriteLine("<ConfigurationClassName>{0}</ConfigurationClassName>", Setting.ConfigurationClassName);
+	WriteLine("<CollectionType>{0}</CollectionType>", Setting.CollectionType);
+	WriteLine("<IncludeComments>{0}</IncludeComments>", Setting.IncludeComments);
+	WriteLine("<IncludeQueryTraceOn9481Flag>{0}</IncludeQueryTraceOn9481Flag>", Setting.IncludeQueryTraceOn9481Flag);
+
+	PopIndent();
+	WriteLine("</DatabaseGenerationSetting>");
+
 	WriteLine("<Tables>");
 	PushIndent("\t");
-	foreach(string table in TableNames)
+
+	XmlSerializer serializer = new XmlSerializer(typeof(TableData));
+	foreach(TableData tbl in TableNames)
 	{
-		WriteLine("<Table>{0}</Table>", table);
+		WriteLine("<TableData>");
+		PushIndent("\t");
+
+		WriteLine("<TableSelect>{0}</TableSelect>", tbl.TableSelect);
+		WriteLine("<TableName>{0}</TableName>", tbl.TableName);
+		WriteLine("<GeneratePoco>{0}</GeneratePoco>", tbl.GeneratePoco);
+		WriteLine("<GeneratePocoInterface>{0}</GeneratePocoInterface>", tbl.GeneratePocoInterface);
+		WriteLine("<GenerateRepository>{0}</GenerateRepository>", tbl.GenerateRepository);
+		WriteLine("<GenerateRepositoryInterface>{0}</GenerateRepositoryInterface>", tbl.GenerateRepositoryInterface);
+
+		PopIndent();
+		WriteLine("</TableData>");
 	}
 	PopIndent();
 	WriteLine("</Tables>");

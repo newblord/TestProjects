@@ -169,7 +169,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			P.ORDINAL_POSITION";
 
 		private bool IncludeQueryTraceOn9481Flag;
-		public List<string> TableNames { get; set; }
+		public List<TableData> SelectedTables { get; set; }
 		public List<string> StoredProcedureNames { get; set; }
 
 		protected readonly DbCommand Cmd;
@@ -181,7 +181,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				Cmd.Connection = connection;
 
 			IncludeQueryTraceOn9481Flag = includeQueryTraceOn9481Flag;
-			TableNames = new List<string>();
+			SelectedTables = new List<TableData>();
 			StoredProcedureNames = new List<string>();
 		}
 
@@ -195,7 +195,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 
 		private string ProcessTableSQL()
 		{
-			string sql = TableSQL.Replace("{TABLE_NAMES}", string.Join("', '", TableNames));
+			string sql = TableSQL.Replace("{TABLE_NAMES}", string.Join("', '", SelectedTables.Select(x => x.TableName).ToList()));
 			return sql;
 		}
 
@@ -256,6 +256,8 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 								HasForeignKey = false,
 								HasNullableColumns = false
 							};
+
+							table.TableData = SelectedTables.Where(x => x.TableName == tableName).FirstOrDefault();
 
 							tableName = tableRename(tableName, schema);
 							if (IsFilterExcluded(tableFilterExclude, null, tableName)) // Retest exclusion filter after table rename

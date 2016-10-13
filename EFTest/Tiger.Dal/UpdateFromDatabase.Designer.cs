@@ -30,6 +30,12 @@
 		{
 			this.tcDatabaseObjects = new System.Windows.Forms.TabControl();
 			this.tpSettings = new System.Windows.Forms.TabPage();
+			this.ddlIncludeComments = new System.Windows.Forms.ComboBox();
+			this.label7 = new System.Windows.Forms.Label();
+			this.ddlCollectionType = new System.Windows.Forms.ComboBox();
+			this.label6 = new System.Windows.Forms.Label();
+			this.txtConfigurationClassName = new System.Windows.Forms.TextBox();
+			this.label5 = new System.Windows.Forms.Label();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
@@ -37,6 +43,8 @@
 			this.cbxDisableGeographyTypes = new System.Windows.Forms.CheckBox();
 			this.cbxNullableShortHand = new System.Windows.Forms.CheckBox();
 			this.cbxPrivateSetterForComputedColumns = new System.Windows.Forms.CheckBox();
+			this.cbxPrependSchema = new System.Windows.Forms.CheckBox();
+			this.cbxIncludeQueryTraceOn = new System.Windows.Forms.CheckBox();
 			this.label4 = new System.Windows.Forms.Label();
 			this.txtContextInterfaceBaseClass = new System.Windows.Forms.TextBox();
 			this.txtContextBaseClass = new System.Windows.Forms.TextBox();
@@ -48,11 +56,17 @@
 			this.cbxGenerateSeparateFiles = new System.Windows.Forms.CheckBox();
 			this.cbxUseDataAnnotations = new System.Windows.Forms.CheckBox();
 			this.cbxGenerateContextClass = new System.Windows.Forms.CheckBox();
-			this.cbxGenerateUnitOfWork = new System.Windows.Forms.CheckBox();
+			this.cbxGenerateUnitOfWorkInterface = new System.Windows.Forms.CheckBox();
 			this.txtDbContextName = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.tpTables = new System.Windows.Forms.TabPage();
 			this.gvTables = new System.Windows.Forms.DataGridView();
+			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.TablePoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableIPoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.gbTables = new System.Windows.Forms.GroupBox();
 			this.cbxRepositoryInterfaces = new System.Windows.Forms.CheckBox();
 			this.cbxRepositories = new System.Windows.Forms.CheckBox();
@@ -69,12 +83,6 @@
 			this.btnGenerate = new System.Windows.Forms.Button();
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			this.btnCancel = new System.Windows.Forms.Button();
-			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.TablePoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableIPoco = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.tcDatabaseObjects.SuspendLayout();
 			this.tpSettings.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
@@ -104,12 +112,18 @@
 			this.tcDatabaseObjects.Location = new System.Drawing.Point(0, 0);
 			this.tcDatabaseObjects.Name = "tcDatabaseObjects";
 			this.tcDatabaseObjects.SelectedIndex = 0;
-			this.tcDatabaseObjects.Size = new System.Drawing.Size(642, 492);
+			this.tcDatabaseObjects.Size = new System.Drawing.Size(642, 412);
 			this.tcDatabaseObjects.TabIndex = 0;
 			this.tcDatabaseObjects.Selected += new System.Windows.Forms.TabControlEventHandler(this.tcDatabaseObjects_Selected);
 			// 
 			// tpSettings
 			// 
+			this.tpSettings.Controls.Add(this.ddlIncludeComments);
+			this.tpSettings.Controls.Add(this.label7);
+			this.tpSettings.Controls.Add(this.ddlCollectionType);
+			this.tpSettings.Controls.Add(this.label6);
+			this.tpSettings.Controls.Add(this.txtConfigurationClassName);
+			this.tpSettings.Controls.Add(this.label5);
 			this.tpSettings.Controls.Add(this.textBox1);
 			this.tpSettings.Controls.Add(this.label2);
 			this.tpSettings.Controls.Add(this.flowLayoutPanel1);
@@ -123,10 +137,63 @@
 			this.tpSettings.Location = new System.Drawing.Point(4, 22);
 			this.tpSettings.Name = "tpSettings";
 			this.tpSettings.Padding = new System.Windows.Forms.Padding(3);
-			this.tpSettings.Size = new System.Drawing.Size(634, 466);
+			this.tpSettings.Size = new System.Drawing.Size(634, 386);
 			this.tpSettings.TabIndex = 4;
 			this.tpSettings.Text = "Settings";
 			this.tpSettings.UseVisualStyleBackColor = true;
+			// 
+			// ddlIncludeComments
+			// 
+			this.ddlIncludeComments.FormattingEnabled = true;
+			this.ddlIncludeComments.Location = new System.Drawing.Point(204, 88);
+			this.ddlIncludeComments.Name = "ddlIncludeComments";
+			this.ddlIncludeComments.Size = new System.Drawing.Size(121, 21);
+			this.ddlIncludeComments.TabIndex = 35;
+			// 
+			// label7
+			// 
+			this.label7.AutoSize = true;
+			this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label7.Location = new System.Drawing.Point(84, 91);
+			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(113, 15);
+			this.label7.TabIndex = 34;
+			this.label7.Text = "Include Comments:";
+			// 
+			// ddlCollectionType
+			// 
+			this.ddlCollectionType.FormattingEnabled = true;
+			this.ddlCollectionType.Location = new System.Drawing.Point(507, 59);
+			this.ddlCollectionType.Name = "ddlCollectionType";
+			this.ddlCollectionType.Size = new System.Drawing.Size(121, 21);
+			this.ddlCollectionType.TabIndex = 33;
+			// 
+			// label6
+			// 
+			this.label6.AutoSize = true;
+			this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label6.Location = new System.Drawing.Point(408, 60);
+			this.label6.Name = "label6";
+			this.label6.Size = new System.Drawing.Size(93, 15);
+			this.label6.TabIndex = 32;
+			this.label6.Text = "Collection Type:";
+			// 
+			// txtConfigurationClassName
+			// 
+			this.txtConfigurationClassName.Location = new System.Drawing.Point(203, 61);
+			this.txtConfigurationClassName.Name = "txtConfigurationClassName";
+			this.txtConfigurationClassName.Size = new System.Drawing.Size(122, 20);
+			this.txtConfigurationClassName.TabIndex = 31;
+			// 
+			// label5
+			// 
+			this.label5.AutoSize = true;
+			this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label5.Location = new System.Drawing.Point(44, 62);
+			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(153, 15);
+			this.label5.TabIndex = 30;
+			this.label5.Text = "Configuration Class Name:";
 			// 
 			// textBox1
 			// 
@@ -151,59 +218,79 @@
 			this.flowLayoutPanel1.Controls.Add(this.cbxDisableGeographyTypes);
 			this.flowLayoutPanel1.Controls.Add(this.cbxNullableShortHand);
 			this.flowLayoutPanel1.Controls.Add(this.cbxPrivateSetterForComputedColumns);
-			this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-			this.flowLayoutPanel1.Location = new System.Drawing.Point(331, 106);
+			this.flowLayoutPanel1.Controls.Add(this.cbxPrependSchema);
+			this.flowLayoutPanel1.Controls.Add(this.cbxIncludeQueryTraceOn);
+			this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+			this.flowLayoutPanel1.Location = new System.Drawing.Point(327, 152);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(300, 321);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(260, 193);
 			this.flowLayoutPanel1.TabIndex = 26;
 			// 
 			// cbxUseCamelCase
 			// 
 			this.cbxUseCamelCase.AutoSize = true;
-			this.cbxUseCamelCase.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxUseCamelCase.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxUseCamelCase.Location = new System.Drawing.Point(176, 3);
+			this.cbxUseCamelCase.Location = new System.Drawing.Point(3, 3);
 			this.cbxUseCamelCase.Name = "cbxUseCamelCase";
-			this.cbxUseCamelCase.Size = new System.Drawing.Size(121, 19);
+			this.cbxUseCamelCase.Size = new System.Drawing.Size(118, 19);
 			this.cbxUseCamelCase.TabIndex = 12;
-			this.cbxUseCamelCase.Text = "Use Camel Case:";
+			this.cbxUseCamelCase.Text = "Use Camel Case";
 			this.cbxUseCamelCase.UseVisualStyleBackColor = true;
 			// 
 			// cbxDisableGeographyTypes
 			// 
 			this.cbxDisableGeographyTypes.AutoSize = true;
-			this.cbxDisableGeographyTypes.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxDisableGeographyTypes.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxDisableGeographyTypes.Location = new System.Drawing.Point(128, 28);
+			this.cbxDisableGeographyTypes.Location = new System.Drawing.Point(3, 28);
 			this.cbxDisableGeographyTypes.Name = "cbxDisableGeographyTypes";
-			this.cbxDisableGeographyTypes.Size = new System.Drawing.Size(169, 19);
+			this.cbxDisableGeographyTypes.Size = new System.Drawing.Size(166, 19);
 			this.cbxDisableGeographyTypes.TabIndex = 11;
-			this.cbxDisableGeographyTypes.Text = "Disable Geography Types:";
+			this.cbxDisableGeographyTypes.Text = "Disable Geography Types";
 			this.cbxDisableGeographyTypes.UseVisualStyleBackColor = true;
 			// 
 			// cbxNullableShortHand
 			// 
 			this.cbxNullableShortHand.AutoSize = true;
-			this.cbxNullableShortHand.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxNullableShortHand.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxNullableShortHand.Location = new System.Drawing.Point(157, 53);
+			this.cbxNullableShortHand.Location = new System.Drawing.Point(3, 53);
 			this.cbxNullableShortHand.Name = "cbxNullableShortHand";
-			this.cbxNullableShortHand.Size = new System.Drawing.Size(140, 19);
+			this.cbxNullableShortHand.Size = new System.Drawing.Size(137, 19);
 			this.cbxNullableShortHand.TabIndex = 20;
-			this.cbxNullableShortHand.Text = "Nullable Short Hand:";
+			this.cbxNullableShortHand.Text = "Nullable Short Hand";
 			this.cbxNullableShortHand.UseVisualStyleBackColor = true;
 			// 
 			// cbxPrivateSetterForComputedColumns
 			// 
 			this.cbxPrivateSetterForComputedColumns.AutoSize = true;
-			this.cbxPrivateSetterForComputedColumns.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPrivateSetterForComputedColumns.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPrivateSetterForComputedColumns.Location = new System.Drawing.Point(41, 78);
+			this.cbxPrivateSetterForComputedColumns.Location = new System.Drawing.Point(3, 78);
 			this.cbxPrivateSetterForComputedColumns.Name = "cbxPrivateSetterForComputedColumns";
-			this.cbxPrivateSetterForComputedColumns.Size = new System.Drawing.Size(256, 19);
+			this.cbxPrivateSetterForComputedColumns.Size = new System.Drawing.Size(253, 19);
 			this.cbxPrivateSetterForComputedColumns.TabIndex = 19;
-			this.cbxPrivateSetterForComputedColumns.Text = "Use Private Setter For Computer Columns:";
+			this.cbxPrivateSetterForComputedColumns.Text = "Use Private Setter For Computer Columns";
 			this.cbxPrivateSetterForComputedColumns.UseVisualStyleBackColor = true;
+			// 
+			// cbxPrependSchema
+			// 
+			this.cbxPrependSchema.AutoSize = true;
+			this.cbxPrependSchema.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxPrependSchema.Location = new System.Drawing.Point(3, 103);
+			this.cbxPrependSchema.Name = "cbxPrependSchema";
+			this.cbxPrependSchema.Size = new System.Drawing.Size(122, 19);
+			this.cbxPrependSchema.TabIndex = 21;
+			this.cbxPrependSchema.Text = "Prepend Schema";
+			this.cbxPrependSchema.UseVisualStyleBackColor = true;
+			// 
+			// cbxIncludeQueryTraceOn
+			// 
+			this.cbxIncludeQueryTraceOn.AutoSize = true;
+			this.cbxIncludeQueryTraceOn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxIncludeQueryTraceOn.Location = new System.Drawing.Point(3, 128);
+			this.cbxIncludeQueryTraceOn.Name = "cbxIncludeQueryTraceOn";
+			this.cbxIncludeQueryTraceOn.Size = new System.Drawing.Size(212, 19);
+			this.cbxIncludeQueryTraceOn.TabIndex = 22;
+			this.cbxIncludeQueryTraceOn.Text = "Include Query Trace On 9481 Flag";
+			this.cbxIncludeQueryTraceOn.UseVisualStyleBackColor = true;
 			// 
 			// label4
 			// 
@@ -246,96 +333,89 @@
 			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateSeparateFiles);
 			this.flowLayoutPanel2.Controls.Add(this.cbxUseDataAnnotations);
 			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateContextClass);
-			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateUnitOfWork);
-			this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-			this.flowLayoutPanel2.Location = new System.Drawing.Point(6, 106);
+			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateUnitOfWorkInterface);
+			this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+			this.flowLayoutPanel2.Location = new System.Drawing.Point(26, 152);
 			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-			this.flowLayoutPanel2.Size = new System.Drawing.Size(306, 321);
+			this.flowLayoutPanel2.Size = new System.Drawing.Size(251, 193);
 			this.flowLayoutPanel2.TabIndex = 27;
 			// 
 			// cbxPartialClasses
 			// 
 			this.cbxPartialClasses.AutoSize = true;
-			this.cbxPartialClasses.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPartialClasses.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPartialClasses.Location = new System.Drawing.Point(159, 3);
+			this.cbxPartialClasses.Location = new System.Drawing.Point(3, 3);
 			this.cbxPartialClasses.Name = "cbxPartialClasses";
-			this.cbxPartialClasses.Size = new System.Drawing.Size(144, 19);
+			this.cbxPartialClasses.Size = new System.Drawing.Size(141, 19);
 			this.cbxPartialClasses.TabIndex = 10;
-			this.cbxPartialClasses.Text = "Make Classes Partial:";
+			this.cbxPartialClasses.Text = "Make Classes Partial";
 			this.cbxPartialClasses.UseVisualStyleBackColor = true;
 			// 
 			// cbxPartialInterfaces
 			// 
 			this.cbxPartialInterfaces.AutoSize = true;
-			this.cbxPartialInterfaces.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPartialInterfaces.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPartialInterfaces.Location = new System.Drawing.Point(149, 28);
+			this.cbxPartialInterfaces.Location = new System.Drawing.Point(3, 28);
 			this.cbxPartialInterfaces.Name = "cbxPartialInterfaces";
-			this.cbxPartialInterfaces.Size = new System.Drawing.Size(154, 19);
+			this.cbxPartialInterfaces.Size = new System.Drawing.Size(151, 19);
 			this.cbxPartialInterfaces.TabIndex = 16;
-			this.cbxPartialInterfaces.Text = "Make Interfaces Partial:";
+			this.cbxPartialInterfaces.Text = "Make Interfaces Partial";
 			this.cbxPartialInterfaces.UseVisualStyleBackColor = true;
 			// 
 			// cbxPartialContextInterface
 			// 
 			this.cbxPartialContextInterface.AutoSize = true;
-			this.cbxPartialContextInterface.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxPartialContextInterface.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPartialContextInterface.Location = new System.Drawing.Point(55, 53);
+			this.cbxPartialContextInterface.Location = new System.Drawing.Point(3, 53);
 			this.cbxPartialContextInterface.Name = "cbxPartialContextInterface";
-			this.cbxPartialContextInterface.Size = new System.Drawing.Size(248, 19);
+			this.cbxPartialContextInterface.Size = new System.Drawing.Size(245, 19);
 			this.cbxPartialContextInterface.TabIndex = 15;
-			this.cbxPartialContextInterface.Text = "Make Database Context Interface Partial:";
+			this.cbxPartialContextInterface.Text = "Make Database Context Interface Partial";
 			this.cbxPartialContextInterface.UseVisualStyleBackColor = true;
 			// 
 			// cbxGenerateSeparateFiles
 			// 
 			this.cbxGenerateSeparateFiles.AutoSize = true;
-			this.cbxGenerateSeparateFiles.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxGenerateSeparateFiles.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxGenerateSeparateFiles.Location = new System.Drawing.Point(141, 78);
+			this.cbxGenerateSeparateFiles.Location = new System.Drawing.Point(3, 78);
 			this.cbxGenerateSeparateFiles.Name = "cbxGenerateSeparateFiles";
-			this.cbxGenerateSeparateFiles.Size = new System.Drawing.Size(162, 19);
+			this.cbxGenerateSeparateFiles.Size = new System.Drawing.Size(159, 19);
 			this.cbxGenerateSeparateFiles.TabIndex = 14;
-			this.cbxGenerateSeparateFiles.Text = "Generate Separate Files:";
+			this.cbxGenerateSeparateFiles.Text = "Generate Separate Files";
 			this.cbxGenerateSeparateFiles.UseVisualStyleBackColor = true;
 			// 
 			// cbxUseDataAnnotations
 			// 
 			this.cbxUseDataAnnotations.AutoSize = true;
-			this.cbxUseDataAnnotations.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxUseDataAnnotations.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxUseDataAnnotations.Location = new System.Drawing.Point(156, 103);
+			this.cbxUseDataAnnotations.Location = new System.Drawing.Point(3, 103);
 			this.cbxUseDataAnnotations.Name = "cbxUseDataAnnotations";
-			this.cbxUseDataAnnotations.Size = new System.Drawing.Size(147, 19);
+			this.cbxUseDataAnnotations.Size = new System.Drawing.Size(144, 19);
 			this.cbxUseDataAnnotations.TabIndex = 13;
-			this.cbxUseDataAnnotations.Text = "Use Data Annotations:";
+			this.cbxUseDataAnnotations.Text = "Use Data Annotations";
 			this.cbxUseDataAnnotations.UseVisualStyleBackColor = true;
 			// 
 			// cbxGenerateContextClass
 			// 
 			this.cbxGenerateContextClass.AutoSize = true;
-			this.cbxGenerateContextClass.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.cbxGenerateContextClass.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxGenerateContextClass.Location = new System.Drawing.Point(146, 128);
+			this.cbxGenerateContextClass.Location = new System.Drawing.Point(3, 128);
 			this.cbxGenerateContextClass.Name = "cbxGenerateContextClass";
-			this.cbxGenerateContextClass.Size = new System.Drawing.Size(157, 19);
+			this.cbxGenerateContextClass.Size = new System.Drawing.Size(154, 19);
 			this.cbxGenerateContextClass.TabIndex = 1;
-			this.cbxGenerateContextClass.Text = "Generate Context Class:";
+			this.cbxGenerateContextClass.Text = "Generate Context Class";
 			this.cbxGenerateContextClass.UseVisualStyleBackColor = true;
 			// 
-			// cbxGenerateUnitOfWork
+			// cbxGenerateUnitOfWorkInterface
 			// 
-			this.cbxGenerateUnitOfWork.AutoSize = true;
-			this.cbxGenerateUnitOfWork.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.cbxGenerateUnitOfWork.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxGenerateUnitOfWork.Location = new System.Drawing.Point(152, 153);
-			this.cbxGenerateUnitOfWork.Name = "cbxGenerateUnitOfWork";
-			this.cbxGenerateUnitOfWork.Size = new System.Drawing.Size(151, 19);
-			this.cbxGenerateUnitOfWork.TabIndex = 25;
-			this.cbxGenerateUnitOfWork.Text = "Generate Unit Of Work:";
-			this.cbxGenerateUnitOfWork.UseVisualStyleBackColor = true;
+			this.cbxGenerateUnitOfWorkInterface.AutoSize = true;
+			this.cbxGenerateUnitOfWorkInterface.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxGenerateUnitOfWorkInterface.Location = new System.Drawing.Point(3, 153);
+			this.cbxGenerateUnitOfWorkInterface.Name = "cbxGenerateUnitOfWorkInterface";
+			this.cbxGenerateUnitOfWorkInterface.Size = new System.Drawing.Size(198, 19);
+			this.cbxGenerateUnitOfWorkInterface.TabIndex = 25;
+			this.cbxGenerateUnitOfWorkInterface.Text = "Generate Unit Of Work Interface";
+			this.cbxGenerateUnitOfWorkInterface.UseVisualStyleBackColor = true;
 			// 
 			// txtDbContextName
 			// 
@@ -361,7 +441,7 @@
 			this.tpTables.Location = new System.Drawing.Point(4, 22);
 			this.tpTables.Name = "tpTables";
 			this.tpTables.Padding = new System.Windows.Forms.Padding(3);
-			this.tpTables.Size = new System.Drawing.Size(634, 466);
+			this.tpTables.Size = new System.Drawing.Size(634, 386);
 			this.tpTables.TabIndex = 0;
 			this.tpTables.Text = "Tables";
 			this.tpTables.UseVisualStyleBackColor = true;
@@ -385,10 +465,59 @@
 			this.gvTables.Name = "gvTables";
 			this.gvTables.RowHeadersVisible = false;
 			this.gvTables.ShowEditingIcon = false;
-			this.gvTables.Size = new System.Drawing.Size(628, 378);
+			this.gvTables.Size = new System.Drawing.Size(628, 298);
 			this.gvTables.TabIndex = 2;
 			this.gvTables.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellContentClick);
 			this.gvTables.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellValueChanged);
+			// 
+			// TableSelect
+			// 
+			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableSelect.DataPropertyName = "TableSelect";
+			this.TableSelect.HeaderText = "";
+			this.TableSelect.Name = "TableSelect";
+			this.TableSelect.Width = 20;
+			// 
+			// TableName
+			// 
+			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+			this.TableName.DataPropertyName = "TableName";
+			this.TableName.HeaderText = "Name";
+			this.TableName.MinimumWidth = 150;
+			this.TableName.Name = "TableName";
+			this.TableName.ReadOnly = true;
+			// 
+			// TablePoco
+			// 
+			this.TablePoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TablePoco.DataPropertyName = "GeneratePoco";
+			this.TablePoco.HeaderText = "POCO";
+			this.TablePoco.Name = "TablePoco";
+			this.TablePoco.Width = 50;
+			// 
+			// TableIPoco
+			// 
+			this.TableIPoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIPoco.DataPropertyName = "GeneratePocoInterface";
+			this.TableIPoco.HeaderText = "POCO Interface";
+			this.TableIPoco.Name = "TableIPoco";
+			this.TableIPoco.Width = 60;
+			// 
+			// TableRepository
+			// 
+			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableRepository.DataPropertyName = "GenerateRepository";
+			this.TableRepository.HeaderText = "Repository";
+			this.TableRepository.Name = "TableRepository";
+			this.TableRepository.Width = 65;
+			// 
+			// TableIRepository
+			// 
+			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
+			this.TableIRepository.HeaderText = "Repository Interface";
+			this.TableIRepository.Name = "TableIRepository";
+			this.TableIRepository.Width = 65;
 			// 
 			// gbTables
 			// 
@@ -463,7 +592,7 @@
 			this.tpViews.Location = new System.Drawing.Point(4, 22);
 			this.tpViews.Name = "tpViews";
 			this.tpViews.Padding = new System.Windows.Forms.Padding(3);
-			this.tpViews.Size = new System.Drawing.Size(634, 466);
+			this.tpViews.Size = new System.Drawing.Size(634, 386);
 			this.tpViews.TabIndex = 1;
 			this.tpViews.Text = "Views";
 			this.tpViews.UseVisualStyleBackColor = true;
@@ -481,7 +610,7 @@
 			this.gvViews.Location = new System.Drawing.Point(3, 3);
 			this.gvViews.Name = "gvViews";
 			this.gvViews.RowHeadersVisible = false;
-			this.gvViews.Size = new System.Drawing.Size(628, 460);
+			this.gvViews.Size = new System.Drawing.Size(628, 380);
 			this.gvViews.TabIndex = 0;
 			// 
 			// ViewSelect
@@ -501,7 +630,7 @@
 			this.tpStoredProcedures.Location = new System.Drawing.Point(4, 22);
 			this.tpStoredProcedures.Name = "tpStoredProcedures";
 			this.tpStoredProcedures.Padding = new System.Windows.Forms.Padding(3);
-			this.tpStoredProcedures.Size = new System.Drawing.Size(634, 466);
+			this.tpStoredProcedures.Size = new System.Drawing.Size(634, 386);
 			this.tpStoredProcedures.TabIndex = 2;
 			this.tpStoredProcedures.Text = "Stored Procedures";
 			this.tpStoredProcedures.UseVisualStyleBackColor = true;
@@ -517,7 +646,7 @@
 			this.gvStoredProcedures.Location = new System.Drawing.Point(3, 3);
 			this.gvStoredProcedures.Name = "gvStoredProcedures";
 			this.gvStoredProcedures.RowHeadersVisible = false;
-			this.gvStoredProcedures.Size = new System.Drawing.Size(628, 460);
+			this.gvStoredProcedures.Size = new System.Drawing.Size(628, 380);
 			this.gvStoredProcedures.TabIndex = 0;
 			// 
 			// tpEnums
@@ -526,7 +655,7 @@
 			this.tpEnums.Location = new System.Drawing.Point(4, 22);
 			this.tpEnums.Name = "tpEnums";
 			this.tpEnums.Padding = new System.Windows.Forms.Padding(3);
-			this.tpEnums.Size = new System.Drawing.Size(634, 466);
+			this.tpEnums.Size = new System.Drawing.Size(634, 386);
 			this.tpEnums.TabIndex = 3;
 			this.tpEnums.Text = "Enums";
 			this.tpEnums.UseVisualStyleBackColor = true;
@@ -555,7 +684,7 @@
 			this.flowLayoutPanel3.Controls.Add(this.btnGenerate);
 			this.flowLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Bottom;
 			this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-			this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 491);
+			this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 411);
 			this.flowLayoutPanel3.Name = "flowLayoutPanel3";
 			this.flowLayoutPanel3.Size = new System.Drawing.Size(645, 34);
 			this.flowLayoutPanel3.TabIndex = 1;
@@ -570,60 +699,11 @@
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
 			// 
-			// TableSelect
-			// 
-			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableSelect.DataPropertyName = "TableSelect";
-			this.TableSelect.HeaderText = "";
-			this.TableSelect.Name = "TableSelect";
-			this.TableSelect.Width = 20;
-			// 
-			// TableName
-			// 
-			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-			this.TableName.DataPropertyName = "TableName";
-			this.TableName.HeaderText = "Name";
-			this.TableName.MinimumWidth = 150;
-			this.TableName.Name = "TableName";
-			this.TableName.ReadOnly = true;
-			// 
-			// TablePoco
-			// 
-			this.TablePoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TablePoco.DataPropertyName = "GeneratePoco";
-			this.TablePoco.HeaderText = "POCO";
-			this.TablePoco.Name = "TablePoco";
-			this.TablePoco.Width = 50;
-			// 
-			// TableIPoco
-			// 
-			this.TableIPoco.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIPoco.DataPropertyName = "GeneratePocoInterface";
-			this.TableIPoco.HeaderText = "POCO Interface";
-			this.TableIPoco.Name = "TableIPoco";
-			this.TableIPoco.Width = 60;
-			// 
-			// TableRepository
-			// 
-			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableRepository.DataPropertyName = "GenerateRepository";
-			this.TableRepository.HeaderText = "Repository";
-			this.TableRepository.Name = "TableRepository";
-			this.TableRepository.Width = 65;
-			// 
-			// TableIRepository
-			// 
-			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
-			this.TableIRepository.HeaderText = "Repository Interface";
-			this.TableIRepository.Name = "TableIRepository";
-			this.TableIRepository.Width = 65;
-			// 
 			// UpdateFromDatabase
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(645, 525);
+			this.ClientSize = new System.Drawing.Size(645, 445);
 			this.ControlBox = false;
 			this.Controls.Add(this.flowLayoutPanel3);
 			this.Controls.Add(this.tcDatabaseObjects);
@@ -684,7 +764,7 @@
 		private System.Windows.Forms.CheckBox cbxDisableGeographyTypes;
 		private System.Windows.Forms.CheckBox cbxNullableShortHand;
 		private System.Windows.Forms.CheckBox cbxPrivateSetterForComputedColumns;
-		private System.Windows.Forms.CheckBox cbxGenerateUnitOfWork;
+		private System.Windows.Forms.CheckBox cbxGenerateUnitOfWorkInterface;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
 		private System.Windows.Forms.Label label4;
@@ -704,5 +784,13 @@
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIPoco;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableRepository;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIRepository;
+		private System.Windows.Forms.CheckBox cbxPrependSchema;
+		private System.Windows.Forms.CheckBox cbxIncludeQueryTraceOn;
+		private System.Windows.Forms.TextBox txtConfigurationClassName;
+		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.ComboBox ddlCollectionType;
+		private System.Windows.Forms.Label label6;
+		private System.Windows.Forms.ComboBox ddlIncludeComments;
+		private System.Windows.Forms.Label label7;
 	}
 }
