@@ -153,6 +153,7 @@
 		OpenMethodBrace();
 		CloseMethodBrace();
 
+		/*
 		WriteLine("public {0}(string connectionString, DbCompiledModel model)", Setting.DatabaseContextName);
 		WriteLine("\t: base(connectionString, model)");
 		OpenMethodBrace();
@@ -172,6 +173,7 @@
 		OpenMethodBrace();
 		WriteLine("base.Dispose(disposing);");
 		CloseMethodBrace();
+		*/
 	
 		WriteLine("public bool IsSqlParameterNull(SqlParameter param)");
 		OpenMethodBrace();
@@ -374,6 +376,8 @@
 
 	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.TableData.GeneratePoco).OrderBy(x => x.NameHumanCase) select t)
 	{
+		string baseClasses = string.Empty;
+
 		fileManager.StartNewFile(tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelProjectName, ModelFolderName);
 		if(!tbl.HasPrimaryKey) 
 		{ 
@@ -387,13 +391,19 @@
 		WriteLine("using System.Collections.Generic;");
 		WriteLine("using System.ComponentModel.DataAnnotations;");
 		WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
-		WriteLine("using {0};",PocoInterfaceNamespace);
+
+		if(tbl.TableData.GeneratePocoInterface)
+		{
+			WriteLine("using {0};",PocoInterfaceNamespace);
+			baseClasses = string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase);
+		}
+
 		WriteLine("");
 
 		BeginNamespace(PocoNamespace);
 
 		WritePocoClassAttributes(tbl);
-		BeginClass(tbl.NameHumanCase, Setting.MakeClassesPartial, string.Format("{0}I{1}",WritePocoBaseClasses != null ? WritePocoBaseClasses(tbl) : "", tbl.NameHumanCase));
+		BeginClass(tbl.NameHumanCase, Setting.MakeClassesPartial, baseClasses);
 		WritePocoBaseClassBody(tbl); 
 
 		if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial) 
@@ -541,10 +551,16 @@
 		WriteLine("using System.Linq;");
 		WriteLine("using Tiger.Dal.Context;");
 		WriteLine("using {0};",PocoNamespace);
+
+		if(tbl.TableData.GenerateRepositoryInterface)
+		{
+			WriteLine("using {0};", RepositoryInterfaceNamespace);
+		}
+
 		WriteLine("");
 
-		BeginNamespace(RepositoryInterfaceNamespace);
-		BeginClass(className, Setting.MakeClassesPartial, "I" + tbl.NameHumanCase + "Repository");
+		BeginNamespace(RepositoryNamespace);
+		BeginClass(className, Setting.MakeClassesPartial, tbl.TableData.GenerateRepositoryInterface ? "I" + tbl.NameHumanCase + "Repository" : "" );
 
 		WriteLine("private readonly {0} Context;", Setting.DatabaseContextName);
 
