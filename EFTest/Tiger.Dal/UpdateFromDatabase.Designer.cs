@@ -30,6 +30,8 @@
 		{
 			this.tcDatabaseObjects = new System.Windows.Forms.TabControl();
 			this.tpSettings = new System.Windows.Forms.TabPage();
+			this.ddlIncludeComments = new System.Windows.Forms.ComboBox();
+			this.label7 = new System.Windows.Forms.Label();
 			this.ddlCollectionType = new System.Windows.Forms.ComboBox();
 			this.label6 = new System.Windows.Forms.Label();
 			this.txtConfigurationClassName = new System.Windows.Forms.TextBox();
@@ -81,8 +83,6 @@
 			this.btnGenerate = new System.Windows.Forms.Button();
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			this.btnCancel = new System.Windows.Forms.Button();
-			this.label7 = new System.Windows.Forms.Label();
-			this.ddlIncludeComments = new System.Windows.Forms.ComboBox();
 			this.tcDatabaseObjects.SuspendLayout();
 			this.tpSettings.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
@@ -141,6 +141,24 @@
 			this.tpSettings.TabIndex = 4;
 			this.tpSettings.Text = "Settings";
 			this.tpSettings.UseVisualStyleBackColor = true;
+			// 
+			// ddlIncludeComments
+			// 
+			this.ddlIncludeComments.FormattingEnabled = true;
+			this.ddlIncludeComments.Location = new System.Drawing.Point(204, 88);
+			this.ddlIncludeComments.Name = "ddlIncludeComments";
+			this.ddlIncludeComments.Size = new System.Drawing.Size(121, 21);
+			this.ddlIncludeComments.TabIndex = 35;
+			// 
+			// label7
+			// 
+			this.label7.AutoSize = true;
+			this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label7.Location = new System.Drawing.Point(84, 91);
+			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(113, 15);
+			this.label7.TabIndex = 34;
+			this.label7.Text = "Include Comments:";
 			// 
 			// ddlCollectionType
 			// 
@@ -423,7 +441,7 @@
 			this.tpTables.Location = new System.Drawing.Point(4, 22);
 			this.tpTables.Name = "tpTables";
 			this.tpTables.Padding = new System.Windows.Forms.Padding(3);
-			this.tpTables.Size = new System.Drawing.Size(634, 466);
+			this.tpTables.Size = new System.Drawing.Size(634, 386);
 			this.tpTables.TabIndex = 0;
 			this.tpTables.Text = "Tables";
 			this.tpTables.UseVisualStyleBackColor = true;
@@ -447,7 +465,7 @@
 			this.gvTables.Name = "gvTables";
 			this.gvTables.RowHeadersVisible = false;
 			this.gvTables.ShowEditingIcon = false;
-			this.gvTables.Size = new System.Drawing.Size(628, 378);
+			this.gvTables.Size = new System.Drawing.Size(628, 298);
 			this.gvTables.TabIndex = 2;
 			this.gvTables.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellContentClick);
 			this.gvTables.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellValueChanged);
@@ -574,7 +592,7 @@
 			this.tpViews.Location = new System.Drawing.Point(4, 22);
 			this.tpViews.Name = "tpViews";
 			this.tpViews.Padding = new System.Windows.Forms.Padding(3);
-			this.tpViews.Size = new System.Drawing.Size(634, 466);
+			this.tpViews.Size = new System.Drawing.Size(634, 386);
 			this.tpViews.TabIndex = 1;
 			this.tpViews.Text = "Views";
 			this.tpViews.UseVisualStyleBackColor = true;
@@ -592,7 +610,7 @@
 			this.gvViews.Location = new System.Drawing.Point(3, 3);
 			this.gvViews.Name = "gvViews";
 			this.gvViews.RowHeadersVisible = false;
-			this.gvViews.Size = new System.Drawing.Size(628, 460);
+			this.gvViews.Size = new System.Drawing.Size(628, 380);
 			this.gvViews.TabIndex = 0;
 			// 
 			// ViewSelect
@@ -612,7 +630,7 @@
 			this.tpStoredProcedures.Location = new System.Drawing.Point(4, 22);
 			this.tpStoredProcedures.Name = "tpStoredProcedures";
 			this.tpStoredProcedures.Padding = new System.Windows.Forms.Padding(3);
-			this.tpStoredProcedures.Size = new System.Drawing.Size(634, 466);
+			this.tpStoredProcedures.Size = new System.Drawing.Size(634, 386);
 			this.tpStoredProcedures.TabIndex = 2;
 			this.tpStoredProcedures.Text = "Stored Procedures";
 			this.tpStoredProcedures.UseVisualStyleBackColor = true;
@@ -628,7 +646,7 @@
 			this.gvStoredProcedures.Location = new System.Drawing.Point(3, 3);
 			this.gvStoredProcedures.Name = "gvStoredProcedures";
 			this.gvStoredProcedures.RowHeadersVisible = false;
-			this.gvStoredProcedures.Size = new System.Drawing.Size(628, 460);
+			this.gvStoredProcedures.Size = new System.Drawing.Size(628, 380);
 			this.gvStoredProcedures.TabIndex = 0;
 			// 
 			// tpEnums
@@ -637,7 +655,7 @@
 			this.tpEnums.Location = new System.Drawing.Point(4, 22);
 			this.tpEnums.Name = "tpEnums";
 			this.tpEnums.Padding = new System.Windows.Forms.Padding(3);
-			this.tpEnums.Size = new System.Drawing.Size(634, 466);
+			this.tpEnums.Size = new System.Drawing.Size(634, 386);
 			this.tpEnums.TabIndex = 3;
 			this.tpEnums.Text = "Enums";
 			this.tpEnums.UseVisualStyleBackColor = true;
@@ -680,24 +698,6 @@
 			this.btnCancel.Text = "Cancel";
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
-			// 
-			// label7
-			// 
-			this.label7.AutoSize = true;
-			this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label7.Location = new System.Drawing.Point(84, 91);
-			this.label7.Name = "label7";
-			this.label7.Size = new System.Drawing.Size(113, 15);
-			this.label7.TabIndex = 34;
-			this.label7.Text = "Include Comments:";
-			// 
-			// ddlIncludeComments
-			// 
-			this.ddlIncludeComments.FormattingEnabled = true;
-			this.ddlIncludeComments.Location = new System.Drawing.Point(204, 88);
-			this.ddlIncludeComments.Name = "ddlIncludeComments";
-			this.ddlIncludeComments.Size = new System.Drawing.Size(121, 21);
-			this.ddlIncludeComments.TabIndex = 35;
 			// 
 			// UpdateFromDatabase
 			// 

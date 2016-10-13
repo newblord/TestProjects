@@ -51,6 +51,9 @@ namespace Tiger.Dal
 			cbx.Location = rect.Location;
 			cbx.BackColor = Color.Transparent;
 			cbx.ThreeState = true;
+
+			HandleTableSelectHeaderChange(ref cbx);
+
 			cbx.CheckStateChanged += new EventHandler(checkboxHeader_CheckStateChanged);
 			gvTables.Controls.Add(cbx);
 		}
@@ -281,11 +284,22 @@ namespace Tiger.Dal
 		private void UpdateFromDatabase_Load(object sender, EventArgs e)
 		{
 			SetupTableGridViewHeaderCheckbox();
+
+			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+
+			if (tableData.Where(x => x.GeneratePoco).Count() == tableData.Count)
+				cbxPocos.Checked = true;
+			if (tableData.Where(x => x.GeneratePocoInterface).Count() == tableData.Count)
+				cbxPocoInterfaces.Checked = true;
+			if (tableData.Where(x => x.GenerateRepository).Count() == tableData.Count)
+				cbxRepositories.Checked = true;
+			if (tableData.Where(x => x.GenerateRepositoryInterface).Count() == tableData.Count)
+				cbxRepositoryInterfaces.Checked = true;
 		}
 
 		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
 		{
-			//TabPage tp = e.TabPage;
+			TabPage tp = e.TabPage;
 
 			//int totalWidth = 0;
 
@@ -338,22 +352,7 @@ namespace Tiger.Dal
 		{
 			CheckBox cbxHeader = (CheckBox)gvTables.Controls.Find("TableSelectHeader", false).First();
 
-			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
-
-			int checkedCount = tableData.Where(x => x.TableSelect == true).Count();
-
-			if (checkedCount > 0 && checkedCount < tableData.Count)
-			{
-				cbxHeader.CheckState = CheckState.Indeterminate;
-			}
-			else if (checkedCount == tableData.Count)
-			{
-				cbxHeader.CheckState = CheckState.Checked;
-			}
-			else
-			{
-				cbxHeader.CheckState = CheckState.Unchecked;
-			}
+			HandleTableSelectHeaderChange(ref cbxHeader);
 
 			if (cbxHeader.CheckState == CheckState.Checked && !isChecked ||
 					cbxHeader.CheckState == CheckState.Unchecked && isChecked)
@@ -361,7 +360,27 @@ namespace Tiger.Dal
 				cbxHeader.CheckState = CheckState.Indeterminate;
 			}
 		}
-		
+
+		private void HandleTableSelectHeaderChange(ref CheckBox cbx)
+		{
+			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+
+			int checkedCount = tableData.Where(x => x.TableSelect == true).Count();
+
+			if (checkedCount > 0 && checkedCount < tableData.Count)
+			{
+				cbx.CheckState = CheckState.Indeterminate;
+			}
+			else if (checkedCount == tableData.Count)
+			{
+				cbx.CheckState = CheckState.Checked;
+			}
+			else
+			{
+				cbx.CheckState = CheckState.Unchecked;
+			}
+		}
+
 		#endregion
 
 		#region Events
@@ -536,7 +555,7 @@ namespace Tiger.Dal
 		#endregion
 
 		#endregion
-		
+
 	}
 
 }
