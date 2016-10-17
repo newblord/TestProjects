@@ -12,7 +12,8 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 
 		public string ConnectionString { get; set; }
 		public string DatabaseContextName { get; set; }
-		public string DatabaseContextInterfaceName {
+		public string DatabaseContextInterfaceName
+		{
 			get
 			{
 				return _databaseContextInterfaceName ?? ("I" + DatabaseContextName);

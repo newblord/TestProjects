@@ -8,9 +8,9 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 {
 	public class EnumDefinition
 	{
-		public string Schema;
-		public string Table;
-		public string Column;
-		public string EnumType;
+		public string Schema { get; set; }
+		public string Table { get; set; }
+		public string Column { get; set; }
+		public string EnumType { get; set; }
 	}
 }

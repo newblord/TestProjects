@@ -8,28 +8,35 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 {
 	public class Table
 	{
-		public string Name;
-		public string NameHumanCase;
-		public string Schema;
-		public string Type;
-		public string ClassName;
-		public bool IsMapping;
-		public bool IsView;
-		public bool HasForeignKey;
-		public bool HasNullableColumns;
-		public bool HasPrimaryKey;
-		public TableData TableData;
+		public string Name { get; set; }
+		public string NameHumanCase { get; set; }
+		public string Schema { get; set; }
+		public string Type { get; set; }
+		public string ClassName { get; set; }
+		public bool IsMapping { get; set; }
+		public bool IsView { get; set; }
+		public bool HasForeignKey
+		{
+			get
+			{
+				return ForeignKeys.Any();
+			}
+		}
+		public bool HasNullableColumns { get; set; }
+		public bool HasPrimaryKey { get; set; }
+		public TableData TableData { get; set; }
 
-		public List<Column> Columns;
-		public List<ForeignKey> ForeignKeys;
-		public List<string> ReverseNavigationProperty;
-		public List<string> ReverseNavigationCtor;
-		public List<string> ReverseNavigationUniquePropName;
-		public List<string> ReverseNavigationUniquePropNameClashes;
+		public List<Column> Columns { get; set; }
+		public List<ForeignKey> ForeignKeys { get; set; }
+		public List<string> ReverseNavigationProperty { get; set; }
+		public List<string> ReverseNavigationCtor { get; set; }
+		public List<string> ReverseNavigationUniquePropName { get; set; }
+		public List<string> ReverseNavigationUniquePropNameClashes { get; set; }
 
 		public Table()
 		{
 			Columns = new List<Column>();
+			ForeignKeys = new List<ForeignKey>();
 			ResetNavigationProperties();
 			ReverseNavigationUniquePropNameClashes = new List<string>();
 		}
@@ -96,7 +103,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				ReverseNavigationUniquePropNameClashes.Add(tableNameHumanCase); // Name clash
 
 			// Attempt 1
-			string fkName = (useCamelCase ? Inflector.ToTitleCase(foreignKey.FkColumn) : foreignKey.FkColumn).Replace(" ", "").Replace("$", "");
+			string fkName = (useCamelCase ? Inflector.ToTitleCase(foreignKey.FkColumnName) : foreignKey.FkColumnName).Replace(" ", "").Replace("$", "");
 			string name = ForeignKeyName(tableNameHumanCase, fkName, 1);
 			string col;
 			if (!ReverseNavigationUniquePropNameClashes.Contains(name) && !ReverseNavigationUniquePropName.Contains(name))
@@ -200,6 +207,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				col.IsPrimaryKey = true;
 			}
 		}
-		
+
 	}
 }

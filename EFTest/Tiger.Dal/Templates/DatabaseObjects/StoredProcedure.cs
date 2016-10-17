@@ -9,11 +9,11 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 {
 	public class StoredProcedure
 	{
-		public string Schema;
-		public string Name;
-		public string NameHumanCase;
-		public List<StoredProcedureParameter> Parameters;
-		public List<List<DataColumn>> ReturnModels;   // A list of return models, containing a list of return columns
+		public string Schema { get; set; }
+		public string Name { get; set; }
+		public string NameHumanCase { get; set; }
+		public List<StoredProcedureParameter> Parameters { get; set; }
+		public List<List<DataColumn>> ReturnModels { get; set; }   // A list of return models, containing a list of return columns
 
 		public StoredProcedure()
 		{
@@ -32,6 +32,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				return propertyType;
 			return String.Format(ReversePocoCore.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", propertyType);
 		}
-		
+
 	}
 }

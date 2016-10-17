@@ -14,8 +14,10 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public string PkTableName { get; private set; }
 		public string PkTableNameFiltered { get; private set; }
 		public string PkSchema { get; private set; }
-		public string FkColumn { get; private set; }
-		public string PkColumn { get; private set; }
+		public string FkColumnName { get; private set; }
+		public Column FKColumn { get; internal set; }
+		public string PkColumnName { get; private set; }
+		public Column PKColumn { get; internal set; }
 		public string ConstraintName { get; private set; }
 		public int Ordinal { get; private set; }
 		public bool CascadeOnDelete { get; private set; }
@@ -23,8 +25,8 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public ForeignKey(string fkTableName, string fkSchema, string pkTableName, string pkSchema, string fkColumn, string pkColumn, string constraintName, string fkTableNameFiltered, string pkTableNameFiltered, int ordinal, bool cascadeOnDelete)
 		{
 			ConstraintName = constraintName;
-			PkColumn = pkColumn;
-			FkColumn = fkColumn;
+			PkColumnName = pkColumn;
+			FkColumnName = fkColumn;
 			PkSchema = pkSchema;
 			PkTableName = pkTableName;
 			FkSchema = fkSchema;

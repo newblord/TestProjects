@@ -8,40 +8,47 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 {
 	public class Column
 	{
-		public string Name; // Raw name of the column as obtained from the database
-		public string NameHumanCase; // Name adjusted for C# output
+		public string Name { get; set; } // Raw name of the column as obtained from the database
+		public string NameHumanCase { get; set; } // Name adjusted for C# output
+		public string ParameterName { get; set; } // Name with first letter as lowercase, based of NameHumanCase
 
-		public int DateTimePrecision;
-		public string Default;
-		public int MaxLength;
-		public int Precision;
-		public string SqlPropertyType;
-		public string PropertyType;
-		public int Scale;
-		public int Ordinal;
-		public int PrimaryKeyOrdinal;
-		public string ExtendedProperty;
-		public string SummaryComments;
+		public int DateTimePrecision { get; set; }
+		public string Default { get; set; }
+		public int MaxLength { get; set; }
+		public int Precision { get; set; }
+		public string SqlPropertyType { get; set; }
+		public string PropertyType { get; set; }
+		public int Scale { get; set; }
+		public int Ordinal { get; set; }
+		public int PrimaryKeyOrdinal { get; set; }
+		public string ExtendedProperty { get; set; }
+		public string SummaryComments { get; set; }
 
-		public bool IsIdentity;
-		public bool IsNullable;
-		public bool IsPrimaryKey;
-		public bool IsStoreGenerated;
-		public bool IsRowVersion;
-		public bool IsConcurrencyToken; //  Manually set via callback
-		public bool IsFixedLength;
-		public bool IsUnicode;
-		public bool IsMaxLength;
-		public bool Hidden;
-		public bool IsForeignKey;
+		public bool IsIdentity { get; set; }
+		public bool IsNullable { get; set; }
+		public bool IsPrimaryKey { get; set; }
+		public bool IsStoreGenerated { get; set; }
+		public bool IsRowVersion { get; set; }
+		public bool IsConcurrencyToken { get; set; } //  Manually set via callback
+		public bool IsFixedLength { get; set; }
+		public bool IsUnicode { get; set; }
+		public bool IsMaxLength { get; set; }
+		public bool Hidden { get; set; }
+		public bool IsForeignKey { get; set; }
 
-		public string Config;
-		public List<string> ConfigFk = new List<string>();
-		public string Entity;
-		public List<string> EntityFk = new List<string>();
-		public string InterfaceEntity;
+		public string Config { get; set; }
+		public List<string> ConfigFk { get; set; }
+		public string Entity { get; set; }
+		public List<string> EntityFk { get; set; }
+		public string InterfaceEntity { get; set; }
 
-		public Table ParentTable;
+		public Table ParentTable { get; set; }
+
+		public Column()
+		{
+			ConfigFk = new List<string>();
+			EntityFk = new List<string>();
+		}
 
 		public void ResetNavigationProperties()
 		{

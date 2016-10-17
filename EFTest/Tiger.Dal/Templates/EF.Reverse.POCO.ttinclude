@@ -603,16 +603,30 @@
 		WriteLine("Context.SaveChanges();");
 		CloseMethodBrace();
 
-		WriteLine("public {0} FindById(int id)", tbl.NameHumanCase);
-		OpenMethodBrace();
-		WriteLine("return Context.{0}s.Where(x => x.Id == id).FirstOrDefault();",tbl.NameHumanCase);
-		CloseMethodBrace();
-
 		WriteLine("public IEnumerable<{0}> GetAll()", tbl.NameHumanCase);
 		OpenMethodBrace();
 		WriteLine("return Context.{0}s.AsEnumerable();", tbl.NameHumanCase);
 		CloseMethodBrace();
-			
+
+		if(tbl.HasPrimaryKey)
+		{
+			foreach (Column pk in tbl.PrimaryKeys)
+			{
+				WriteLine("public {0} FindBy{1}({2} {3})", tbl.NameHumanCase, pk.NameHumanCase, pk.SqlPropertyType, pk.ParameterName);
+				OpenMethodBrace();
+				WriteLine("return Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
+				CloseMethodBrace();
+			}
+		}
+
+		foreach(ForeignKey fk in tbl.ForeignKeys)
+		{
+			WriteLine("public IEnumerable<{0}> FindBy{1}({2} {3})", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.SqlPropertyType , fk.FKColumn.ParameterName);
+			OpenMethodBrace();
+			WriteLine("return Context.{0}s.Where(x => x.{1} == {2} ).AsEnumerable();", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.ParameterName);
+			CloseMethodBrace();
+		}
+
 		CloseBrace();
 		CloseBrace();
 	}
@@ -644,9 +658,21 @@
 		WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
 		WriteLine("void Delete(int id);");
 		WriteLine("void Delete({0} data);", tbl.NameHumanCase);
-		WriteLine("{0} FindById(int id);", tbl.NameHumanCase);
 		WriteLine("IEnumerable<{0}> GetAll();", tbl.NameHumanCase);
-			
+
+		if(tbl.HasPrimaryKey)
+		{
+			foreach (Column pk in tbl.PrimaryKeys)
+			{
+				WriteLine("public {0} FindBy{1}({2} {3});", tbl.NameHumanCase, pk.NameHumanCase, pk.SqlPropertyType, pk.ParameterName);
+			}
+		}
+
+		foreach(ForeignKey fk in tbl.ForeignKeys)
+		{
+			WriteLine("public IEnumerable<{0}> FindBy{1}({2} {3});", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.SqlPropertyType , fk.FKColumn.ParameterName);
+		}
+
 		CloseBrace();
 		CloseBrace();
 	}

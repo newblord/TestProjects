@@ -260,7 +260,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 								IsView = String.Compare(rdr["TableType"].ToString().Trim(), "View", StringComparison.OrdinalIgnoreCase) == 0,
 
 								// Will be set later
-								HasForeignKey = false,
 								HasNullableColumns = false
 							};
 
@@ -510,7 +509,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				var fkCols = foreignKeys.Select(x => new
 				{
 					fkOrdinal = x.Ordinal,
-					col = fkTable.Columns.Find(n => string.Equals(n.Name, x.FkColumn, StringComparison.InvariantCultureIgnoreCase))
+					col = fkTable.Columns.Find(n => string.Equals(n.Name, x.FkColumnName, StringComparison.InvariantCultureIgnoreCase))
 				})
 					.Where(x => x != null)
 					.ToList();
@@ -518,7 +517,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				if (!fkCols.Any())
 					continue;
 
-				var pkCols = foreignKeys.Select(x => pkTable.Columns.Find(n => string.Equals(n.Name, x.PkColumn, StringComparison.InvariantCultureIgnoreCase)))
+				var pkCols = foreignKeys.Select(x => pkTable.Columns.Find(n => string.Equals(n.Name, x.PkColumnName, StringComparison.InvariantCultureIgnoreCase)))
 												.Where(x => x != null && x.IsPrimaryKey)
 												.OrderBy(o => o.Ordinal)
 												.ToList();
@@ -570,15 +569,18 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				if (pkTable == null)
 					continue;   // Could be filtered out
 
-				Column fkCol = fkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.FkColumn, StringComparison.InvariantCultureIgnoreCase));
+				Column fkCol = fkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.FkColumnName, StringComparison.InvariantCultureIgnoreCase));
 				if (fkCol == null)
 					continue;   // Could not find fk column
 
-				Column pkCol = pkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.PkColumn, StringComparison.InvariantCultureIgnoreCase));
+				Column pkCol = pkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.PkColumnName, StringComparison.InvariantCultureIgnoreCase));
 				if (pkCol == null)
 					continue;   // Could not find pk column
 
-				fkTable.HasForeignKey = true;
+				foreignKey.FKColumn = fkCol;
+				foreignKey.PKColumn = pkCol;
+
+				fkTable.ForeignKeys.Add(foreignKey);
 			}
 		}
 
@@ -713,6 +715,8 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			table.HasNullableColumns = ReversePocoCore.IsNullable(col);
 
 			col = updateColumn(col, table);
+
+			col.ParameterName = Inflector.MakeInitialLower(col.NameHumanCase);
 
 			// If PropertyType is empty, return null. Most likely ignoring a column due to legacy (such as OData not supporting spatial types)
 			if (string.IsNullOrEmpty(col.PropertyType))

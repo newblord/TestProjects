@@ -8,16 +8,16 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 {
 	public class StoredProcedureParameter
 	{
-		public int Ordinal;
-		public StoredProcedureParameterMode Mode;
-		public string Name;
-		public string NameHumanCase;
-		public string SqlDbType;
-		public string PropertyType;
-		public string UserDefinedTypeName;
-		public int DateTimePrecision;
-		public int MaxLength;
-		public int Precision;
-		public int Scale;
+		public int Ordinal { get; set; }
+		public StoredProcedureParameterMode Mode { get; set; }
+		public string Name { get; set; }
+		public string NameHumanCase { get; set; }
+		public string SqlDbType { get; set; }
+		public string PropertyType { get; set; }
+		public string UserDefinedTypeName { get; set; }
+		public int DateTimePrecision { get; set; }
+		public int MaxLength { get; set; }
+		public int Precision { get; set; }
+		public int Scale { get; set; }
 	}
 }

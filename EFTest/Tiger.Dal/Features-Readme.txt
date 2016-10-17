@@ -14,9 +14,11 @@
 			- Might not need this for future implementation
 	7)   Add Repository support
 			- Add CRUD methods - Done
-			- Add FindBy methods for Foreign Keys
+			- Add FindBy methods for Primary Keys - Done
+			- Add FindBy methods for Foreign Keys - Done
 			- Add FindBy methods for Unique Keys
 			- Add FindBy methods for Indexes
+			- Convert Reverse Navigation Properties on POCOs to methods on Repositories
 	8)   Add proper Entity Framework Add/Attach/Entity support to Repository files
 	9)   Add Custom Property change management for POCO classes
 			- Might be be able to piggy back on EF property management
@@ -39,3 +41,5 @@
 						and the repositories for the other tables will be added as properties or using IOC
 	16)  Complete Unit Of Work Design Pattern
 	17)  Add IOC or Dependency Injection
+	18)  When GenerateContext is disabled switch to ADO.NET Connection to database instead of Entity Framework
+	19)  Change CollectionType Database Setting to RepositoryCollectionType and use only in Repository

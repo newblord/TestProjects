@@ -8,11 +8,11 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 {
 	public class UniqueIndex
 	{
-		public string Schema;
-		public string TableName;
-		public string IndexName;
-		public byte KeyOrdinal;
-		public string Column;
-		public int ColumnCount;
+		public string Schema { get; set; }
+		public string TableName { get; set; }
+		public string IndexName { get; set; }
+		public byte KeyOrdinal { get; set; }
+		public string Column { get; set; }
+		public int ColumnCount { get; set; }
 	}
 }
