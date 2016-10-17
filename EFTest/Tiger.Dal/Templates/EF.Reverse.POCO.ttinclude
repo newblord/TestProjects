@@ -834,7 +834,6 @@
 	WriteLine("<GeneratedFileExtension>{0}</GeneratedFileExtension>", Setting.GeneratedFileExtension);
 	WriteLine("<PrependSchemaName>{0}</PrependSchemaName>", Setting.PrependSchemaName);
 	WriteLine("<ConfigurationClassName>{0}</ConfigurationClassName>", Setting.ConfigurationClassName);
-	WriteLine("<CollectionType>{0}</CollectionType>", Setting.CollectionType);
 	WriteLine("<IncludeComments>{0}</IncludeComments>", Setting.IncludeComments);
 	WriteLine("<IncludeQueryTraceOn9481Flag>{0}</IncludeQueryTraceOn9481Flag>", Setting.IncludeQueryTraceOn9481Flag);
 

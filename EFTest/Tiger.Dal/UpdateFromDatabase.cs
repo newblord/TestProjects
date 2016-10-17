@@ -60,14 +60,7 @@ namespace Tiger.Dal
 
 		private void PopulateDropDownLists()
 		{
-			ddlCollectionType.Items.Add("HashSet");
-			ddlCollectionType.Items.Add("ICollection");
-			ddlCollectionType.Items.Add("IEnumerable");
-			ddlCollectionType.Items.Add("IList");
-			ddlCollectionType.Items.Add("List");
-
 			List<EnumValue> values = new List<EnumValue>();
-
 
 			values.Add(new EnumValue { Name = "None", Value = 0 });
 			values.Add(new EnumValue { Name = "In Summary Block", Value = 1 });
@@ -75,7 +68,6 @@ namespace Tiger.Dal
 			ddlIncludeComments.DataSource = values;
 			ddlIncludeComments.DisplayMember = "Name";
 			ddlIncludeComments.ValueMember = "Value";
-
 		}
 
 		private void LoadDatabaseGenerationSettings()
@@ -86,7 +78,6 @@ namespace Tiger.Dal
 				txtContextInterfaceBaseClass.DataBindings.Add("Text", Setting, "ContextInterfaceBaseClass");
 				txtContextBaseClass.DataBindings.Add("Text", Setting, "ContextBaseClass");
 				txtConfigurationClassName.DataBindings.Add("Text", Setting, "ConfigurationClassName");
-				ddlCollectionType.DataBindings.Add("SelectedItem", Setting, "CollectionType");
 				ddlIncludeComments.SelectedValue = (int)Setting.IncludeComments;
 
 				cbxPartialClasses.DataBindings.Add("Checked", Setting, "MakeClassesPartial");

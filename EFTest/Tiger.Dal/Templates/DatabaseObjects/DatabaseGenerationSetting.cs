@@ -40,7 +40,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public string GeneratedFileExtension { get; set; }
 		public bool PrependSchemaName { get; set; }
 		public string ConfigurationClassName { get; set; }
-		public string CollectionType { get; set; }
 		public CommentsStyle IncludeComments { get; set; }
 		public bool IncludeQueryTraceOn9481Flag { get; set; }
 	}

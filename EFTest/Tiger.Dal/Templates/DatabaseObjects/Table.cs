@@ -168,7 +168,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			return ForeignKeyName(tableNameHumanCase, fkName, 6);
 		}
 
-		public void AddReverseNavigation(Relationship relationship, string fkName, Table fkTable, string propName, string constraint, string collectionType, CommentsStyle includeComments)
+		public void AddReverseNavigation(Relationship relationship, string fkName, Table fkTable, string propName, string constraint, CommentsStyle includeComments)
 		{
 			switch (relationship)
 			{
@@ -182,12 +182,12 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 
 				case Relationship.ManyToOne:
 					ReverseNavigationProperty.Add(string.Format("public virtual System.Collections.Generic.ICollection<{0}> {1} {{ get; set; }}{2}", fkTable.NameHumanCase, propName, includeComments != CommentsStyle.None ? " // " + constraint : string.Empty));
-					ReverseNavigationCtor.Add(string.Format("{0} = new {1}<{2}>();", propName, collectionType, fkTable.NameHumanCase));
+					ReverseNavigationCtor.Add(string.Format("{0} = new HashSet<{1}>();", propName, fkTable.NameHumanCase));
 					break;
 
 				case Relationship.ManyToMany:
 					ReverseNavigationProperty.Add(string.Format("public virtual System.Collections.Generic.ICollection<{0}> {1} {{ get; set; }}{2}", fkTable.NameHumanCase, propName, includeComments != CommentsStyle.None ? " // Many to many mapping" : string.Empty));
-					ReverseNavigationCtor.Add(string.Format("{0} = new {1}<{2}>();", propName, collectionType, fkTable.NameHumanCase));
+					ReverseNavigationCtor.Add(string.Format("{0} = new HashSet<{1}>();", propName, fkTable.NameHumanCase));
 					break;
 
 				default:

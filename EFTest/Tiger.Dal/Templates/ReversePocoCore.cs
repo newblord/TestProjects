@@ -518,10 +518,10 @@ namespace Tiger.Dal.Templates
 					// Must be done in this order
 					var fkList = reader.ReadForeignKeys(TableRename, ForeignKeyFilter);
 					reader.IdentifyForeignKeys(fkList, tables);
-					reader.ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.CollectionType, true, Setting.IncludeComments, ForeignKeyName);
+					reader.ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, true, Setting.IncludeComments, ForeignKeyName);
 
 					tables.ResetNavigationProperties();
-					reader.ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.CollectionType, false, Setting.IncludeComments, ForeignKeyName);
+					reader.ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, false, Setting.IncludeComments, ForeignKeyName);
 
 					foreach (var t in tables)
 						t.SetHasPrimaryKey();
