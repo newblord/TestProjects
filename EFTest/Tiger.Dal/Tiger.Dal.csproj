@@ -75,6 +75,7 @@
     <Compile Include="Templates\DatabaseObjects\EnumDefinition.cs" />
     <Compile Include="Templates\DatabaseObjects\EnumValue.cs" />
     <Compile Include="Templates\DatabaseObjects\ForeignKey.cs" />
+    <Compile Include="Templates\DatabaseObjects\Index.cs" />
     <Compile Include="Templates\DatabaseObjects\Inflector.cs" />
     <Compile Include="Templates\DatabaseObjects\SchemaReader.cs" />
     <Compile Include="Templates\DatabaseObjects\StoredProcedure.cs" />

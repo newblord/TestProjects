@@ -45,7 +45,7 @@
 
 		foreach (Table tbl in from t in tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 		{
-			WriteLine("DbSet<{0}> {1} {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakePlural(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
+			WriteLine("DbSet<{0}> {1}s {{ get; set; }}{2}",tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "" );
 		}
 	
 		WriteLine("");
@@ -612,7 +612,7 @@
 		{
 			foreach (Column pk in tbl.PrimaryKeys)
 			{
-				WriteLine("public {0} FindBy{1}({2} {3})", tbl.NameHumanCase, pk.NameHumanCase, pk.SqlPropertyType, pk.ParameterName);
+				WriteLine("public {0} FindBy{1}({2} {3})", tbl.NameHumanCase, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 				OpenMethodBrace();
 				WriteLine("return Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
 				CloseMethodBrace();
@@ -621,9 +621,25 @@
 
 		foreach(ForeignKey fk in tbl.ForeignKeys)
 		{
-			WriteLine("public IEnumerable<{0}> FindBy{1}({2} {3})", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.SqlPropertyType , fk.FKColumn.ParameterName);
+			WriteLine("public IEnumerable<{0}> FindBy{1}({2} {3})", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.PropertyType , fk.FKColumn.ParameterName);
 			OpenMethodBrace();
 			WriteLine("return Context.{0}s.Where(x => x.{1} == {2} ).AsEnumerable();", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.ParameterName);
+			CloseMethodBrace();
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("public IEnumerable<{0}> GetBy{1}({2})", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+			OpenMethodBrace();
+			WriteLine("return Context.{0}s.Where(x => {1} ).AsEnumerable();", tbl.NameHumanCase, ReversePocoCore.CreateIndexWhereString(index));
+			CloseMethodBrace();
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("public {0} FindBy{1}({2})", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+			OpenMethodBrace();
+			WriteLine("return Context.{0}s.Where(x => {1} ).FirstOrDefault();", tbl.NameHumanCase, ReversePocoCore.CreateIndexWhereString(index));
 			CloseMethodBrace();
 		}
 
@@ -647,6 +663,7 @@
 
 		CreateHeader();
 
+		WriteLine("using System;");
 		WriteLine("using System.Collections.Generic;");
 		WriteLine("using {0};",PocoNamespace);
 		WriteLine("");
@@ -664,13 +681,23 @@
 		{
 			foreach (Column pk in tbl.PrimaryKeys)
 			{
-				WriteLine("public {0} FindBy{1}({2} {3});", tbl.NameHumanCase, pk.NameHumanCase, pk.SqlPropertyType, pk.ParameterName);
+				WriteLine("{0} FindBy{1}({2} {3});", tbl.NameHumanCase, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 			}
 		}
 
 		foreach(ForeignKey fk in tbl.ForeignKeys)
 		{
-			WriteLine("public IEnumerable<{0}> FindBy{1}({2} {3});", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.SqlPropertyType , fk.FKColumn.ParameterName);
+			WriteLine("IEnumerable<{0}> FindBy{1}({2} {3});", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.PropertyType , fk.FKColumn.ParameterName);
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("IEnumerable<{0}> GetBy{1}({2});", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("{0} FindBy{1}({2});", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
 		}
 
 		CloseBrace();

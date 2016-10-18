@@ -28,6 +28,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 
 		public List<Column> Columns { get; set; }
 		public List<ForeignKey> ForeignKeys { get; set; }
+		public List<Index> Indexes { get; set; }
 		public List<string> ReverseNavigationProperty { get; set; }
 		public List<string> ReverseNavigationCtor { get; set; }
 		public List<string> ReverseNavigationUniquePropName { get; set; }
@@ -37,6 +38,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		{
 			Columns = new List<Column>();
 			ForeignKeys = new List<ForeignKey>();
+			Indexes = new List<Index>();
 			ResetNavigationProperties();
 			ReverseNavigationUniquePropNameClashes = new List<string>();
 		}

@@ -462,6 +462,16 @@ namespace Tiger.Dal.Templates
 			return col.IsNullable && !NotNullable.Contains(col.PropertyType.ToLower());
 		}
 
+		public static string CreateIndexParameterString(Index index)
+		{
+			return string.Join(", ", index.Columns.Select(s => s.PropertyType + " " + s.ParameterName));
+		}
+
+		public static string CreateIndexWhereString(Index index)
+		{
+			return string.Join(" && ", index.Columns.Select(s => "x." + s.NameHumanCase + " == " + s.ParameterName));
+		}
+
 		public static void ProcessDatabaseXML(string templateFileName, ref List<TableData> tableNames, ref List<string> storedProcedureNames, ref DatabaseGenerationSetting setting)
 		{
 			string fileName = templateFileName.Replace(".tt", "") + ".xml";
@@ -496,11 +506,8 @@ namespace Tiger.Dal.Templates
 		#region Database Object Generation
 		public Tables LoadTables(DbProviderFactory factory, string connectionString, List<TableData> selectedTables)
 		{
-			//if (factory == null || !(ElementsToGenerate.HasFlag(Elements.Poco) ||
-			//								ElementsToGenerate.HasFlag(Elements.Context) ||
-			//								ElementsToGenerate.HasFlag(Elements.UnitOfWork) ||
-			//								ElementsToGenerate.HasFlag(Elements.PocoConfiguration)))
-			//	return new Tables();
+			if (factory == null)
+				return new Tables();
 
 			try
 			{
@@ -525,6 +532,9 @@ namespace Tiger.Dal.Templates
 
 					foreach (var t in tables)
 						t.SetHasPrimaryKey();
+
+					var indexList = reader.ReadIndexes(tables);
+					reader.ProcessIndexes(indexList, tables);
 
 					conn.Close();
 					return tables;

@@ -16,8 +16,7 @@
 			- Add CRUD methods - Done
 			- Add FindBy methods for Primary Keys - Done
 			- Add FindBy methods for Foreign Keys - Done
-			- Add FindBy methods for Unique Keys
-			- Add FindBy methods for Indexes
+			- Add FindBy methods for Indexes - Done
 			- Convert Reverse Navigation Properties on POCOs to methods on Repositories
 	8)   Add proper Entity Framework Add/Attach/Entity support to Repository files
 	9)   Add Custom Property change management for POCO classes

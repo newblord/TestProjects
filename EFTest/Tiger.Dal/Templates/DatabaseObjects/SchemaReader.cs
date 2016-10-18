@@ -104,6 +104,24 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			WHERE FK.name IN ('{TABLE_NAMES}') AND PK.name IN ('{TABLE_NAMES}')
 			ORDER BY FK_Table, FK_Column";
 
+		private const string IndexSQL = @"
+			SELECT   
+			s.name AS SchemaName
+			,o.name AS TableName
+			, i.name AS IndexName
+			, i.is_unique AS IsUnique
+			, c.name AS ColumnName
+			, i.is_primary_key as IsPrimaryKey
+			FROM sys.objects o
+			INNER JOIN sys.schemas s ON s.schema_id = o.schema_id
+			INNER JOIN sys.indexes i ON o.object_id = i.object_id
+			INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id and i.index_id = ic.index_id
+			INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+			WHERE i.is_hypothetical = 0
+				and ic.is_included_column = 0
+				and o.name in ('{TABLE_NAMES}')
+			ORDER BY TableName, IsUnique desc, IndexName, ic.key_ordinal";
+
 		private const string StoredProcedureSQL = @"
 			SELECT  R.SPECIFIC_SCHEMA,
 			R.SPECIFIC_NAME,
@@ -200,15 +218,21 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			return sql;
 		}
 
-		private string ProcessStoredProcSQL()
-		{
-			string sql = StoredProcedureSQL.Replace("{SPROC_NAMES}", string.Join("', '", StoredProcedureNames));
-			return sql;
-		}
-
 		private string ProcessForeignKeySQL()
 		{
 			string sql = ForeignKeySQL.Replace("{TABLE_NAMES}", string.Join("', '", SelectedTables.Select(x => x.TableName).ToList()));
+			return sql;
+		}
+
+		private string ProcessIndexSQL()
+		{
+			string sql = IndexSQL.Replace("{TABLE_NAMES}", string.Join("', '", SelectedTables.Select(x => x.TableName).ToList()));
+			return sql;
+		}
+
+		private string ProcessStoredProcSQL()
+		{
+			string sql = StoredProcedureSQL.Replace("{SPROC_NAMES}", string.Join("', '", StoredProcedureNames));
 			return sql;
 		}
 
@@ -356,6 +380,52 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			return fkList;
 		}
 
+		public List<Index> ReadIndexes(Tables tables)
+		{
+			var indexes = new List<Index>();
+			if (Cmd == null)
+				return indexes;
+
+			Cmd.CommandText = ProcessIndexSQL() + IncludeQueryTraceOn9481();
+			Cmd.CommandTimeout = 600;
+
+			using (DbDataReader rdr = Cmd.ExecuteReader())
+			{
+				while (rdr.Read())
+				{
+					Table table = tables.GetTable(rdr["TableName"] as string, rdr["SchemaName"] as string);
+					Index index = indexes.Where(x => x.TableName == table.NameHumanCase && x.IndexName == rdr["IndexName"] as string).FirstOrDefault();
+
+					if (index == null)
+					{
+						index = new Index
+						{
+							IndexName = rdr["IndexName"] as string,
+							SchemaName = table.Schema,
+							TableName = table.NameHumanCase,
+							IsUnique = (bool)rdr["IsUnique"],
+							IsPrimaryKey = (bool)rdr["IsPrimaryKey"]
+						};
+
+						indexes.Add(index);
+					}
+
+					var column = (from c in table.Columns
+									  where c.Name == (rdr["ColumnName"] as string)
+									  select c).FirstOrDefault();
+
+					if (column != null)
+					{
+						index.Columns.Add(column);
+					}
+
+					index.ColumnString = string.Join(",", index.Columns.Select(s => s.NameHumanCase.ToLower()).OrderBy(o => o));
+				}
+			}
+
+			return indexes;
+		}
+
 		public List<StoredProcedure> ReadStoredProcs(Regex schemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName, Func<string, string, string> StoredProcedureRename)
 		{
 			var result = new List<StoredProcedure>();
@@ -484,6 +554,24 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			catch (Exception)
 			{
 				// Stored procedure does not have a return type
+			}
+		}
+
+		public void ProcessIndexes(List<Index> indexList, Tables tables)
+		{
+			foreach (Index index in indexList)
+			{
+				Table table = tables.GetTable(index.TableName, index.SchemaName);
+
+				if (table == null)
+					continue;
+
+				if(!(index.Columns.Count == 1 && 
+						table.ForeignKeys
+								.Where(x => x.FKColumn.NameHumanCase == index.Columns.First().NameHumanCase).Count() == 1))
+				{
+					table.Indexes.Add(index);
+				}
 			}
 		}
 
