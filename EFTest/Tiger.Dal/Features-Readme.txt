@@ -18,6 +18,7 @@
 			- Add FindBy methods for Foreign Keys - Done
 			- Add FindBy methods for Indexes - Done
 			- Convert Reverse Navigation Properties on POCOs to methods on Repositories
+				- Maybe use a flag for or setting for this
 	8)   Add proper Entity Framework Add/Attach/Entity support to Repository files
 	9)   Add Custom Property change management for POCO classes
 			- Might be be able to piggy back on EF property management
@@ -26,6 +27,7 @@
 			- Add support to manually match enum to properties on tables
 	12)  Refactor Database Reverse Engineering for mass table generation
 			- Done with partial testing
+			- Takes about 40 seconds to generate all files
 	13)  Refactor UpdateFromDatabase WinForm
 			- Recreate Tables tab - Done
 			- Recreate Views Tab

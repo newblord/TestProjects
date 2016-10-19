@@ -521,7 +521,6 @@
 			this.cbxRepositoryInterfaces.Size = new System.Drawing.Size(140, 17);
 			this.cbxRepositoryInterfaces.TabIndex = 3;
 			this.cbxRepositoryInterfaces.Text = "All Repository Interfaces";
-			this.cbxRepositoryInterfaces.ThreeState = true;
 			this.cbxRepositoryInterfaces.UseVisualStyleBackColor = true;
 			this.cbxRepositoryInterfaces.CheckStateChanged += new System.EventHandler(this.cbxRepositoryInterfaces_CheckStateChanged);
 			// 
@@ -534,7 +533,6 @@
 			this.cbxRepositories.Size = new System.Drawing.Size(98, 17);
 			this.cbxRepositories.TabIndex = 2;
 			this.cbxRepositories.Text = "All Repositories";
-			this.cbxRepositories.ThreeState = true;
 			this.cbxRepositories.UseVisualStyleBackColor = true;
 			this.cbxRepositories.CheckStateChanged += new System.EventHandler(this.cbxRepositories_CheckStateChanged);
 			// 
@@ -547,7 +545,6 @@
 			this.cbxPocoInterfaces.Size = new System.Drawing.Size(120, 17);
 			this.cbxPocoInterfaces.TabIndex = 1;
 			this.cbxPocoInterfaces.Text = "All POCO Interfaces";
-			this.cbxPocoInterfaces.ThreeState = true;
 			this.cbxPocoInterfaces.UseVisualStyleBackColor = true;
 			this.cbxPocoInterfaces.CheckStateChanged += new System.EventHandler(this.cbxPocoInterfaces_CheckStateChanged);
 			// 
@@ -560,7 +557,6 @@
 			this.cbxPocos.Size = new System.Drawing.Size(109, 17);
 			this.cbxPocos.TabIndex = 0;
 			this.cbxPocos.Text = "All POCO Classes";
-			this.cbxPocos.ThreeState = true;
 			this.cbxPocos.UseVisualStyleBackColor = true;
 			this.cbxPocos.CheckStateChanged += new System.EventHandler(this.cbxPocos_CheckStateChanged);
 			// 
