@@ -77,6 +77,7 @@
     <Compile Include="Templates\DatabaseObjects\ForeignKey.cs" />
     <Compile Include="Templates\DatabaseObjects\Index.cs" />
     <Compile Include="Templates\DatabaseObjects\Inflector.cs" />
+    <Compile Include="Templates\DatabaseObjects\ReverseNavigation.cs" />
     <Compile Include="Templates\DatabaseObjects\SchemaReader.cs" />
     <Compile Include="Templates\DatabaseObjects\StoredProcedure.cs" />
     <Compile Include="Templates\DatabaseObjects\StoredProcedureParameter.cs" />

@@ -409,19 +409,19 @@
 		if(tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial) 
 		{
 			WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2214:DoNotCallOverridableMethodsInConstructors\")]"); 
-			WriteLine("public {0}()",tbl.NameHumanCase);
+			WriteLine("public {0}()", tbl.NameHumanCase);
 			OpenMethodBrace();
 
 			foreach(Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
 			{
-				WriteLine("{0} = {1};",col.NameHumanCase, col.Default);
+				WriteLine("{0} = {1};", col.NameHumanCase, col.Default);
 			}
 
-			if(tbl.ReverseNavigationCtor.Count() > 0)
+			if(tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
 			{
-				foreach(string s in tbl.ReverseNavigationCtor.OrderBy(x => x))
+				foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.Where(x => x.HasConstructorString).OrderBy(x => x))
 				{
-					WriteLine("{0}", s);
+					WriteLine("{0}", rn.ConstructorString);
 				}
 			}
 
@@ -433,28 +433,28 @@
 			if((Setting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
 			{
 				WriteLine("///<summary>");
-				WriteLine("/// {0}",col.SummaryComments);
+				WriteLine("/// {0}", col.SummaryComments);
 				WriteLine("///</summary>");
 			} 
-			WriteLine("{0}",WritePocoColumn(col));
+			WriteLine("{0}", WritePocoColumn(col));
 		} 
 
-		if(tbl.ReverseNavigationProperty.Count() > 0)
+		if(tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
 		{
-			foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
+			foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x))
 			{
 				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
 				{
-					WriteLine("[{0}]",rnpda);
+					WriteLine("[{0}]", rnpda);
 				}
 				WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2227:CollectionPropertiesShouldBeReadOnly\")]");	 
-				WriteLine("{0}",s);
+				WriteLine("{0}", rn.PropertyString);
 			} 
 		} 
 
 		if(tbl.HasForeignKey) { 
 
-			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
+			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityForeignKeys).OrderBy(o => o))
 			{
 				foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
 				{
@@ -500,21 +500,21 @@
 			}
 		}
 
-		if(tbl.ReverseNavigationProperty.Count() > 0)
+		if(tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
 		{
-			foreach(string s in tbl.ReverseNavigationProperty.OrderBy(x => x))
+			foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x))
 			{
 				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
 				{
 					WriteLine("  [{0}]",rnpda);
 				} 
-				WriteLine("{0}",s.Replace("public virtual",""));
+				WriteLine("{0}",rn.PropertyString.Replace("public virtual",""));
 			} 
 		} 
 
 		if(tbl.HasForeignKey) 
 		{ 
-			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityFk).OrderBy(o => o))
+			foreach(var entityFk in tbl.Columns.SelectMany(x => x.EntityForeignKeys).OrderBy(o => o))
 			{
 				foreach (var fkda in AdditionalForeignKeysDataAnnotations) 
 				{
@@ -643,6 +643,33 @@
 			CloseMethodBrace();
 		}
 
+		if(!Setting.VirtualReverseNavigationProperties)
+		{
+			WriteLine("// Reverse Navigation Methods");
+
+			foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+			{
+				string methodString = string.Empty;
+				string returnString = string.Empty;
+
+				if(rn.Relationship == Relationship.OneToOne || rn.Relationship == Relationship.OneToMany)
+				{
+					methodString = string.Format("public {0} Get{0}By{1}({2} {3})", rn.FKTable.NameHumanCase, rn.PKColumn.NameHumanCase == "Id" ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+					returnString = string.Format("return Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.NameHumanCase);
+				}
+				else if(rn.Relationship == Relationship.ManyToOne || rn.Relationship == Relationship.ManyToMany)
+				{
+					methodString = string.Format("public IEnumerable<{0}> Get{1}By{2}({3} {4})", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), rn.PKColumn.NameHumanCase == "Id" ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+					returnString = string.Format("return Context.{0}s.Where(x => x.{1} == {2}).AsEnumerable();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.NameHumanCase);
+				}
+
+				WriteLine(methodString);
+				OpenMethodBrace();
+				WriteLine(returnString);
+				CloseMethodBrace();
+			}
+		}
+
 		CloseBrace();
 		CloseBrace();
 	}
@@ -754,9 +781,9 @@
 		
 			if(tbl.HasForeignKey) 
 			{ 
-				foreach(var configFk in tbl.Columns.SelectMany(x => x.ConfigFk).OrderBy(o => o))
+				foreach(var configFk in tbl.Columns.SelectMany(x => x.ConfigForeignKeys).OrderBy(o => o))
 				{
-					WriteLine("{0}",configFk);
+					WriteLine("{0}", configFk);
 				} 
 			} 
 

@@ -566,7 +566,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				if (table == null)
 					continue;
 
-				if(!(index.Columns.Count == 1 && 
+				if (!(index.Columns.Count == 1 &&
 						table.ForeignKeys
 								.Where(x => x.FKColumn.NameHumanCase == index.Columns.First().NameHumanCase).Count() == 1))
 				{
@@ -625,7 +625,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				bool fkMakePropNameSingular = (relationship == Relationship.OneToOne);
 				string fkPropName = pkTable.GetUniqueColumnName(fkTable.NameHumanCase, foreignKey, useCamelCase, checkForFkNameClashes, fkMakePropNameSingular, ForeignKeyName);
 
-				fkCol.col.EntityFk.Add(string.Format("public virtual {0} {1} {2}{3}", pkTableHumanCase, pkPropName, "{ get; set; }", includeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
+				fkCol.col.EntityForeignKeys.Add(string.Format("public virtual {0} {1} {2}{3}", pkTableHumanCase, pkPropName, "{ get; set; }", includeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
 
 				string manyToManyMapping, mapKey;
 				if (foreignKeys.Count > 1)
@@ -640,8 +640,8 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 					mapKey = string.Format("\"{0}\"", fkCol.col.Name);
 				}
 
-				fkCol.col.ConfigFk.Add(string.Format("{0};{1}", GetRelationship(relationship, fkCol.col, pkCol, pkPropName, fkPropName, manyToManyMapping, mapKey, foreignKey.CascadeOnDelete), includeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
-				pkTable.AddReverseNavigation(relationship, pkTableHumanCase, fkTable, fkPropName, string.Format("{0}.{1}", fkTable.Name, foreignKey.ConstraintName), includeComments);
+				fkCol.col.ConfigForeignKeys.Add(string.Format("{0};{1}", GetRelationship(relationship, fkCol.col, pkCol, pkPropName, fkPropName, manyToManyMapping, mapKey, foreignKey.CascadeOnDelete), includeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
+				pkTable.AddReverseNavigation(relationship, pkCol, fkTable, fkCol.col, string.Format("{0}.{1}", fkTable.Name, foreignKey.ConstraintName), includeComments);
 			}
 		}
 

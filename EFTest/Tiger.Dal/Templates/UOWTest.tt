@@ -29,6 +29,7 @@
 	Setting.UseDataAnnotations = true; // Setting this to true will use DataAnnotations and false will use FluentAPI Configuration ( will generate Configuration Files)
 	Setting.GenerateContextClass = true;
 	Setting.GenerateUnitOfWorkInterface = true;
+	Setting.VirtualReverseNavigationProperties = false; // True will generate Reverse Navigation Properties, False will generate methods to retrieve data
 	Setting.UseCamelCase = true;	 // This will rename the tables & fields to use CamelCase. If false table & field names will be left alone.
 	Setting.DisableGeographyTypes = false; // Turns off use of System.Data.Entity.Spatial.DbGeography and System.Data.Entity.Spatial.DbGeometry as OData doesn't support entities with geometry/geography types.
 	Setting.NullableShortHand = true; //true => T?, false => Nullable<T>

@@ -38,6 +38,7 @@
 	Setting.UseDataAnnotations = false;
 	Setting.GenerateContextClass = true;
 	Setting.GenerateUnitOfWorkInterface = true;
+	Setting.VirtualReverseNavigationProperties = false;
 	Setting.UseCamelCase = true;
 	Setting.DisableGeographyTypes = false;
 	Setting.NullableShortHand = true;

@@ -81,6 +81,7 @@
 			this.btnGenerate = new System.Windows.Forms.Button();
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			this.btnCancel = new System.Windows.Forms.Button();
+			this.cbxVirtualReverseNavProperty = new System.Windows.Forms.CheckBox();
 			this.tcDatabaseObjects.SuspendLayout();
 			this.tpSettings.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
@@ -199,9 +200,9 @@
 			this.flowLayoutPanel1.Controls.Add(this.cbxPrependSchema);
 			this.flowLayoutPanel1.Controls.Add(this.cbxIncludeQueryTraceOn);
 			this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-			this.flowLayoutPanel1.Location = new System.Drawing.Point(327, 152);
+			this.flowLayoutPanel1.Location = new System.Drawing.Point(327, 129);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(260, 193);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(260, 251);
 			this.flowLayoutPanel1.TabIndex = 26;
 			// 
 			// cbxUseCamelCase
@@ -312,10 +313,11 @@
 			this.flowLayoutPanel2.Controls.Add(this.cbxUseDataAnnotations);
 			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateContextClass);
 			this.flowLayoutPanel2.Controls.Add(this.cbxGenerateUnitOfWorkInterface);
+			this.flowLayoutPanel2.Controls.Add(this.cbxVirtualReverseNavProperty);
 			this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-			this.flowLayoutPanel2.Location = new System.Drawing.Point(26, 152);
+			this.flowLayoutPanel2.Location = new System.Drawing.Point(26, 129);
 			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-			this.flowLayoutPanel2.Size = new System.Drawing.Size(251, 193);
+			this.flowLayoutPanel2.Size = new System.Drawing.Size(264, 251);
 			this.flowLayoutPanel2.TabIndex = 27;
 			// 
 			// cbxPartialClasses
@@ -324,9 +326,9 @@
 			this.cbxPartialClasses.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.cbxPartialClasses.Location = new System.Drawing.Point(3, 3);
 			this.cbxPartialClasses.Name = "cbxPartialClasses";
-			this.cbxPartialClasses.Size = new System.Drawing.Size(141, 19);
+			this.cbxPartialClasses.Size = new System.Drawing.Size(107, 19);
 			this.cbxPartialClasses.TabIndex = 10;
-			this.cbxPartialClasses.Text = "Make Classes Partial";
+			this.cbxPartialClasses.Text = "Partial Classes";
 			this.cbxPartialClasses.UseVisualStyleBackColor = true;
 			// 
 			// cbxPartialInterfaces
@@ -335,20 +337,21 @@
 			this.cbxPartialInterfaces.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.cbxPartialInterfaces.Location = new System.Drawing.Point(3, 28);
 			this.cbxPartialInterfaces.Name = "cbxPartialInterfaces";
-			this.cbxPartialInterfaces.Size = new System.Drawing.Size(151, 19);
+			this.cbxPartialInterfaces.Size = new System.Drawing.Size(117, 19);
 			this.cbxPartialInterfaces.TabIndex = 16;
-			this.cbxPartialInterfaces.Text = "Make Interfaces Partial";
+			this.cbxPartialInterfaces.Text = "Partial Interfaces";
 			this.cbxPartialInterfaces.UseVisualStyleBackColor = true;
 			// 
 			// cbxPartialContextInterface
 			// 
 			this.cbxPartialContextInterface.AutoSize = true;
 			this.cbxPartialContextInterface.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxPartialContextInterface.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			this.cbxPartialContextInterface.Location = new System.Drawing.Point(3, 53);
 			this.cbxPartialContextInterface.Name = "cbxPartialContextInterface";
-			this.cbxPartialContextInterface.Size = new System.Drawing.Size(245, 19);
+			this.cbxPartialContextInterface.Size = new System.Drawing.Size(155, 19);
 			this.cbxPartialContextInterface.TabIndex = 15;
-			this.cbxPartialContextInterface.Text = "Make Database Context Interface Partial";
+			this.cbxPartialContextInterface.Text = "Partial Context Interface";
 			this.cbxPartialContextInterface.UseVisualStyleBackColor = true;
 			// 
 			// cbxGenerateSeparateFiles
@@ -673,6 +676,17 @@
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
 			// 
+			// cbxVirtualReverseNavProperty
+			// 
+			this.cbxVirtualReverseNavProperty.AutoSize = true;
+			this.cbxVirtualReverseNavProperty.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxVirtualReverseNavProperty.Location = new System.Drawing.Point(3, 178);
+			this.cbxVirtualReverseNavProperty.Name = "cbxVirtualReverseNavProperty";
+			this.cbxVirtualReverseNavProperty.Size = new System.Drawing.Size(228, 19);
+			this.cbxVirtualReverseNavProperty.TabIndex = 26;
+			this.cbxVirtualReverseNavProperty.Text = "Virtual Reverse Navigation Properties";
+			this.cbxVirtualReverseNavProperty.UseVisualStyleBackColor = true;
+			// 
 			// UpdateFromDatabase
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -764,5 +778,6 @@
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.ComboBox ddlIncludeComments;
 		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.CheckBox cbxVirtualReverseNavProperty;
 	}
 }

@@ -87,6 +87,7 @@ namespace Tiger.Dal
 				cbxUseDataAnnotations.DataBindings.Add("Checked", Setting, "UseDataAnnotations");
 				cbxGenerateContextClass.DataBindings.Add("Checked", Setting, "GenerateContextClass");
 				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", Setting, "GenerateUnitOfWorkInterface");
+				cbxVirtualReverseNavProperty.DataBindings.Add("Checked", Setting, "VirtualReverseNavigationProperties");
 				cbxUseCamelCase.DataBindings.Add("Checked", Setting, "UseCamelCase");
 				cbxDisableGeographyTypes.DataBindings.Add("Checked", Setting, "DisableGeographyTypes");
 				cbxNullableShortHand.DataBindings.Add("Checked", Setting, "NullableShortHand");

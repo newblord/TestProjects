@@ -37,23 +37,23 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public bool IsForeignKey { get; set; }
 
 		public string Config { get; set; }
-		public List<string> ConfigFk { get; set; }
+		public List<string> ConfigForeignKeys { get; set; }
 		public string Entity { get; set; }
-		public List<string> EntityFk { get; set; }
+		public List<string> EntityForeignKeys { get; set; }
 		public string InterfaceEntity { get; set; }
 
 		public Table ParentTable { get; set; }
 
 		public Column()
 		{
-			ConfigFk = new List<string>();
-			EntityFk = new List<string>();
+			ConfigForeignKeys = new List<string>();
+			EntityForeignKeys = new List<string>();
 		}
 
 		public void ResetNavigationProperties()
 		{
-			ConfigFk = new List<string>();
-			EntityFk = new List<string>();
+			ConfigForeignKeys = new List<string>();
+			EntityForeignKeys = new List<string>();
 		}
 
 		private void SetupEntity(CommentsStyle includeComments, bool usePrivateSetterForComputedColumns)

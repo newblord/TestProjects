@@ -32,6 +32,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public bool UseDataAnnotations { get; set; }
 		public bool GenerateContextClass { get; set; }
 		public bool GenerateUnitOfWorkInterface { get; set; }
+		public bool VirtualReverseNavigationProperties { get; set; }
 		public bool UseCamelCase { get; set; }
 		public bool DisableGeographyTypes { get; set; }
 		public bool NullableShortHand { get; set; }
