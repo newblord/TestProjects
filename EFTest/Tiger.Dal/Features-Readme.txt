@@ -43,3 +43,6 @@
 	16)  Complete Unit Of Work Design Pattern
 	17)  Add IOC or Dependency Injection
 	18)  When GenerateContext is disabled switch to ADO.NET Connection to database instead of Entity Framework
+	19)  Fix ForeignKey Relationship mapping
+			- This will affect ReverseNavigation Properties on Table and Column
+			
