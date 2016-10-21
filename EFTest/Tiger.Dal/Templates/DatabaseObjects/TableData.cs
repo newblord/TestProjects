@@ -14,5 +14,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public bool GeneratePocoInterface { get; set; }
 		public bool GenerateRepository { get; set; }
 		public bool GenerateRepositoryInterface { get; set; }
-	}
+        public bool GenerateService { get; set; }
+        public bool GenerateServiceInterface { get; set; }
+    }
 }

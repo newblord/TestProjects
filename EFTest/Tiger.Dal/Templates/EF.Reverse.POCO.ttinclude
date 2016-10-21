@@ -10,7 +10,6 @@
 <#@ assembly name="envdte80" #>
 
 <#
-
 	WriteLine("// Generated items");
 
 	var fileManager = TemplateFileManager.Create(this);
@@ -549,8 +548,8 @@
 		WriteLine("using System.Collections.Generic;");
 		WriteLine("using System.Data.Entity;");
 		WriteLine("using System.Linq;");
-		WriteLine("using Tiger.Dal.Context;");
-		WriteLine("using {0};",PocoNamespace);
+		WriteLine("using {0};", ContextNamespace);
+		WriteLine("using {0};", PocoNamespace);
 
 		if(tbl.TableData.GenerateRepositoryInterface)
 		{
@@ -739,11 +738,234 @@
 
 				if(rn.Relationship == Relationship.OneToOne || rn.Relationship == Relationship.OneToMany)
 				{
-					methodString = string.Format("{0} Get{0}By{1}({2} {3})", rn.FKTable.NameHumanCase, pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+					methodString = string.Format("{0} Get{0}By{1}({2} {3});", rn.FKTable.NameHumanCase, pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
 				}
 				else if(rn.Relationship == Relationship.ManyToOne || rn.Relationship == Relationship.ManyToMany)
 				{
-					methodString = string.Format("IEnumerable<{0}> Get{1}By{2}({3} {4})", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+					methodString = string.Format("IEnumerable<{0}> Get{1}By{2}({3} {4});", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+				}
+
+				WriteLine(methodString);
+			}
+		}
+
+		CloseBrace();
+		CloseBrace();
+	}
+
+	#endregion
+
+	fileManager.EndBlock();
+	fileManager.Process(Setting.GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
+
+	#region Services
+
+	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.TableData.GenerateService).OrderBy(x => x.NameHumanCase) select t)
+	{
+		string className = tbl.NameHumanCase + "Service";
+		string repositoryName = tbl.NameHumanCase + "Repository";
+
+		fileManager.StartNewFile(className + Setting.GeneratedFileExtension, ServiceProjectName, ServiceFolderName);
+
+		CreateHeader();
+
+		WriteLine("using System;");
+		WriteLine("using System.Collections.Generic;");
+		WriteLine("using System.Data.Entity;");
+		WriteLine("using System.Linq;");
+		WriteLine("using {0};", ContextNamespace);
+		WriteLine("using {0};", PocoNamespace);
+
+		if(tbl.TableData.GenerateRepositoryInterface)
+		{
+			WriteLine("using {0};", RepositoryInterfaceNamespace);
+		}
+
+		WriteLine("");
+
+		BeginNamespace(RepositoryNamespace);
+		BeginClass(className, Setting.MakeClassesPartial, tbl.TableData.GenerateRepositoryInterface ? "I" + tbl.NameHumanCase + "Repository" : "" );
+
+		WriteLine("private readonly {0} Context;", Setting.DatabaseContextName);
+		WriteLine("private {0} {0};", repositoryName);
+
+		WriteLine("public {0}()",className);
+		OpenMethodBrace();
+		WriteLine("Context = new {0}();", Setting.DatabaseContextName);
+		WriteLine("{0} = new {0}();", repositoryName);
+		CloseMethodBrace();
+
+		WriteLine("public {0} Insert({0} data)", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot insert null value in {0}.Insert\"); }}", className);
+		WriteLine("");
+		WriteLine("return {0}.Insert(data);", repositoryName);
+		CloseMethodBrace();
+
+		WriteLine("public {0} Update({0} data)", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot update null value in {0}.Update\"); }}", className);
+		WriteLine("");
+		WriteLine("return {0}.Update(data);", repositoryName);
+		CloseMethodBrace();
+
+		WriteLine("public void Delete(int id)");
+		OpenMethodBrace();
+		WriteLine("{0} data = FindById(id);", tbl.NameHumanCase);
+		WriteLine("Delete(data);");
+		CloseMethodBrace();
+
+		WriteLine("public void Delete({0} data)", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot delete null value in {0}.Delete\"); }}", className);
+		WriteLine("");
+		WriteLine("{0}.Delete(data);", repositoryName);
+		CloseMethodBrace();
+
+		WriteLine("public IEnumerable<{0}> GetAll()", tbl.NameHumanCase);
+		OpenMethodBrace();
+		WriteLine("return {0}.GetAll();", repositoryName);
+		CloseMethodBrace();
+
+		if(tbl.HasPrimaryKey)
+		{
+			foreach (Column pk in tbl.PrimaryKeys)
+			{
+				WriteLine("public {0} FindBy{1}({2} {3})", tbl.NameHumanCase, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
+				OpenMethodBrace();
+				WriteLine("return {0}.FindBy{1}({2});", repositoryName, pk.NameHumanCase, pk.ParameterName);
+				CloseMethodBrace();
+			}
+		}
+
+		foreach(ForeignKey fk in tbl.ForeignKeys)
+		{
+			WriteLine("public IEnumerable<{0}> FindBy{1}({2} {3})", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.PropertyType , fk.FKColumn.ParameterName);
+			OpenMethodBrace();
+			WriteLine("return {0}.FindBy{1}({2});", repositoryName, fk.FKColumn.NameHumanCase, fk.FKColumn.ParameterName);
+			CloseMethodBrace();
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("public IEnumerable<{0}> GetBy{1}({2})", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+			OpenMethodBrace();
+			WriteLine("return {0}.GetBy{1}({2});", repositoryName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), string.Join(", ", index.Columns.Select(s => s.ParameterName)));
+			CloseMethodBrace();
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("public {0} FindBy{1}({2})", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+			OpenMethodBrace();
+			WriteLine("return {0}.FindBy{1}({2});", repositoryName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), string.Join(", ", index.Columns.Select(s => s.ParameterName)));
+			CloseMethodBrace();
+		}
+
+		if(!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
+		{
+			WriteLine("// Reverse Navigation Methods");
+
+			foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+			{
+				string methodString = string.Empty;
+				string returnString = string.Empty;
+				string pkMethodName = rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase != rn.PKColumn.NameHumanCase ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase;
+
+				if(rn.Relationship == Relationship.OneToOne || rn.Relationship == Relationship.OneToMany)
+				{
+					methodString = string.Format("public {0} Get{0}By{1}({2} {3})", rn.FKTable.NameHumanCase, pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.ParameterName);
+					returnString = string.Format("return {0}.Get{1}By{2}({3});", repositoryName, rn.FKTable.NameHumanCase, pkMethodName, rn.PKColumn.ParameterName);
+				}
+				else if(rn.Relationship == Relationship.ManyToOne || rn.Relationship == Relationship.ManyToMany)
+				{
+					methodString = string.Format("public IEnumerable<{0}> Get{1}By{2}({3} {4})", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.ParameterName);
+					returnString = string.Format("return {0}.Get{1}By{2}({3});", repositoryName, Inflector.MakePlural(rn.FKTable.NameHumanCase), pkMethodName, rn.PKColumn.ParameterName);
+				}
+
+				WriteLine(methodString);
+				OpenMethodBrace();
+				WriteLine(returnString);
+				CloseMethodBrace();
+			}
+		}
+
+		CloseBrace();
+		CloseBrace();
+	}
+
+	#endregion
+
+	fileManager.EndBlock();
+	fileManager.Process(Setting.GenerateSeparateFiles);
+
+	fileManager = TemplateFileManager.Create(this);
+	fileManager.StartHeader();
+
+	#region Service Interfaces
+
+	foreach(Table tbl in from t in tables.Where(t => !t.IsMapping && t.TableData.GenerateServiceInterface).OrderBy(x => x.NameHumanCase) select t)
+	{
+		fileManager.StartNewFile("I" + tbl.NameHumanCase + "Service" + Setting.GeneratedFileExtension, ServiceInterfaceProjectName, ServiceInterfaceFolderName);
+
+		CreateHeader();
+
+		WriteLine("using System;");
+		WriteLine("using System.Collections.Generic;");
+		WriteLine("using {0};",PocoNamespace);
+		WriteLine("");
+
+		BeginNamespace(ServiceInterfaceNamespace);
+		BeginInterface("I" + tbl.NameHumanCase + "Service", Setting.MakeInterfacesPartial, "");
+
+		WriteLine("{0} Insert({0} data);", tbl.NameHumanCase);
+		WriteLine("{0} Update({0} data);", tbl.NameHumanCase);
+		WriteLine("void Delete(int id);");
+		WriteLine("void Delete({0} data);", tbl.NameHumanCase);
+		WriteLine("IEnumerable<{0}> GetAll();", tbl.NameHumanCase);
+
+		if(tbl.HasPrimaryKey)
+		{
+			foreach (Column pk in tbl.PrimaryKeys)
+			{
+				WriteLine("{0} FindBy{1}({2} {3});", tbl.NameHumanCase, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
+			}
+		}
+
+		foreach(ForeignKey fk in tbl.ForeignKeys)
+		{
+			WriteLine("IEnumerable<{0}> FindBy{1}({2} {3});", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.PropertyType , fk.FKColumn.ParameterName);
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("IEnumerable<{0}> GetBy{1}({2});", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+		}
+
+		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
+		{
+			WriteLine("{0} FindBy{1}({2});", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+		}
+
+		if(!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
+		{
+			WriteLine("// Reverse Navigation Methods");
+
+			foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+			{
+				string methodString = string.Empty;
+				string pkMethodName = rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase != rn.PKColumn.NameHumanCase ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase;
+
+				if(rn.Relationship == Relationship.OneToOne || rn.Relationship == Relationship.OneToMany)
+				{
+					methodString = string.Format("{0} Get{0}By{1}({2} {3});", rn.FKTable.NameHumanCase, pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+				}
+				else if(rn.Relationship == Relationship.ManyToOne || rn.Relationship == Relationship.ManyToMany)
+				{
+					methodString = string.Format("IEnumerable<{0}> Get{1}By{2}({3} {4});", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
 				}
 
 				WriteLine(methodString);
@@ -933,6 +1155,8 @@
 		WriteLine("<GeneratePocoInterface>{0}</GeneratePocoInterface>", tbl.GeneratePocoInterface);
 		WriteLine("<GenerateRepository>{0}</GenerateRepository>", tbl.GenerateRepository);
 		WriteLine("<GenerateRepositoryInterface>{0}</GenerateRepositoryInterface>", tbl.GenerateRepositoryInterface);
+		WriteLine("<GenerateService>{0}</GenerateService>", tbl.GenerateService);
+		WriteLine("<GenerateServiceInterface>{0}</GenerateServiceInterface>", tbl.GenerateServiceInterface);
 
 		PopIndent();
 		WriteLine("</TableData>");

@@ -65,7 +65,8 @@
 	private string _configFilePath = "";
 
 	string ContextProjectName, ContextFolderName, ConfigurationProjectName, ConfigurationFolderName, ModelProjectName, ModelFolderName,
-				ModelInterfaceProjectName, ModelInterfaceFolderName, RepositoryProjectName, RepositoryFolderName, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName = "";
+				ModelInterfaceProjectName, ModelInterfaceFolderName, RepositoryProjectName, RepositoryFolderName, RepositoryInterfaceProjectName, 
+				RepositoryInterfaceFolderName, ServiceProjectName, ServiceFolderName, ServiceInterfaceProjectName, ServiceInterfaceFolderName = "";
 
 	List<TableData> TableNames = null;
 	List<string> StoredProcedureNames = null;
@@ -74,7 +75,9 @@
 	
 
 	string PocoNamespace, ContextNamespace, UnitOfWorkNamespace, 
-				PocoConfigurationNamespace, PocoInterfaceNamespace, RepositoryNamespace, RepositoryInterfaceNamespace = "";
+				PocoConfigurationNamespace, PocoInterfaceNamespace, 
+				RepositoryNamespace, RepositoryInterfaceNamespace,
+				ServiceNamespace, ServiceInterfaceNamespace = "";
 
 	// Settings to allow TargetFramework checks
 	private static string TargetFrameworkVersion;

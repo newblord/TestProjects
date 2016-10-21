@@ -73,7 +73,11 @@
 	RepositoryProjectName = "Tiger.Dal";
 	RepositoryFolderName = "Repositories";
 	RepositoryInterfaceProjectName = "Tiger.Dal";
-	RepositoryInterfaceFolderName = "Interfaces";
+	RepositoryInterfaceFolderName = "Repository Interfaces";
+	ServiceProjectName = "Tiger.Dal";
+	ServiceFolderName = "Services";
+	ServiceInterfaceProjectName = "Tiger.Dal";
+	ServiceInterfaceFolderName = "Service Interfaces";
 
 	TableNames = new List<TableData>();
 	StoredProcedureNames = new List<string>();
@@ -107,8 +111,10 @@
 	UnitOfWorkNamespace = "Tiger.Dal";
 	PocoConfigurationNamespace = "Tiger.Dal.Configurations";
 	PocoInterfaceNamespace = "Tiger.DataModel.Interfaces";
-	RepositoryNamespace = "Tiger.Dal.Repositories";
-	RepositoryInterfaceNamespace = "Tiger.Dal.Interfaces";
+	RepositoryNamespace = "Tiger.Dal.Repository";
+	RepositoryInterfaceNamespace = "Tiger.Dal.RepositoryInterfaces";
+	ServiceNamespace = "Tiger.Dal.Services";
+	ServiceInterfaceNamespace = "Tiger.Dal.ServiceInterfaces";
 	
 
 	// Callbacks **********************************************************************************************************************

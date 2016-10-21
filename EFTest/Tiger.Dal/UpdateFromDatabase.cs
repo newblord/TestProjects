@@ -329,7 +329,9 @@ namespace Tiger.Dal
 			gvTables[3, rowIndex].Value = isChecked;
 			gvTables[4, rowIndex].Value = isChecked;
 			gvTables[5, rowIndex].Value = isChecked;
-		}
+            gvTables[6, rowIndex].Value = isChecked;
+            gvTables[7, rowIndex].Value = isChecked;
+        }
 
 		private void UpdateTableSettings()
 		{
@@ -345,7 +347,11 @@ namespace Tiger.Dal
 					cbxRepositories.Checked = tableData.Where(x => x.GenerateRepository).Count() == tableData.Count;
 				if (!cbxRepositoryInterfaces.Focused)
 					cbxRepositoryInterfaces.Checked = tableData.Where(x => x.GenerateRepositoryInterface).Count() == tableData.Count;
-			}
+                if (!cbxServices.Focused)
+                    cbxServices.Checked = tableData.Where(x => x.GenerateService).Count() == tableData.Count;
+                if (!cbxServiceInterfaces.Focused)
+                    cbxServiceInterfaces.Checked = tableData.Where(x => x.GenerateServiceInterface).Count() == tableData.Count;
+            }
 		}
 
 		private void HandleTableSelectChange(bool isChecked)
@@ -415,8 +421,10 @@ namespace Tiger.Dal
 						bool iPocoValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
 						bool repoValue = (bool)gvTables[4, e.RowIndex].FormattedValue;
 						bool iRepoValue = (bool)gvTables[5, e.RowIndex].FormattedValue;
+                        bool serviceValue = (bool)gvTables[6, e.RowIndex].FormattedValue;
+                        bool iServiceValue = (bool)gvTables[7, e.RowIndex].FormattedValue;
 
-						if (pocoValue || iPocoValue || repoValue || iRepoValue)
+                        if (pocoValue || iPocoValue || repoValue || iRepoValue || serviceValue || iServiceValue)
 						{
 							cbxSelect.Value = true;
 							HandleTableSelectChange(true);
@@ -464,6 +472,8 @@ namespace Tiger.Dal
 				cbxPocoInterfaces.Checked = cbx.Checked;
 				cbxRepositories.Checked = cbx.Checked;
 				cbxRepositoryInterfaces.Checked = cbx.Checked;
+                cbxServices.Checked = cbx.Checked;
+                cbxServiceInterfaces.Checked = cbx.Checked;
 
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
@@ -529,10 +539,39 @@ namespace Tiger.Dal
 				}
 			}
 		}
-		#endregion
 
-		#endregion
+        private void cbxServices_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox cbx = (CheckBox)sender;
 
-	}
+            if (cbx.Focused)
+            {
+                for (int i = 0; i < gvTables.Rows.Count; i++)
+                {
+                    ((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[6]).EditingCellValueChanged = true;
+                    gvTables.Rows[i].Cells[6].Value = cbx.Checked;
+                }
+            }
+        }
+
+        private void cbxServiceInterfaces_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox cbx = (CheckBox)sender;
+
+            if (cbx.Focused)
+            {
+                for (int i = 0; i < gvTables.Rows.Count; i++)
+                {
+                    ((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[7]).EditingCellValueChanged = true;
+                    gvTables.Rows[i].Cells[7].Value = cbx.Checked;
+                }
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+    }
 
 }
