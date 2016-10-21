@@ -9,14 +9,16 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 	public class ReverseNavigation
 	{
 		public Relationship Relationship { get; }
+        public string PKPropertyName { get; }
 		public Column PKColumn { get; }
 		public Table FKTable { get; }
-		public Column FKColumn { get; }
+        public string FKPropertyName { get; }
+        public Column FKColumn { get; }
 		public string Constriant { get; }
 		public CommentsStyle IncludeComments { get; }
 		public string PropertyString { get; }
 		public string ConstructorString { get; }
-		public bool HasConstructorString
+        public bool HasConstructorString
 		{
 			get
 			{
@@ -24,13 +26,15 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			}
 		}
 
-		public ReverseNavigation(Relationship relationship, Column pkColumn, Table fkTable, Column fkColumn, string constraint, CommentsStyle includeComments)
+		public ReverseNavigation(Relationship relationship,string pkPropertyName, Column pkColumn, Table fkTable, string fkPropertyName, Column fkColumn, string constraint, CommentsStyle includeComments)
 		{
 			Relationship = relationship;
+            PKPropertyName = pkPropertyName;
 			PKColumn = pkColumn;
 			FKTable = fkTable;
+            FKPropertyName = fkPropertyName;
 			FKColumn = fkColumn;
-			Constriant = Constriant;
+			Constriant = constraint;
 			IncludeComments = includeComments;
 
 			PropertyString = GeneratePropertyString();
@@ -42,13 +46,13 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			switch (Relationship)
 			{
 				case Relationship.OneToOne:
-					return string.Format("public virtual {0} {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKColumn.NameHumanCase, IncludeComments != CommentsStyle.None ? " // " + Constriant : string.Empty);
+					return string.Format("public virtual {0} {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKPropertyName, IncludeComments != CommentsStyle.None ? " // " + Constriant : string.Empty);
 				case Relationship.OneToMany:
-					return string.Format("public virtual {0} {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKColumn.NameHumanCase, IncludeComments != CommentsStyle.None ? " // " + Constriant : string.Empty);
+					return string.Format("public virtual {0} {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKPropertyName, IncludeComments != CommentsStyle.None ? " // " + Constriant : string.Empty);
 				case Relationship.ManyToOne:
-					return string.Format("public virtual System.Collections.Generic.ICollection<{0}> {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKColumn.NameHumanCase, IncludeComments != CommentsStyle.None ? " // " + Constriant : string.Empty);
+					return string.Format("public virtual System.Collections.Generic.ICollection<{0}> {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKPropertyName, IncludeComments != CommentsStyle.None ? " // " + Constriant : string.Empty);
 				case Relationship.ManyToMany:
-					return string.Format("public virtual System.Collections.Generic.ICollection<{0}> {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKColumn.NameHumanCase, IncludeComments != CommentsStyle.None ? " // Many to many mapping" : string.Empty);
+					return string.Format("public virtual System.Collections.Generic.ICollection<{0}> {1} {{ get; set; }}{2}", FKTable.NameHumanCase, FKPropertyName, IncludeComments != CommentsStyle.None ? " // Many to many mapping" : string.Empty);
 				default:
 					throw new ArgumentOutOfRangeException("relationship");
 			}
@@ -59,9 +63,9 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			switch (Relationship)
 			{
 				case Relationship.ManyToOne:
-					return string.Format("{0} = new HashSet<{1}>();", FKColumn.NameHumanCase, FKTable.NameHumanCase);
+					return string.Format("{0} = new HashSet<{1}>();", FKPropertyName, FKTable.NameHumanCase);
 				case Relationship.ManyToMany:
-					return string.Format("{0} = new HashSet<{1}>();", FKColumn.NameHumanCase, FKTable.NameHumanCase);
+					return string.Format("{0} = new HashSet<{1}>();", FKPropertyName, FKTable.NameHumanCase);
 				default:
 					return string.Empty;
 			}

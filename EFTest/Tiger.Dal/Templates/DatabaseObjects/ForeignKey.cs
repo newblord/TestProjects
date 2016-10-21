@@ -11,10 +11,12 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 		public string FkTableName { get; private set; }
 		public string FkTableNameFiltered { get; private set; }
 		public string FkSchema { get; private set; }
+        public Table FKTable { get; internal set; }
 		public string PkTableName { get; private set; }
 		public string PkTableNameFiltered { get; private set; }
 		public string PkSchema { get; private set; }
-		public string FkColumnName { get; private set; }
+        public Table PKTable { get; internal set; }
+        public string FkColumnName { get; private set; }
 		public Column FKColumn { get; internal set; }
 		public string PkColumnName { get; private set; }
 		public Column PKColumn { get; internal set; }

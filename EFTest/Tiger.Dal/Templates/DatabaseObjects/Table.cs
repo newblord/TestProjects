@@ -168,13 +168,6 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 			return ForeignKeyName(tableNameHumanCase, fkName, 6);
 		}
 
-		public void AddReverseNavigation(Relationship relationship, Column pkColumn, Table fkTable, Column fkColumn, string constraint, CommentsStyle includeComments)
-		{
-			var rv = new ReverseNavigation(relationship, pkColumn, fkTable, fkColumn, constraint, includeComments);
-
-			ReverseNavigationProperties.Add(rv);
-		}
-
 		public void SetPrimaryKeys()
 		{
 			if (PrimaryKeys.Any())

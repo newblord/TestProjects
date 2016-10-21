@@ -419,7 +419,7 @@
 
 			if(tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
 			{
-				foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.Where(x => x.HasConstructorString).OrderBy(x => x))
+				foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.Where(x => x.HasConstructorString).OrderBy(x => x.PropertyString))
 				{
 					WriteLine("{0}", rn.ConstructorString);
 				}
@@ -441,7 +441,7 @@
 
 		if(tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
 		{
-			foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x))
+			foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x.PropertyString))
 			{
 				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
 				{
@@ -502,7 +502,7 @@
 
 		if(tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
 		{
-			foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x))
+			foreach(ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x.PropertyString))
 			{
 				foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations) 
 				{
@@ -643,7 +643,7 @@
 			CloseMethodBrace();
 		}
 
-		if(!Setting.VirtualReverseNavigationProperties)
+		if(!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
 		{
 			WriteLine("// Reverse Navigation Methods");
 
@@ -651,16 +651,17 @@
 			{
 				string methodString = string.Empty;
 				string returnString = string.Empty;
+				string pkMethodName = rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase != rn.PKColumn.NameHumanCase ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase;
 
 				if(rn.Relationship == Relationship.OneToOne || rn.Relationship == Relationship.OneToMany)
 				{
-					methodString = string.Format("public {0} Get{0}By{1}({2} {3})", rn.FKTable.NameHumanCase, rn.PKColumn.NameHumanCase == "Id" ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
-					returnString = string.Format("return Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.NameHumanCase);
+					methodString = string.Format("public {0} Get{0}By{1}({2} {3})", rn.FKTable.NameHumanCase, pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.ParameterName);
+					returnString = string.Format("return Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName);
 				}
 				else if(rn.Relationship == Relationship.ManyToOne || rn.Relationship == Relationship.ManyToMany)
 				{
-					methodString = string.Format("public IEnumerable<{0}> Get{1}By{2}({3} {4})", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), rn.PKColumn.NameHumanCase == "Id" ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
-					returnString = string.Format("return Context.{0}s.Where(x => x.{1} == {2}).AsEnumerable();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.NameHumanCase);
+					methodString = string.Format("public IEnumerable<{0}> Get{1}By{2}({3} {4})", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.ParameterName);
+					returnString = string.Format("return Context.{0}s.Where(x => x.{1} == {2}).AsEnumerable();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName);
 				}
 
 				WriteLine(methodString);
@@ -725,6 +726,28 @@
 		foreach(Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
 		{
 			WriteLine("{0} FindBy{1}({2});", tbl.NameHumanCase, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), ReversePocoCore.CreateIndexParameterString(index));
+		}
+
+		if(!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
+		{
+			WriteLine("// Reverse Navigation Methods");
+
+			foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+			{
+				string methodString = string.Empty;
+				string pkMethodName = rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase != rn.PKColumn.NameHumanCase ? rn.PKColumn.ParentTable.NameHumanCase + rn.PKColumn.NameHumanCase : rn.PKColumn.NameHumanCase;
+
+				if(rn.Relationship == Relationship.OneToOne || rn.Relationship == Relationship.OneToMany)
+				{
+					methodString = string.Format("{0} Get{0}By{1}({2} {3})", rn.FKTable.NameHumanCase, pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+				}
+				else if(rn.Relationship == Relationship.ManyToOne || rn.Relationship == Relationship.ManyToMany)
+				{
+					methodString = string.Format("IEnumerable<{0}> Get{1}By{2}({3} {4})", rn.FKTable.NameHumanCase, Inflector.MakePlural(rn.FKTable.NameHumanCase), pkMethodName, rn.PKColumn.PropertyType, rn.PKColumn.NameHumanCase);
+				}
+
+				WriteLine(methodString);
+			}
 		}
 
 		CloseBrace();
@@ -880,6 +903,7 @@
 	WriteLine("<UseDataAnnotations>{0}</UseDataAnnotations>", Setting.UseDataAnnotations);
 	WriteLine("<GenerateContextClass>{0}</GenerateContextClass>", Setting.GenerateContextClass);
 	WriteLine("<GenerateUnitOfWorkInterface>{0}</GenerateUnitOfWorkInterface>", Setting.GenerateUnitOfWorkInterface);
+	WriteLine("<VirtualReverseNavigationProperties>{0}</VirtualReverseNavigationProperties>", Setting.VirtualReverseNavigationProperties);
 	WriteLine("<UseCamelCase>{0}</UseCamelCase>", Setting.UseCamelCase);
 	WriteLine("<DisableGeographyTypes>{0}</DisableGeographyTypes>", Setting.DisableGeographyTypes);
 	WriteLine("<NullableShortHand>{0}</NullableShortHand>", Setting.NullableShortHand);

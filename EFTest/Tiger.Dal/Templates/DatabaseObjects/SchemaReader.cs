@@ -566,9 +566,7 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				if (table == null)
 					continue;
 
-				if (!(index.Columns.Count == 1 &&
-						table.ForeignKeys
-								.Where(x => x.FKColumn.NameHumanCase == index.Columns.First().NameHumanCase).Count() == 1))
+				if (!(index.Columns.Count == 1 && index.Columns.First().IsPrimaryKey))
 				{
 					table.Indexes.Add(index);
 				}
@@ -586,19 +584,15 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 
 				var foreignKey = foreignKeys.First();
 
-				Table fkTable = tables.GetTable(foreignKey.FkTableName, foreignKey.FkSchema);
-				if (fkTable == null || fkTable.IsMapping || !fkTable.HasForeignKey)
-					continue;
+                Table fkTable = foreignKey.FKTable;
 
-				Table pkTable = tables.GetTable(foreignKey.PkTableName, foreignKey.PkSchema);
-				if (pkTable == null || pkTable.IsMapping)
-					continue;
+                Table pkTable = foreignKey.PKTable;
 
 				var fkCols = foreignKeys.Select(x => new
-				{
-					fkOrdinal = x.Ordinal,
-					col = fkTable.Columns.Find(n => string.Equals(n.Name, x.FkColumnName, StringComparison.InvariantCultureIgnoreCase))
-				})
+				    {
+					    fkOrdinal = x.Ordinal,
+					    col = fkTable.Columns.Find(n => string.Equals(n.Name, x.FkColumnName, StringComparison.InvariantCultureIgnoreCase))
+				    })
 					.Where(x => x != null)
 					.ToList();
 
@@ -641,9 +635,11 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				}
 
 				fkCol.col.ConfigForeignKeys.Add(string.Format("{0};{1}", GetRelationship(relationship, fkCol.col, pkCol, pkPropName, fkPropName, manyToManyMapping, mapKey, foreignKey.CascadeOnDelete), includeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
-				pkTable.AddReverseNavigation(relationship, pkCol, fkTable, fkCol.col, string.Format("{0}.{1}", fkTable.Name, foreignKey.ConstraintName), includeComments);
-			}
-		}
+
+                var rv = new ReverseNavigation(relationship, pkTableHumanCase, pkCol, fkTable, fkPropName, fkCol.col, constraint, includeComments);
+                pkTable.ReverseNavigationProperties.Add(rv);
+            }
+        }
 
 		public void IdentifyForeignKeys(List<ForeignKey> fkList, Tables tables)
 		{
@@ -665,7 +661,9 @@ namespace Tiger.Dal.Templates.DatabaseObjects
 				if (pkCol == null)
 					continue;   // Could not find pk column
 
-				foreignKey.FKColumn = fkCol;
+                foreignKey.FKTable = fkTable;
+                foreignKey.PKTable = pkTable;
+                foreignKey.FKColumn = fkCol;
 				foreignKey.PKColumn = pkCol;
 
 				fkTable.ForeignKeys.Add(foreignKey);

@@ -522,8 +522,11 @@ namespace Tiger.Dal.Templates
 					var tables = reader.ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.IncludeComments, TableRename, UpdateColumn, Setting.PrivateSetterForComputedColumns);
 					tables.SetPrimaryKeys();
 
-					// Must be done in this order
-					var fkList = reader.ReadForeignKeys(TableRename, ForeignKeyFilter);
+                    var indexList = reader.ReadIndexes(tables);
+                    reader.ProcessIndexes(indexList, tables);
+
+                    // Must be done in this order
+                    var fkList = reader.ReadForeignKeys(TableRename, ForeignKeyFilter);
 					reader.IdentifyForeignKeys(fkList, tables);
 					reader.ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, true, Setting.IncludeComments, ForeignKeyName);
 
@@ -532,9 +535,6 @@ namespace Tiger.Dal.Templates
 
 					foreach (var t in tables)
 						t.SetHasPrimaryKey();
-
-					var indexList = reader.ReadIndexes(tables);
-					reader.ProcessIndexes(indexList, tables);
 
 					conn.Close();
 					return tables;
