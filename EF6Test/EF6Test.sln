@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EF6Test", "EF6test\EF6Test.csproj", "{5043547B-75E8-4AAC-9238-0D37537CA97A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EF6Data", "EF6Data\EF6Data.csproj", "{1952950B-688D-47D9-BD1B-839E24BBD73B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EF6EdmxData", "EF6EdmxData\EF6EdmxData.csproj", "{CEF65D10-A497-478A-930E-3AB158A58684}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{1952950B-688D-47D9-BD1B-839E24BBD73B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1952950B-688D-47D9-BD1B-839E24BBD73B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1952950B-688D-47D9-BD1B-839E24BBD73B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEF65D10-A497-478A-930E-3AB158A58684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEF65D10-A497-478A-930E-3AB158A58684}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEF65D10-A497-478A-930E-3AB158A58684}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEF65D10-A497-478A-930E-3AB158A58684}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
