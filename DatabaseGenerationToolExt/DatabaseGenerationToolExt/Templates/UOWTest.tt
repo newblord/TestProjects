@@ -1,7 +1,6 @@
 ﻿<#@ include file="EF.Reverse.POCO.Core.ttinclude" #>
 <#@ import namespace="System.Windows.Forms" #>
-<#@ import namespace="DatabaseGenerationTools.DatabaseObjects" #>
-<#@ import namespace="DatabaseGenerationTools.Templates" #>
+<#@ import namespace="DatabaseGenerationToolExt.DatabaseObjects" #>
 
 <#
 	// v2.22.1
@@ -16,7 +15,6 @@
 	//DefaultConstructorArgument = "EnvironmentConnectionStrings.MyDbContext"; //defaults to "Name=" + ConnectionStringName
 	
 	TargetFrameworkVersion = "4.51"; // Please set this to your .NET framework version, 4.0, 4.5, 4.51, etc.
-	ConfigFilenameSearchOrder = new[] { "app.config", "web.config", "app.config.transform", "web.config.transform" }; // Add more here if required. The config files are searched for in the local project first, then the whole solution second.
 
 	Setting.DatabaseContextName = "POCTest";
 	//Setting.DatabaseContextInterfaceName = "IMyDbContext"; //Defaults to "I" + Setting.DatabaseContextName
@@ -85,7 +83,7 @@
 	InitConnectionString();
 	ReversePocoCore.ProcessDatabaseXML(Host.TemplateFile, ref TableNames, ref StoredProcedureNames, ref Setting);
 	
-	using (DatabaseGenerationTools.UpdateFromDatabase frm = new DatabaseGenerationTools.UpdateFromDatabase(ConnectionString, TableNames, StoredProcedureNames, Setting))
+	using (DatabaseGenerationToolExt.UpdateFromDatabase frm = new DatabaseGenerationToolExt.UpdateFromDatabase(ConnectionString, TableNames, StoredProcedureNames, Setting))
 	{
 		frm.ShowDialog();
 

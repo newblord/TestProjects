@@ -1,36 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using DatabaseGenerationTools.DatabaseObjects;
+using DatabaseGenerationToolExt.DatabaseObjects;
+using Microsoft.VisualStudio.Shell;
+using DatabaseGenerationToolExt.DesignPatterns;
+using DatabaseGenerationToolExt.Templates;
+using DatabaseGenerationToolExt.Helpers;
 
-namespace DatabaseGenerationTools
+namespace DatabaseGenerationToolExt.Forms
 {
-	public partial class UpdateFromDatabase : Form
+    public partial class DatabaseObjectSelector : Form
 	{
-
-		private string ConnectionStringName { get; set; }
-
 		public List<TableData> TableNames { get; set; }
 
 		public List<string> StoredProcedureNames { get; set; }
 
 		public DatabaseGenerationSetting Setting { get; set; }
 
-		public UpdateFromDatabase(string connectionStringName, List<TableData> tableNames, List<string> storedProcedureNames, DatabaseGenerationSetting setting)
+		public DatabaseObjectSelector(Package package)
 		{
-			InitializeComponent();
+            ConnectionStringSelector conForm = new ConnectionStringSelector(package);
 
-			ConnectionStringName = connectionStringName;
-			TableNames = tableNames;
-			StoredProcedureNames = storedProcedureNames;
-			this.Setting = setting;
+            conForm.ShowDialog();
+
+            if (conForm.SelectedConnection != null)
+            {
+                Setting = new DatabaseObjects.DatabaseGenerationSetting(conForm.SelectedConnection);
+                TableNames = new List<TableData>();
+                StoredProcedureNames = new List<string>();
+                
+
+                // TODO: Need to fix this method to use a differnet file instead of hte TemplateFile now
+                //ReversePocoCore.ProcessDatabaseXML(Host.TemplateFile, ref TableNames, ref StoredProcedureNames, ref Setting);
+            }
+            else
+            {
+                conForm.Dispose();
+                this.Close();
+            }
+
+            InitializeComponent();
 
 			PopulateDropDownLists();
 			InitializeDatabaseObjects();
@@ -122,7 +135,7 @@ namespace DatabaseGenerationTools
 							ORDER  BY s.NAME,o.NAME 
 							";
 
-			using (SqlConnection connection = new SqlConnection(ConnectionStringName))
+			using (SqlConnection connection = new SqlConnection(Setting.ConnectionString))
 			{
 				connection.Open();
 				SqlCommand command = connection.CreateCommand();
@@ -304,7 +317,26 @@ namespace DatabaseGenerationTools
 
 			Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
 
-			this.Close();
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+
+            sw.Start();
+            // Read schema
+            ReversePocoCore reversePocoCore = new ReversePocoCore(Setting);
+
+            var factory = ConnectionHelper.GetDbProviderFactory(Setting.Providername);
+            var tables = reversePocoCore.LoadTables(factory, TableNames);
+            var storedProcs = reversePocoCore.LoadStoredProcs(factory, StoredProcedureNames);
+
+            // Generate output
+            if (tables.Count > 0 || storedProcs.Count > 0)
+            {
+                DesignPattern pattern = new DesignPattern("4.6.1", Setting);
+            }
+
+            sw.Stop();
+            Logger.AddLog($"// Total Elapsed Time: {sw.Elapsed.TotalSeconds.ToString()}");
+
+            this.Close();
 		}
 
 		private void btnCancel_Click(object sender, EventArgs e)

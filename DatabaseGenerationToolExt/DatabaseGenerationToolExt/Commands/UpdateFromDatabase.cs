@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
 
-namespace DatabaseGenerationToolExt
+namespace DatabaseGenerationToolExt.Commands
 {
     /// <summary>
     /// Command handler

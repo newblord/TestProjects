@@ -1,7 +1,7 @@
-﻿namespace DatabaseGenerationTools
+﻿namespace DatabaseGenerationToolExt.Forms
 {
-	partial class UpdateFromDatabase
-	{
+	partial class DatabaseObjectSelector
+    {
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>

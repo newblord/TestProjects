@@ -17,7 +17,7 @@
 <#@ import namespace="System.Windows.Forms" #>
 <#@ import namespace="System.Xml.Linq" #>
 <#@ import namespace="EnvDTE" #>
-<#@ import namespace="DatabaseGenerationTools.DatabaseObjects" #>
+<#@ import namespace="DatabaseGenerationToolExt.DatabaseObjects" #>
 <#@ include file="TemplateFileManager.ttinclude" #>
 <#@ assembly name="$(ProjectDir)\bin\Debug\DatabaseGenerationToolExt.dll" #>
 <#@ output extension=".cs"#>

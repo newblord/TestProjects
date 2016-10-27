@@ -1,4 +1,4 @@
-﻿using DatabaseGenerationTools.Templates;
+﻿using DatabaseGenerationToolExt.Templates;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseGenerationTools.DatabaseObjects
+namespace DatabaseGenerationToolExt.DatabaseObjects
 {
 	public class StoredProcedure
 	{

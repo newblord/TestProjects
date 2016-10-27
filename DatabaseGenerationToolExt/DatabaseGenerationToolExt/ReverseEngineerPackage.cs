@@ -18,6 +18,7 @@ using Microsoft.Win32;
 using EnvDTE;
 using System.Linq;
 using System.Collections.Generic;
+using DatabaseGenerationToolExt.Commands;
 
 namespace DatabaseGenerationToolExt
 {

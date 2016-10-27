@@ -7,13 +7,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DatabaseGenerationTools.DatabaseObjects;
+using DatabaseGenerationToolExt.DatabaseObjects;
 using System.Data.Entity.Infrastructure.Pluralization;
 using System.Data;
 using System.Xml.Serialization;
 using System.IO;
 
-namespace DatabaseGenerationTools.Templates
+namespace DatabaseGenerationToolExt.Templates
 {
 	public class ReversePocoCore
 	{
@@ -504,7 +504,7 @@ namespace DatabaseGenerationTools.Templates
 		}
 
 		#region Database Object Generation
-		public Tables LoadTables(DbProviderFactory factory, string connectionString, List<TableData> selectedTables)
+		public Tables LoadTables(DbProviderFactory factory, List<TableData> selectedTables)
 		{
 			if (factory == null)
 				return new Tables();
@@ -513,7 +513,7 @@ namespace DatabaseGenerationTools.Templates
 			{
 				using (DbConnection conn = factory.CreateConnection())
 				{
-					conn.ConnectionString = connectionString;
+					conn.ConnectionString = Setting.ConnectionString;
 					conn.Open();
 
 					var reader = new SchemaReader(conn, factory, Setting.IncludeQueryTraceOn9481Flag);
@@ -546,7 +546,7 @@ namespace DatabaseGenerationTools.Templates
 			}
 		}
 
-		public List<StoredProcedure> LoadStoredProcs(DbProviderFactory factory, string connectionString, List<string> storedProcedureNames)
+		public List<StoredProcedure> LoadStoredProcs(DbProviderFactory factory, List<string> storedProcedureNames)
 		{
 			if (factory == null)
 				return new List<StoredProcedure>();
@@ -555,7 +555,7 @@ namespace DatabaseGenerationTools.Templates
 			{
 				using (DbConnection conn = factory.CreateConnection())
 				{
-					conn.ConnectionString = connectionString;
+					conn.ConnectionString = Setting.ConnectionString;
 					conn.Open();
 
 					var reader = new SchemaReader(conn, factory, Setting.IncludeQueryTraceOn9481Flag);

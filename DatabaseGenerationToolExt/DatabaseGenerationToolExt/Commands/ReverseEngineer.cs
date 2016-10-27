@@ -6,16 +6,12 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Globalization;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 
-namespace DatabaseGenerationToolExt
+namespace DatabaseGenerationToolExt.Commands
 {
     /// <summary>
     /// Command handler
@@ -67,7 +63,7 @@ namespace DatabaseGenerationToolExt
             Instance = new ReverseEngineer(package);
         }
 
-        public ReverseEngineer(Package package) 
+        public ReverseEngineer(Package package)
         {
             if (package == null)
             {
@@ -94,6 +90,7 @@ namespace DatabaseGenerationToolExt
                 DTE dte = (DTE)this.ServiceProvider.GetService(typeof(DTE));
                 var selectedItems = dte.SelectedItems.Cast<SelectedItem>();
                 var hasContextFile = false;
+                Helpers.EnvDTEHelper envDteHelper = new Helpers.EnvDTEHelper(Package);
 
                 if (command != null)
                 {
@@ -103,13 +100,13 @@ namespace DatabaseGenerationToolExt
 
                         if (item.Project != null)
                         {
-                            Project p = FindProject(item.Name);
+                            Project p = envDteHelper.FindProject(item.Name);
 
                             if (p != null)
                             {
-                                List<ProjectItem> projectItems = FindAllProjectItems(p.ProjectItems);
+                                List<ProjectItem> projectItems = envDteHelper.FindAllProjectItems(p.ProjectItems);
 
-                                List<CodeClass> classes = projectItems.Where(x => x.FileCodeModel != null).SelectMany(x => FindClasses(x.FileCodeModel.CodeElements)).ToList();
+                                List<CodeClass> classes = projectItems.Where(x => x.FileCodeModel != null).SelectMany(x => envDteHelper.FindClasses(x.FileCodeModel.CodeElements)).ToList();
 
                                 hasContextFile = classes.SelectMany(x => x.Bases.Cast<CodeElement>().Where(y => y.FullName.Contains("DbContext"))).Count() > 0;
 
@@ -149,68 +146,5 @@ namespace DatabaseGenerationToolExt
             
         }
 
-        private Project FindProject(string projectName)
-        {
-            DTE dte = (DTE)this.ServiceProvider.GetService(typeof(DTE));
-
-            foreach (Project p in dte.Solution.Projects)
-            {
-                if (p.Name == projectName)
-                {
-                    return p;
-                }
-            }
-
-            return null;
-        }
-
-        private List<ProjectItem> FindAllProjectItems(ProjectItems pis)
-        {
-            List<ProjectItem> results = new List<ProjectItem>();
-
-            foreach (ProjectItem pi in pis)
-            {
-                if (pi.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFolder)
-                {
-                    results.AddRange(FindAllProjectItems(pi.ProjectItems));
-                }
-                else
-                {
-                    results.Add(pi);
-                }
-            }
-
-            return results;
-        }
-
-        private List<CodeClass> FindClasses(CodeElements elements)
-        {
-            List<CodeClass> result = new List<CodeClass>();
-
-            foreach (CodeElement element in elements)
-            {
-                if (element is EnvDTE.CodeNamespace)
-                {
-                    if (element is EnvDTE.CodeNamespace)
-                    {
-                        EnvDTE.CodeNamespace ns = element as EnvDTE.CodeNamespace;
-
-                        foreach (CodeElement ce in ns.Members)
-                        {
-                            if (ce.Kind == EnvDTE.vsCMElement.vsCMElementClass)
-                            {
-                                CodeClass c = ce as CodeClass;
-                                if (c != null)
-                                {
-                                    result.Add(c);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
     }
 }
