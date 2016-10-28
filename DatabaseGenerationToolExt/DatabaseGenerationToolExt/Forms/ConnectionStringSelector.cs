@@ -21,16 +21,15 @@ namespace DatabaseGenerationToolExt.Forms
         {
             InitializeComponent();
 
-            ConnectionHelper.Initialize(package);
             List<DatabaseConnection> connections = ConnectionHelper.FindAllConnectionStrings();
 
             if (connections.Count > 0)
             {
+                connections.Insert(0, new DatabaseConnection());
+
                 cbConnections.DataSource = connections;
                 cbConnections.DisplayMember = "ConnectionStringName";
                 cbConnections.ValueMember = "ConnectionString";
-
-                cbConnections.Items.Insert(0, new DatabaseConnection());
             }
             else
             {

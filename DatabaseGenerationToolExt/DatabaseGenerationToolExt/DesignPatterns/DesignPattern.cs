@@ -3,49 +3,81 @@ using DatabaseGenerationToolExt.DatabaseObjects;
 using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using DatabaseGenerationToolExt.Helpers;
+using EnvDTE;
 
 namespace DatabaseGenerationToolExt.DesignPatterns
 {
-    public class DesignPattern
+    public abstract class DesignPattern
     {
-        private static string TargetFrameworkVersion;
 
-        private DatabaseGenerationSetting Setting { get; set; }
-
-        public DesignPattern(string targetFrameworkVersion, DatabaseGenerationSetting setting)
+        public DesignPattern(string targetFrameworkVersion, DatabaseGenerationSetting setting, Microsoft.VisualStudio.Shell.Package package)
         {
             TargetFrameworkVersion = targetFrameworkVersion;
             Setting = setting;
+            GenerationEnvironment = new StringBuilder();
+            NewFiles = new List<NewFile>();
         }
 
-        public string ConfigurationFolderName { get; set; }
-        public string ConfigurationProjectName { get; set; }
-        public string ContextFolderName { get; set; }
-        public string ContextProjectName { get; set; }
-        public string ModelFolderName { get; set; }
-        public string ModelInterfaceFolderName { get; set; }
-        public string ModelInterfaceProjectName { get; set; }
-        public string ModelProjectName { get; set; }
-        public string PocoConfigurationNamespace { get; set; }
-        public string RepositoryFolderName { get; set; }
-        public string RepositoryInterfaceFolderName { get; set; }
-        public string RepositoryInterfaceProjectName { get; set; }
-        public string RepositoryProjectName { get; set; }
-        public string ServiceFolderName { get; set; }
-        public string ServiceInterfaceFolderName { get; set; }
-        public string ServiceInterfaceProjectName { get; set; }
-        public string ServiceProjectName { get; set; }
+        #region Private Properties
 
-        public string ContextNamespace { get; set; } = "Context";
-        public string PocoInterfaceNamespace { get; set; } = "Poco.Interface";
-        public string PocoNamespace { get; set; } = "Poco";
-        public string RepositoryInterfaceNamespace { get; set; } = "Repository.Interface";
-        public string RepositoryNamespace { get; set; } = "Repository";
-        public string ServiceInterfaceNamespace { get; set; } = "Service.Interface";
-        public string ServiceNamespace { get; set; } = "Service";
-        public string UnitOfWorkNamespace { get; set; } = "Context.UnitOfWork";
+        private Action<string> checkOutAction;
+        private Action<IEnumerable<NewFile>> projectSyncAction;
+        private EnvDTE.DTE dte;
 
-        private bool IsSupportedFrameworkVersion(string frameworkVersion)
+        #endregion
+
+        #region Public Properties
+
+        public DatabaseGenerationSetting Setting { get; set; }
+
+        /// <summary>
+        /// If set to false, existing files are not overwritten
+        /// </summary>
+        /// <returns></returns>
+        public bool CanOverrideExistingFile { get; set; }
+
+        /// <summary>
+        /// Defines Encoding format for generated output file. (Default UTF8)
+        /// </summary>
+        /// <returns></returns>
+        public System.Text.Encoding Encoding { get; set; }
+
+        /// <summary>
+        /// To include extra namespaces, include them here. i.e. "Microsoft.AspNet.Identity.EntityFramework"
+        /// </summary>
+        public virtual string[] AdditionalNamespaces { get; set; } = new[] { "" };
+
+        /// <summary>
+        /// To include extra db context interface items, include them here. Also set MakeClassesPartial=true, and implement the partial DbContext class functions.
+        /// </summary>
+        public virtual string[] AdditionalContextInterfaceItems { get; set; } = new[]
+        {
+            ""  //  example: "void SetAutoDetectChangesEnabled(bool flag);"
+	    };
+
+        /// <summary>
+        /// If you need to serialize your entities with the JsonSerializer from Newtonsoft, this would serialize
+        /// all properties including the Reverse Navigation and Foreign Keys. The simplest way to exclude them is
+        /// to use the data annotation [JsonIgnore] on reverse navigation and foreign keys.
+        /// </summary>
+        public virtual string[] AdditionalReverseNavigationsDataAnnotations { get; set; } = new string[] 
+        {
+            // "JsonIgnore"
+        };
+
+        public virtual string[] AdditionalForeignKeysDataAnnotations { get; set; } = new string[] 
+        {
+            // "JsonIgnore"
+        };
+
+        #endregion
+
+        private static string TargetFrameworkVersion;
+
+        public bool IsSupportedFrameworkVersion(string frameworkVersion)
         {
             if (!string.IsNullOrEmpty(TargetFrameworkVersion))
             {
@@ -57,7 +89,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             return true;
         }
 
-        private string WritePocoClassAttributes(Table t)
+        public virtual string WritePocoClassAttributes(Table t)
         {
             // Do nothing by default
             // Example:
@@ -72,16 +104,14 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             return string.Empty;
         }
 
-        // Writes optional base classes
-        private string WritePocoBaseClasses(Table t)
+        public virtual string WritePocoBaseClasses(Table t)
         {
             //if (t.ClassName == "User")
             //	 return "IdentityUser<int, CustomUserLogin, CustomUserRole, CustomUserClaim>, ";
             return "";
         }
 
-        // Writes any boilerplate stuff
-        private string WritePocoBaseClassBody(Table t)
+        public virtual string WritePocoBaseClassBody(Table t)
         {
             // Do nothing by default
             // Example:
@@ -90,7 +120,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             return string.Empty;
         }
 
-        private string WritePocoColumn(Column c)
+        public virtual string WritePocoColumn(Column c)
         {
             // Example of adding a [Required] data annotation attribute to all non-null fields
             //if (!c.IsNullable)
@@ -132,7 +162,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             return sb.ToString();
         }
 
-        private string WritePocoInterfaceColumn(Column c)
+        public virtual string WritePocoInterfaceColumn(Column c)
         {
             // Example of adding a [Required] data annotation attribute to all non-null fields
             //if (!c.IsNullable)
@@ -141,7 +171,277 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             return c.InterfaceEntity;
         }
 
-        private void CreateHeader()
+        #region File Generation Methods
+
+        private NewFile currentFile;
+        private List<string> Indents { get; set; }
+        private string TotalIndentValue { get; set; }
+        private List<NewFile> NewFiles { get; set; }
+        private StringBuilder GenerationEnvironment { get; set; }
+        private NewFile CurrentFile
+        {
+            get { return currentFile; }
+            set
+            {
+                if (CurrentFile != null)
+                {
+                    EndFile();
+                }
+
+                if (value != null)
+                {
+                    value.Start = GenerationEnvironment.Length;
+                }
+
+                currentFile = value;
+            }
+        }
+
+        public virtual void EndFile()
+        {
+            if (CurrentFile == null)
+            {
+                return;
+            }
+
+            CurrentFile.Length = GenerationEnvironment.Length - currentFile.Start;
+            NewFiles.Add(CurrentFile);
+
+            currentFile = null;
+        }
+
+        public void StartNewFile(string fileName, string projectName, string folderName)
+        {
+            Indents = new List<string>();
+            CurrentFile = new NewFile();
+
+            CurrentFile.FileName = fileName;
+            CurrentFile.ProjectName = projectName;
+            CurrentFile.FolderName = folderName;
+        }
+
+        public void ProcessFiles()
+        {
+            var list = new List<NewFile>();
+
+            if (NewFiles.Any())
+            {
+                // check selectitem first
+                string defaultPath = string.Empty;
+                var selectedItems = dte.SelectedItems.Cast<SelectedItem>();
+                if (selectedItems.Count() == 1)
+                {
+                    SelectedItem item = selectedItems.FirstOrDefault();
+
+                    if (item.Project != null)
+                    {
+                        Project p = VisualStudioHelper.FindProject(item.Project.Name);
+                        defaultPath = VisualStudioHelper.GetProjectPath(item.Project);
+                    }
+                    else if (item.ProjectItem != null)
+                    {
+                        defaultPath = item.ProjectItem.FileNames[0];
+                    }
+                }
+
+                var outputPath = VSHelper.GetOutputPath(dte, NewFiles.First().ProjectName, NewFiles.First().FolderName, defaultPath);
+
+                for (int i = 0; i < NewFiles.Count; i++)
+                {
+                    var outputFile = NewFiles[i];
+
+                    outputFile.FilePath = Path.Combine(outputPath, outputFile.FileName);
+                    outputFile.FileContent = GenerationEnvironment.ToString(outputFile.Start, outputFile.Length);
+                    outputFile.OutputPath = outputPath;
+
+                    CreateFile(outputFile);
+                    GenerationEnvironment.Remove(outputFile.Start, outputFile.Length);
+
+                    list.Add(outputFile);
+                }
+            }
+
+            if (list.Count > 0)
+            {
+                projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(list, null, null));
+
+                this.WriteLog(list);
+            }
+        }
+
+        private void CreateFile(NewFile file)
+        {
+            if (IsFileContentDifferent(file))
+            {
+                File.WriteAllText(file.FilePath, file.FileContent);
+            }
+        }
+        
+        private bool IsFileContentDifferent(NewFile file)
+        {
+            return !(File.Exists(file.FileName) && File.ReadAllText(file.FileName) == file.FileContent);
+        }
+
+        private void WriteLog(List<NewFile> list)
+        {
+            for (int i = 0; i < list.Count(); i++)
+            {
+                this._textTransformation.WriteLine("// " + list[i].FileName);
+            }
+        }
+
+        private void ProjectSync(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+        {
+            var groupedFileNames = from f in keepFileNames
+                                   group f by new { f.ProjectName, f.FolderName }
+                                    into l
+                                   select new
+                                   {
+                                       ProjectName = l.Key.ProjectName,
+                                       FolderName = l.Key.FolderName,
+                                       FirstItem = l.First(),
+                                       OutputFiles = l
+                                   };
+
+            foreach (var item in groupedFileNames)
+            {
+                if (String.IsNullOrEmpty(item.ProjectName) == true && String.IsNullOrEmpty(item.FolderName) == true)
+                {
+                    ProjectItemSyncPart(templateProjectItem, item.OutputFiles);
+                }
+                else
+                {
+                    EnvDTE.ProjectItem pi = VSHelper.FindProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
+
+                    if (pi != null)
+                    {
+                        EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.ProjectName);
+                        prj.ProjectItems.AddFromDirectory(Path.GetDirectoryName(pi.FileNames[0]));
+
+                        if (!prj.Saved)
+                        {
+                            prj.Save();
+                        }
+                    }
+                    else
+                    {
+                        EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.FirstItem.ProjectName);
+                        ProjectSyncPart(prj, item.OutputFiles);
+                    }
+                }
+            }
+
+            // clean up
+            bool hasDefaultItems = groupedFileNames.Where(f => String.IsNullOrEmpty(f.ProjectName) && String.IsNullOrEmpty(f.FolderName)).Count() > 0;
+            if (hasDefaultItems == false)
+            {
+                ProjectItemSyncPart(templateProjectItem, new List<OutputFile>());
+            }
+        }
+
+        private static void ProjectSyncPart(EnvDTE.Project project, IEnumerable<OutputFile> keepFileNames)
+        {
+            var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
+
+            var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+            //var originalOutput = Path.GetFileNameWithoutExtension(project.FileName);
+
+            foreach (EnvDTE.ProjectItem projectItem in project.ProjectItems)
+            {
+                projectFiles.Add(projectItem.FileNames[0], projectItem);
+            }
+
+            //// Remove unused items from the project
+            //foreach (var pair in projectFiles)
+            //{
+            //	bool isNotFound = keepFileNames.Where(f => f.FileName == pair.Key).Count() == 0;
+            //	if (isNotFound == true
+            //		&& !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalOutput + "."))
+            //	{
+            //		pair.Value.Delete();
+            //	}
+            //}
+
+            // Add missing files to the project
+            foreach (var fileName in keepFileNameSet)
+            {
+                if (!projectFiles.ContainsKey(fileName.FileName))
+                {
+                    project.ProjectItems.AddFromFile(fileName.FileName);
+                }
+            }
+        }
+
+        private static void ProjectItemSyncPart(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+        {
+            var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
+            var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+            var originalOutput = Path.GetFileNameWithoutExtension(templateProjectItem.FileNames[0]);
+
+            foreach (EnvDTE.ProjectItem projectItem in templateProjectItem.ProjectItems)
+            {
+                projectFiles.Add(projectItem.FileNames[0], projectItem);
+            }
+
+            // Remove unused items from the project
+            foreach (var pair in projectFiles)
+            {
+                bool isNotFound = keepFileNames.Where(f => f.FileName == pair.Key).Count() == 0;
+                if (isNotFound == true
+                    && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalOutput + "."))
+                {
+                    pair.Value.Delete();
+                }
+            }
+
+            // Add missing files to the project
+            foreach (var fileName in keepFileNameSet)
+            {
+                if (!projectFiles.ContainsKey(fileName.FileName))
+                {
+                    templateProjectItem.ProjectItems.AddFromFile(fileName.FileName);
+                }
+            }
+        }
+
+        private void CheckoutFileIfRequired(string fileName)
+        {
+            if (dte.SourceControl == null || !dte.SourceControl.IsItemUnderSCC(fileName) || dte.SourceControl.IsItemCheckedOut(fileName))
+            {
+                return;
+            }
+
+            // run on worker thread to prevent T4 calling back into VS
+            checkOutAction.EndInvoke(checkOutAction.BeginInvoke(fileName, null, null));
+        }
+
+        public virtual void WriteLine(string line)
+        {
+            WriteLine("{0}{1}", TotalIndentValue, line);
+        }
+
+        public virtual void WriteLine(string line, params object[] args)
+        {
+            GenerationEnvironment.AppendFormat($"{TotalIndentValue}{line}", args);
+            GenerationEnvironment.AppendLine();
+        }
+
+        public virtual void PushIndent(string indent)
+        {
+            Indents.Add(indent);
+            TotalIndentValue = $"{TotalIndentValue}{indent}";
+        }
+
+        public virtual void PopIndent()
+        {
+            if (Indents.Count > 0)
+            {
+                Indents.RemoveAt(Indents.Count - 1);
+                TotalIndentValue = string.Join("", Indents);
+            }
+        }
+
+        public virtual void CreateHeader()
         {
             WriteLine("//------------------------------------------------------------------------------");
             WriteLine("// <auto-generated>");
@@ -154,49 +454,46 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             WriteLine("");
         }
 
-        private void BeginNamespace(string name)
+        public virtual void BeginNamespace(string name)
         {
             WriteLine("namespace {0}", name);
             WriteLine("{");
             PushIndent("\t");
         }
 
-        private void BeginInterface(string name, bool isPartial, string baseClass)
+        public virtual void BeginInterface(string name, bool isPartial, string baseClass)
         {
             WriteLine("public {0}interface {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
             WriteLine("{");
             PushIndent("\t");
         }
 
-        private void BeginClass(string name, bool isPartial, string baseClass)
+        public virtual void BeginClass(string name, bool isPartial, string baseClass)
         {
             WriteLine("public {0}class {1}{2}", isPartial ? "partial " : "", name, !string.IsNullOrEmpty(baseClass) ? " : " + baseClass : "");
             WriteLine("{");
             PushIndent("\t");
         }
 
-        private void CloseBrace()
+        public virtual void CloseBrace()
         {
             PopIndent();
             WriteLine("}");
         }
 
-        private void OpenMethodBrace()
+        public virtual void OpenMethodBrace()
         {
             WriteLine("{");
             PushIndent("\t");
         }
 
-        private void CloseMethodBrace()
+        public virtual void CloseMethodBrace()
         {
             PopIndent();
             WriteLine("}");
             WriteLine("");
         }
 
-        public void CreateFiles(Tables tables, List<string> storedProcedures)
-        {
-
-        }
+        #endregion
     }
 }

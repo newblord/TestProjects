@@ -136,6 +136,25 @@ public class TemplateFileManager
 		CurrentBlock = header;
 	}
 
+    private Block CurrentBlock
+	{
+		get { return currentBlock; }
+		set
+		{
+			if (CurrentBlock != null)
+			{
+				EndBlock();
+			}
+
+			if (value != null)
+			{
+				value.Start = _generationEnvironment.Length;
+			}
+
+			currentBlock = value;
+		}
+	}
+
 	public void EndBlock()
 	{
 		if (CurrentBlock == null)
@@ -278,25 +297,6 @@ public class TemplateFileManager
 	protected bool IsFileContentDifferent(OutputFile file)
 	{
 		return !(File.Exists(file.FileName) && File.ReadAllText(file.FileName) == file.Content);
-	}
-
-	private Block CurrentBlock
-	{
-		get { return currentBlock; }
-		set
-		{
-			if (CurrentBlock != null)
-			{
-				EndBlock();
-			}
-
-			if (value != null)
-			{
-				value.Start = _generationEnvironment.Length;
-			}
-
-			currentBlock = value;
-		}
 	}
 
 	private void ProjectSync(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)

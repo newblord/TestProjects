@@ -70,6 +70,7 @@
     <Compile Include="DatabaseObjects\Tables.cs" />
     <Compile Include="DatabaseObjects\UniqueIndex.cs" />
     <Compile Include="DesignPatterns\DesignPattern.cs" />
+    <Compile Include="DesignPatterns\EntityFrameworkDesignPattern.cs" />
     <Compile Include="Forms\ConnectionStringSelector.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -80,7 +81,7 @@
       <DependentUpon>DatabaseObjectSelector.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\ConnectionHelper.cs" />
-    <Compile Include="Helpers\EnvDTEHelper.cs" />
+    <Compile Include="Helpers\VisualStudioHelper.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\ReverseEngineer.cs" />

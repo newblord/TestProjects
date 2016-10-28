@@ -12,5 +12,9 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
         public string FolderName { get; set; }
         public string FileName { get; set; }
         public string FileContent { get; set; }
+        public string FilePath { get; set; }
+        public string OutputPath { get; set; }
+        public int Start { get; set; }
+        public int Length { get; set; }
     }
 }

@@ -12,13 +12,6 @@ namespace DatabaseGenerationToolExt.Helpers
     {
         private static string[] ConfigFilenameSearchOrder = new[] { "app.config", "web.config", "app.config.transform", "web.config.transform" };
 
-        private static EnvDTEHelper EnvDteHelper { get; set; }
-
-        public static void Initialize(Microsoft.VisualStudio.Shell.Package package)
-        {
-            EnvDteHelper = new EnvDTEHelper(package);
-        }
-
         public static List<DatabaseObjects.DatabaseConnection> FindAllConnectionStrings()
         {
             List<DatabaseObjects.DatabaseConnection> connections = new List<DatabaseObjects.DatabaseConnection>();
@@ -55,7 +48,7 @@ namespace DatabaseGenerationToolExt.Helpers
             var paths = new List<string>();
 
             // Then other projects next
-            var projects = EnvDteHelper.GetAllProjects();
+            var projects = VisualStudioHelper.GetAllProjects();
             foreach (EnvDTE.Project dteProject in projects)
             {
                 paths.AddRange(GetConfigPathsInProject(dteProject));
@@ -63,7 +56,7 @@ namespace DatabaseGenerationToolExt.Helpers
 
             if (!paths.Any() && ConfigFilenameSearchOrder != null)
             {
-                var sln = EnvDteHelper.GetSolution();
+                var sln = VisualStudioHelper.GetSolution();
                 paths.AddRange(
                     ConfigFilenameSearchOrder
                     .Select(sln.FindProjectItem)
@@ -100,7 +93,7 @@ namespace DatabaseGenerationToolExt.Helpers
 
                 return (from ProjectItem item in project.ProjectItems
                         where item.Name.Equals(filename, StringComparison.InvariantCultureIgnoreCase)
-                        select Path.Combine(EnvDteHelper.GetProjectPath(project), item.Name))
+                        select Path.Combine(VisualStudioHelper.GetProjectPath(project), item.Name))
                         .ToList();
             }
             catch (Exception)

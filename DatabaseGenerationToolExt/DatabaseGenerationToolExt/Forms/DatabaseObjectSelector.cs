@@ -15,15 +15,23 @@ namespace DatabaseGenerationToolExt.Forms
 {
     public partial class DatabaseObjectSelector : Form
 	{
-		public List<TableData> TableNames { get; set; }
+        private Package Package { get; set; }
+
+        public List<TableData> TableNames { get; set; }
 
 		public List<string> StoredProcedureNames { get; set; }
 
 		public DatabaseGenerationSetting Setting { get; set; }
 
+        public bool IsCanceled { get; set; } = false;
+
 		public DatabaseObjectSelector(Package package)
 		{
-            ConnectionStringSelector conForm = new ConnectionStringSelector(package);
+            InitializeComponent();
+
+            Package = package;
+
+            ConnectionStringSelector conForm = new ConnectionStringSelector(Package);
 
             conForm.ShowDialog();
 
@@ -32,22 +40,18 @@ namespace DatabaseGenerationToolExt.Forms
                 Setting = new DatabaseObjects.DatabaseGenerationSetting(conForm.SelectedConnection);
                 TableNames = new List<TableData>();
                 StoredProcedureNames = new List<string>();
-                
 
+                PopulateDropDownLists();
+                InitializeDatabaseObjects();
+                LoadDatabaseGenerationSettings();
                 // TODO: Need to fix this method to use a differnet file instead of hte TemplateFile now
                 //ReversePocoCore.ProcessDatabaseXML(Host.TemplateFile, ref TableNames, ref StoredProcedureNames, ref Setting);
             }
             else
             {
                 conForm.Dispose();
-                this.Close();
+                IsCanceled = true;
             }
-
-            InitializeComponent();
-
-			PopulateDropDownLists();
-			InitializeDatabaseObjects();
-			LoadDatabaseGenerationSettings();
 		}
 
 		#region Private Methods
@@ -286,7 +290,7 @@ namespace DatabaseGenerationToolExt.Forms
 
 		#region Events
 
-		private void UpdateFromDatabase_Load(object sender, EventArgs e)
+		private void DatabaseObjectSelector_Load(object sender, EventArgs e)
 		{
 			SetupTableGridViewHeaderCheckbox();
 			UpdateTableSettings();
@@ -330,7 +334,8 @@ namespace DatabaseGenerationToolExt.Forms
             // Generate output
             if (tables.Count > 0 || storedProcs.Count > 0)
             {
-                DesignPattern pattern = new DesignPattern("4.6.1", Setting);
+                DesignPattern pattern = new EntityFrameworkDesignPattern("4.6.1", Setting, Package);
+                pattern.CreateFiles(tables);
             }
 
             sw.Stop();

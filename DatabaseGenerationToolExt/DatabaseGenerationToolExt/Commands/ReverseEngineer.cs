@@ -10,6 +10,8 @@ using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using System.Linq;
 using System.Collections.Generic;
+using DatabaseGenerationToolExt.Forms;
+using DatabaseGenerationToolExt.Helpers;
 
 namespace DatabaseGenerationToolExt.Commands
 {
@@ -90,7 +92,6 @@ namespace DatabaseGenerationToolExt.Commands
                 DTE dte = (DTE)this.ServiceProvider.GetService(typeof(DTE));
                 var selectedItems = dte.SelectedItems.Cast<SelectedItem>();
                 var hasContextFile = false;
-                Helpers.EnvDTEHelper envDteHelper = new Helpers.EnvDTEHelper(Package);
 
                 if (command != null)
                 {
@@ -100,13 +101,13 @@ namespace DatabaseGenerationToolExt.Commands
 
                         if (item.Project != null)
                         {
-                            Project p = envDteHelper.FindProject(item.Name);
+                            Project p = VisualStudioHelper.FindProject(item.Name);
 
                             if (p != null)
                             {
-                                List<ProjectItem> projectItems = envDteHelper.FindAllProjectItems(p.ProjectItems);
+                                List<ProjectItem> projectItems = VisualStudioHelper.FindAllProjectItems(p.ProjectItems);
 
-                                List<CodeClass> classes = projectItems.Where(x => x.FileCodeModel != null).SelectMany(x => envDteHelper.FindClasses(x.FileCodeModel.CodeElements)).ToList();
+                                List<CodeClass> classes = projectItems.Where(x => x.FileCodeModel != null).SelectMany(x => VisualStudioHelper.FindClasses(x.FileCodeModel.CodeElements)).ToList();
 
                                 hasContextFile = classes.SelectMany(x => x.Bases.Cast<CodeElement>().Where(y => y.FullName.Contains("DbContext"))).Count() > 0;
 
@@ -143,7 +144,13 @@ namespace DatabaseGenerationToolExt.Commands
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            
+            using (DatabaseObjectSelector frm = new DatabaseObjectSelector(Package))
+            {
+                if (!frm.IsCanceled)
+                {
+                    frm.ShowDialog();
+                }
+            }
         }
 
     }

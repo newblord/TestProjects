@@ -735,7 +735,7 @@
             this.ServiceInterface.Name = "ServiceInterface";
             this.ServiceInterface.Width = 65;
             // 
-            // UpdateFromDatabase
+            // DatabaseObjectSelector
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -744,11 +744,11 @@
             this.Controls.Add(this.flowLayoutPanel3);
             this.Controls.Add(this.tcDatabaseObjects);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Name = "UpdateFromDatabase";
+            this.Name = "DatabaseObjectSelector";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "UpdateFromDatabase";
-            this.Load += new System.EventHandler(this.UpdateFromDatabase_Load);
+            this.Text = "Database Object Selector";
+            this.Load += new System.EventHandler(this.DatabaseObjectSelector_Load);
             this.tcDatabaseObjects.ResumeLayout(false);
             this.tpSettings.ResumeLayout(false);
             this.tpSettings.PerformLayout();
