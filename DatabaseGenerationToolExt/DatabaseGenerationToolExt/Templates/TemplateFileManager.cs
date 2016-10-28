@@ -31,10 +31,10 @@ using Microsoft.VisualStudio.TextTemplating;
 /// <author>R. Leupold</author>
 public class TemplateFileManager
 {
-	private EnvDTE.ProjectItem templateProjectItem;
+	private ProjectItem templateProjectItem;
 	private Action<string> checkOutAction;
 	private Action<IEnumerable<OutputFile>> projectSyncAction;
-	private EnvDTE.DTE dte;
+	private DTE dte;
 
 	/// <summary>
 	/// Creates files with VS sync
@@ -77,7 +77,7 @@ public class TemplateFileManager
 			throw new ArgumentNullException("Could not obtain hostServiceProvider");
 		}
 
-		dte = (EnvDTE.DTE)hostServiceProvider.GetService(typeof(EnvDTE.DTE));
+		dte = (DTE)hostServiceProvider.GetService(typeof(DTE));
 		if (dte == null)
 		{
 			throw new ArgumentNullException("Could not obtain DTE from host");
@@ -299,7 +299,7 @@ public class TemplateFileManager
 		return !(File.Exists(file.FileName) && File.ReadAllText(file.FileName) == file.Content);
 	}
 
-	private void ProjectSync(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+	private void ProjectSync(ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
 	{
 		var groupedFileNames = from f in keepFileNames
 									  group f by new { f.ProjectName, f.FolderName }
@@ -320,11 +320,11 @@ public class TemplateFileManager
 			}
 			else
 			{
-				EnvDTE.ProjectItem pi = VSHelper.FindProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
+				ProjectItem pi = VSHelper.FindProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
 
 				if (pi != null)
 				{
-					EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.ProjectName);
+					Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.ProjectName);
 					prj.ProjectItems.AddFromDirectory(Path.GetDirectoryName(pi.FileNames[0]));
 
 					if (!prj.Saved)
@@ -334,7 +334,7 @@ public class TemplateFileManager
 				}
 				else
 				{
-					EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.FirstItem.ProjectName);
+					Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.FirstItem.ProjectName);
 					ProjectSyncPart(prj, item.OutputFiles);
 				}
 			}
@@ -348,14 +348,14 @@ public class TemplateFileManager
 		}
 	}
 
-	private static void ProjectSyncPart(EnvDTE.Project project, IEnumerable<OutputFile> keepFileNames)
+	private static void ProjectSyncPart(Project project, IEnumerable<OutputFile> keepFileNames)
 	{
 		var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
 
-		var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+		var projectFiles = new Dictionary<string, ProjectItem>();
 		//var originalOutput = Path.GetFileNameWithoutExtension(project.FileName);
 
-		foreach (EnvDTE.ProjectItem projectItem in project.ProjectItems)
+		foreach (ProjectItem projectItem in project.ProjectItems)
 		{
 			projectFiles.Add(projectItem.FileNames[0], projectItem);
 		}
@@ -381,13 +381,13 @@ public class TemplateFileManager
 		}
 	}
 
-	private static void ProjectItemSyncPart(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+	private static void ProjectItemSyncPart(ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
 	{
 		var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
-		var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+		var projectFiles = new Dictionary<string, ProjectItem>();
 		var originalOutput = Path.GetFileNameWithoutExtension(templateProjectItem.FileNames[0]);
 
-		foreach (EnvDTE.ProjectItem projectItem in templateProjectItem.ProjectItems)
+		foreach (ProjectItem projectItem in templateProjectItem.ProjectItems)
 		{
 			projectFiles.Add(projectItem.FileNames[0], projectItem);
 		}
@@ -682,7 +682,7 @@ public class VSHelper
 	/// <param name="item">The current project item.</param>
 	/// <param name="command">The vs command as string.</param>
 	/// <returns>An error message if the command fails.</returns>
-	public static string ExecuteVsCommand(EnvDTE.DTE dte, EnvDTE.ProjectItem item, params string[] command)
+	public static string ExecuteVsCommand(DTE dte, ProjectItem item, params string[] command)
 	{
 		if (item == null)
 		{
@@ -693,7 +693,7 @@ public class VSHelper
 
 		try
 		{
-			EnvDTE.Window window = item.Open();
+			Window window = item.Open();
 			window.Activate();
 
 			foreach (var cmd in command)
@@ -722,9 +722,9 @@ public class VSHelper
 	/// <summary>
 	/// Sets a property value for the vs project item.
 	/// </summary>
-	public static void SetPropertyValue(EnvDTE.ProjectItem item, string propertyName, object value)
+	public static void SetPropertyValue(ProjectItem item, string propertyName, object value)
 	{
-		EnvDTE.Property property = item.Properties.Item(propertyName);
+		Property property = item.Properties.Item(propertyName);
 		if (property == null)
 		{
 			throw new ArgumentException(String.Format("The property {0} was not found.", propertyName));
@@ -735,15 +735,15 @@ public class VSHelper
 		}
 	}
 
-	public static string GetOutputPath(EnvDTE.DTE dte, string projectName, string folderName, string defaultPath)
+	public static string GetOutputPath(DTE dte, string projectName, string folderName, string defaultPath)
 	{
 		if (String.IsNullOrEmpty(projectName) == true && String.IsNullOrEmpty(folderName) == true)
 		{
 			return defaultPath;
 		}
 
-		EnvDTE.Project prj = null;
-		EnvDTE.ProjectItem item = null;
+		Project prj = null;
+		ProjectItem item = null;
 
 		if (String.IsNullOrEmpty(projectName) == false)
 		{
@@ -772,15 +772,15 @@ public class VSHelper
 		return defaultPath;
 	}
 
-	public static EnvDTE.ProjectItem FindProjectItem(EnvDTE.DTE dte, OutputFile file, EnvDTE.ProjectItem defaultItem)
+	public static ProjectItem FindProjectItem(DTE dte, OutputFile file, ProjectItem defaultItem)
 	{
 		if (String.IsNullOrEmpty(file.ProjectName) == true && String.IsNullOrEmpty(file.FolderName) == true)
 		{
 			return defaultItem;
 		}
 
-		EnvDTE.Project prj = null;
-		EnvDTE.ProjectItem item = null;
+		Project prj = null;
+		ProjectItem item = null;
 
 		if (String.IsNullOrEmpty(file.ProjectName) == false)
 		{
@@ -809,9 +809,9 @@ public class VSHelper
 		return defaultItem;
 	}
 
-	private static EnvDTE.ProjectItem FindProjectItem(EnvDTE.ProjectItems items, string fullName, bool canCreateIfNotExists)
+	private static ProjectItem FindProjectItem(ProjectItems items, string fullName, bool canCreateIfNotExists)
 	{
-		EnvDTE.ProjectItem item = (from i in items.Cast<EnvDTE.ProjectItem>()
+		ProjectItem item = (from i in items.Cast<ProjectItem>()
 											where i.Name == Path.GetFileName(fullName)
 											select i).FirstOrDefault();
 		if (item == null)
@@ -823,29 +823,29 @@ public class VSHelper
 		return item;
 	}
 
-	public static EnvDTE.Project GetProject(EnvDTE.DTE dte, string projectName)
+	public static Project GetProject(DTE dte, string projectName)
 	{
 		return GetAllProjects(dte).Where(p => p.Name == projectName).First();
 	}
 
-	public static IEnumerable<EnvDTE.Project> GetAllProjects(EnvDTE.DTE dte)
+	public static IEnumerable<Project> GetAllProjects(DTE dte)
 	{
-		List<EnvDTE.Project> projectList = new List<EnvDTE.Project>();
+		List<Project> projectList = new List<Project>();
 
-		var folders = dte.Solution.Projects.Cast<EnvDTE.Project>().Where(p => p.Kind == EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
+		var folders = dte.Solution.Projects.Cast<Project>().Where(p => p.Kind == EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
 
-		foreach (EnvDTE.Project folder in folders)
+		foreach (Project folder in folders)
 		{
 			if (folder.ProjectItems == null) continue;
 
-			foreach (EnvDTE.ProjectItem item in folder.ProjectItems)
+			foreach (ProjectItem item in folder.ProjectItems)
 			{
-				if (item.Object is EnvDTE.Project)
-					projectList.Add(item.Object as EnvDTE.Project);
+				if (item.Object is Project)
+					projectList.Add(item.Object as Project);
 			}
 		}
 
-		var projects = dte.Solution.Projects.Cast<EnvDTE.Project>().Where(p => p.Kind != EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
+		var projects = dte.Solution.Projects.Cast<Project>().Where(p => p.Kind != EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
 
 		if (projects.Count() > 0)
 			projectList.AddRange(projects);
@@ -853,19 +853,19 @@ public class VSHelper
 		return projectList;
 	}
 
-	public static EnvDTE.ProjectItem GetProjectItemWithName(EnvDTE.ProjectItems items, string itemName)
+	public static ProjectItem GetProjectItemWithName(ProjectItems items, string itemName)
 	{
 		return GetAllProjectItemsRecursive(items).Cast<ProjectItem>().Where(i => i.Name == itemName).First();
 	}
 
-	public static string GetProjectItemFullPath(EnvDTE.ProjectItem item)
+	public static string GetProjectItemFullPath(ProjectItem item)
 	{
 		return item.Properties.Item("FullPath").Value.ToString();
 	}
 
-	public static IEnumerable<EnvDTE.ProjectItem> GetAllSolutionItems(EnvDTE.DTE dte)
+	public static IEnumerable<ProjectItem> GetAllSolutionItems(DTE dte)
 	{
-		List<EnvDTE.ProjectItem> itemList = new List<EnvDTE.ProjectItem>();
+		List<ProjectItem> itemList = new List<ProjectItem>();
 
 		foreach (Project item in GetAllProjects(dte))
 		{
@@ -877,13 +877,13 @@ public class VSHelper
 		return itemList;
 	}
 
-	public static IEnumerable<EnvDTE.ProjectItem> GetAllProjectItemsRecursive(EnvDTE.ProjectItems projectItems)
+	public static IEnumerable<ProjectItem> GetAllProjectItemsRecursive(ProjectItems projectItems)
 	{
-		foreach (EnvDTE.ProjectItem projectItem in projectItems)
+		foreach (ProjectItem projectItem in projectItems)
 		{
 			if (projectItem.ProjectItems == null) continue;
 
-			foreach (EnvDTE.ProjectItem subItem in GetAllProjectItemsRecursive(projectItem.ProjectItems))
+			foreach (ProjectItem subItem in GetAllProjectItemsRecursive(projectItem.ProjectItems))
 			{
 				yield return subItem;
 			}

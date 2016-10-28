@@ -89,7 +89,7 @@ namespace DatabaseGenerationToolExt.Commands
             try
             {
                 OleMenuCommand command = (OleMenuCommand)sender;
-                DTE dte = (DTE)this.ServiceProvider.GetService(typeof(DTE));
+                DTE dte = VisualStudioHelper.GetDTE();
                 var selectedItems = dte.SelectedItems.Cast<SelectedItem>();
                 var hasContextFile = false;
 
@@ -105,9 +105,9 @@ namespace DatabaseGenerationToolExt.Commands
 
                             if (p != null)
                             {
-                                List<ProjectItem> projectItems = VisualStudioHelper.FindAllProjectItems(p.ProjectItems);
+                                IEnumerable<ProjectItem> projectItems = VisualStudioHelper.GetAllProjectItems(p.ProjectItems);
 
-                                List<CodeClass> classes = projectItems.Where(x => x.FileCodeModel != null).SelectMany(x => VisualStudioHelper.FindClasses(x.FileCodeModel.CodeElements)).ToList();
+                                IEnumerable<CodeClass> classes = projectItems.Where(x => x.FileCodeModel != null).SelectMany(x => VisualStudioHelper.FindClasses(x.FileCodeModel.CodeElements));
 
                                 hasContextFile = classes.SelectMany(x => x.Bases.Cast<CodeElement>().Where(y => y.FullName.Contains("DbContext"))).Count() > 0;
 

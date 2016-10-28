@@ -9,16 +9,9 @@ namespace DatabaseGenerationToolExt.Helpers
 {
     public static class VisualStudioHelper
     {
-        //private static Package Package { get; set; }
-
-        //public static void Initialize(Package package)
-        //{
-        //    Package = package;
-        //}
-
         public static DTE GetDTE()
         {
-            EnvDTE.DTE dte = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(Microsoft.VisualStu‌​dio.Shell.Interop.SD‌​TE)) as EnvDTE.DTE;
+            DTE dte = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(Microsoft.VisualStu‌​dio.Shell.Interop.SD‌​TE)) as DTE;
             if (dte == null)
                 throw new Exception("Unable to retrieve DTE");
 
@@ -30,36 +23,253 @@ namespace DatabaseGenerationToolExt.Helpers
             return GetDTE().Solution;
         }
 
-        public static Project FindProject(string projectName)
+        /// <summary>
+        /// Execute Visual Studio commands against the project item.
+        /// </summary>
+        /// <param name="item">The current project item.</param>
+        /// <param name="command">The vs command as string.</param>
+        /// <returns>An error message if the command fails.</returns>
+        public static string ExecuteVsCommand(ProjectItem item, params string[] command)
         {
-            foreach (Project p in GetSolution().Projects)
+            DTE dte = GetDTE();
+
+            if (item == null)
             {
-                if (p.Name == projectName)
+                throw new ArgumentNullException("item");
+            }
+
+            string error = String.Empty;
+
+            try
+            {
+                Window window = item.Open();
+                window.Activate();
+
+                foreach (var cmd in command)
                 {
-                    return p;
+                    if (String.IsNullOrWhiteSpace(cmd) == true)
+                    {
+                        continue;
+                    }
+
+                    EnvDTE80.DTE2 dte2 = dte as EnvDTE80.DTE2;
+                    dte2.ExecuteCommand(cmd, String.Empty);
                 }
+
+                item.Save();
+                window.Visible = false;
+                // window.Close(); // Ends VS, but not the tab :(
+            }
+            catch (Exception ex)
+            {
+                error = String.Format("Error processing file {0} {1}", item.Name, ex.Message);
+            }
+
+            return error;
+        }
+
+        /// <summary>
+        /// Sets a property value for the vs project item.
+        /// </summary>
+        public static void SetPropertyValue(ProjectItem item, string propertyName, object value)
+        {
+            Property property = item.Properties.Item(propertyName);
+            if (property == null)
+            {
+                throw new ArgumentException(String.Format("The property {0} was not found.", propertyName));
+            }
+            else
+            {
+                property.Value = value;
+            }
+        }
+
+        public static string GetProjectPath(Project project)
+        {
+            var fullProjectName = project.FullName;
+
+            if (string.IsNullOrWhiteSpace(fullProjectName))
+                return string.Empty;
+
+            try
+            {
+                var info = new FileInfo(fullProjectName);
+                return info.Directory == null ? string.Empty : info.Directory.FullName;
+            }
+            catch
+            {
+                Logger.AddWarning($"// Project {fullProjectName} excluded.");
+                return string.Empty;
+            }
+        }
+
+        public static string GetOutputPath(string projectName, string folderName, string defaultPath)
+        {
+            DTE dte = GetDTE();
+
+            if (String.IsNullOrEmpty(projectName) == true && String.IsNullOrEmpty(folderName) == true)
+            {
+                return defaultPath;
+            }
+
+            Project prj = null;
+            ProjectItem item = null;
+
+            if (String.IsNullOrEmpty(projectName) == false)
+            {
+                prj = FindProject(projectName);
+            }
+
+            if (String.IsNullOrEmpty(folderName) == true && prj != null)
+            {
+                return Path.GetDirectoryName(prj.FullName);
+            }
+            else if (prj != null && String.IsNullOrEmpty(folderName) == false)
+            {
+                item = GetAllProjectItems(prj.ProjectItems).Where(i => i.Name == folderName).First();
+            }
+            else if (String.IsNullOrEmpty(folderName) == false)
+            {
+                item = GetAllProjectItems(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
+                        .Where(i => i.Name == folderName).First();
+            }
+
+            if (item != null)
+            {
+                return GetProjectItemFullPath(item);
+            }
+
+            return defaultPath;
+        }
+
+        public static ProjectItem FindProjectItem(string projectName, string folderName)
+        {
+            DTE dte = GetDTE();
+
+            bool isProjectSpecified = !String.IsNullOrEmpty(projectName);
+            bool isFolderSpecified = !String.IsNullOrEmpty(folderName);
+
+            if (!isProjectSpecified && !isFolderSpecified)
+            {
+                return null;
+            }
+
+            Project prj = null;
+            ProjectItem item = null;
+
+            if (isProjectSpecified)
+            {
+                prj = FindProject(projectName);
+            }
+
+            if (!isFolderSpecified && prj != null)
+            {
+                return null;
+            }
+            else if (prj != null && isFolderSpecified)
+            {
+                item = GetAllProjectItems(prj.ProjectItems).Where(i => i.Name == folderName).First();
+            }
+            else if (isFolderSpecified)
+            {
+                item = GetAllProjectItems(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
+                        .Where(i => i.Name == folderName).First();
+            }
+
+            if (item != null)
+            {
+                return item;
             }
 
             return null;
         }
 
-        public static List<ProjectItem> FindAllProjectItems(ProjectItems pis)
+        private static ProjectItem FindProjectItem(ProjectItems items, string fullName, bool canCreateIfNotExists)
         {
-            List<ProjectItem> results = new List<ProjectItem>();
-
-            foreach (ProjectItem pi in pis)
+            ProjectItem item = (from i in items.Cast<ProjectItem>()
+                                       where i.Name == Path.GetFileName(fullName)
+                                       select i).FirstOrDefault();
+            if (item == null)
             {
-                if (pi.Kind == Constants.vsProjectItemKindPhysicalFolder)
+                File.CreateText(fullName);
+                item = items.AddFromFile(fullName);
+            }
+
+            return item;
+        }
+
+        public static ProjectItem GetProjectItemWithName(ProjectItems items, string itemName)
+        {
+            return GetAllProjectItems(items).Cast<ProjectItem>().Where(i => i.Name == itemName).First();
+        }
+
+        public static string GetProjectItemFullPath(ProjectItem item)
+        {
+            return item.Properties.Item("FullPath").Value.ToString();
+        }
+
+        public static Project FindProject(string projectName)
+        {
+            DTE dte = GetDTE();
+            return GetAllProjects().Where(p => p.Name == projectName).First();
+        }
+
+        public static IEnumerable<Project> GetAllProjects()
+        {
+            DTE dte = GetDTE();
+
+            List<Project> projectList = new List<Project>();
+
+            var folders = dte.Solution.Projects.Cast<Project>().Where(p => p.Kind == EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
+
+            foreach (Project folder in folders)
+            {
+                if (folder.ProjectItems == null) continue;
+
+                foreach (ProjectItem item in folder.ProjectItems)
                 {
-                    results.AddRange(FindAllProjectItems(pi.ProjectItems));
-                }
-                else
-                {
-                    results.Add(pi);
+                    if (item.Object is Project)
+                        projectList.Add(item.Object as Project);
                 }
             }
 
-            return results;
+            var projects = dte.Solution.Projects.Cast<Project>().Where(p => p.Kind != EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
+
+            if (projects.Count() > 0)
+                projectList.AddRange(projects);
+
+            return projectList;
+        }
+
+        public static IEnumerable<ProjectItem> GetAllSolutionItems()
+        {
+            DTE dte = GetDTE();
+
+            List<ProjectItem> itemList = new List<ProjectItem>();
+
+            foreach (Project item in GetAllProjects())
+            {
+                if (item == null || item.ProjectItems == null) continue;
+
+                itemList.AddRange(GetAllProjectItems(item.ProjectItems));
+            }
+
+            return itemList;
+        }
+
+        public static IEnumerable<ProjectItem> GetAllProjectItems(ProjectItems projectItems)
+        {
+            foreach (ProjectItem projectItem in projectItems)
+            {
+                if (projectItem.ProjectItems == null) continue;
+
+                foreach (ProjectItem subItem in GetAllProjectItems(projectItem.ProjectItems))
+                {
+                    yield return subItem;
+                }
+
+                yield return projectItem;
+            }
         }
 
         public static List<CodeClass> FindClasses(CodeElements elements)
@@ -90,278 +300,6 @@ namespace DatabaseGenerationToolExt.Helpers
             }
 
             return result;
-        }
-
-        public static IEnumerable<Project> GetAllProjects()
-        {
-            foreach (var projectObj in GetSolution().Projects)
-            {
-                var project = projectObj as Project;
-                if (project == null)
-                    continue;
-                if (project.Kind == Constants.vsProjectKindSolutionItems)
-                    foreach (var p in RecurseSolutionFolder(project))
-                        yield return p;
-                else
-                    yield return project;
-            }
-        }
-
-        private static IEnumerable<Project> RecurseSolutionFolder(Project project)
-        {
-            if (project.ProjectItems == null)
-                yield break;
-
-            foreach (ProjectItem projectItem in project.ProjectItems)
-            {
-                var subProject = projectItem.SubProject;
-                if (subProject == null)
-                    continue;
-                if (subProject.Kind == Constants.vsProjectKindSolutionItems)
-                {
-                    foreach (var p in RecurseSolutionFolder(subProject))
-                        yield return p;
-                }
-                else
-                    yield return subProject;
-            }
-        }
-
-        public static string GetProjectPath(Project project)
-        {
-            var fullProjectName = project.FullName;
-
-            if (string.IsNullOrWhiteSpace(fullProjectName))
-                return string.Empty;
-
-            try
-            {
-                var info = new FileInfo(fullProjectName);
-                return info.Directory == null ? string.Empty : info.Directory.FullName;
-            }
-            catch
-            {
-                Logger.AddWarning($"// Project {fullProjectName} excluded.");
-                return string.Empty;
-            }
-        }
-
-
-
-        /// <summary>
-        /// Execute Visual Studio commands against the project item.
-        /// </summary>
-        /// <param name="item">The current project item.</param>
-        /// <param name="command">The vs command as string.</param>
-        /// <returns>An error message if the command fails.</returns>
-        public static string ExecuteVsCommand(EnvDTE.DTE dte, EnvDTE.ProjectItem item, params string[] command)
-        {
-            if (item == null)
-            {
-                throw new ArgumentNullException("item");
-            }
-
-            string error = String.Empty;
-
-            try
-            {
-                EnvDTE.Window window = item.Open();
-                window.Activate();
-
-                foreach (var cmd in command)
-                {
-                    if (String.IsNullOrWhiteSpace(cmd) == true)
-                    {
-                        continue;
-                    }
-
-                    EnvDTE80.DTE2 dte2 = dte as EnvDTE80.DTE2;
-                    dte2.ExecuteCommand(cmd, String.Empty);
-                }
-
-                item.Save();
-                window.Visible = false;
-                // window.Close(); // Ends VS, but not the tab :(
-            }
-            catch (Exception ex)
-            {
-                error = String.Format("Error processing file {0} {1}", item.Name, ex.Message);
-            }
-
-            return error;
-        }
-
-        /// <summary>
-        /// Sets a property value for the vs project item.
-        /// </summary>
-        public static void SetPropertyValue(EnvDTE.ProjectItem item, string propertyName, object value)
-        {
-            EnvDTE.Property property = item.Properties.Item(propertyName);
-            if (property == null)
-            {
-                throw new ArgumentException(String.Format("The property {0} was not found.", propertyName));
-            }
-            else
-            {
-                property.Value = value;
-            }
-        }
-
-        public static string GetOutputPath(EnvDTE.DTE dte, string projectName, string folderName, string defaultPath)
-        {
-            if (String.IsNullOrEmpty(projectName) == true && String.IsNullOrEmpty(folderName) == true)
-            {
-                return defaultPath;
-            }
-
-            EnvDTE.Project prj = null;
-            EnvDTE.ProjectItem item = null;
-
-            if (String.IsNullOrEmpty(projectName) == false)
-            {
-                prj = GetProject(dte, projectName);
-            }
-
-            if (String.IsNullOrEmpty(folderName) == true && prj != null)
-            {
-                return Path.GetDirectoryName(prj.FullName);
-            }
-            else if (prj != null && String.IsNullOrEmpty(folderName) == false)
-            {
-                item = GetAllProjectItemsRecursive(prj.ProjectItems).Where(i => i.Name == folderName).First();
-            }
-            else if (String.IsNullOrEmpty(folderName) == false)
-            {
-                item = GetAllProjectItemsRecursive(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
-                        .Where(i => i.Name == folderName).First();
-            }
-
-            if (item != null)
-            {
-                return GetProjectItemFullPath(item);
-            }
-
-            return defaultPath;
-        }
-
-        public static EnvDTE.ProjectItem FindProjectItem(EnvDTE.DTE dte, OutputFile file, EnvDTE.ProjectItem defaultItem)
-        {
-            if (String.IsNullOrEmpty(file.ProjectName) == true && String.IsNullOrEmpty(file.FolderName) == true)
-            {
-                return defaultItem;
-            }
-
-            EnvDTE.Project prj = null;
-            EnvDTE.ProjectItem item = null;
-
-            if (String.IsNullOrEmpty(file.ProjectName) == false)
-            {
-                prj = GetProject(dte, file.ProjectName);
-            }
-
-            if (String.IsNullOrEmpty(file.FolderName) == true && prj != null)
-            {
-                return null;
-            }
-            else if (prj != null && String.IsNullOrEmpty(file.FolderName) == false)
-            {
-                item = GetAllProjectItemsRecursive(prj.ProjectItems).Where(i => i.Name == file.FolderName).First();
-            }
-            else if (String.IsNullOrEmpty(file.FolderName) == false)
-            {
-                item = GetAllProjectItemsRecursive(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
-                        .Where(i => i.Name == file.FolderName).First();
-            }
-
-            if (item != null)
-            {
-                return item;
-            }
-
-            return defaultItem;
-        }
-
-        private static EnvDTE.ProjectItem FindProjectItem(EnvDTE.ProjectItems items, string fullName, bool canCreateIfNotExists)
-        {
-            EnvDTE.ProjectItem item = (from i in items.Cast<EnvDTE.ProjectItem>()
-                                       where i.Name == Path.GetFileName(fullName)
-                                       select i).FirstOrDefault();
-            if (item == null)
-            {
-                File.CreateText(fullName);
-                item = items.AddFromFile(fullName);
-            }
-
-            return item;
-        }
-
-        public static EnvDTE.Project GetProject(EnvDTE.DTE dte, string projectName)
-        {
-            return GetAllProjects(dte).Where(p => p.Name == projectName).First();
-        }
-
-        public static IEnumerable<EnvDTE.Project> GetAllProjects(EnvDTE.DTE dte)
-        {
-            List<EnvDTE.Project> projectList = new List<EnvDTE.Project>();
-
-            var folders = dte.Solution.Projects.Cast<EnvDTE.Project>().Where(p => p.Kind == EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
-
-            foreach (EnvDTE.Project folder in folders)
-            {
-                if (folder.ProjectItems == null) continue;
-
-                foreach (EnvDTE.ProjectItem item in folder.ProjectItems)
-                {
-                    if (item.Object is EnvDTE.Project)
-                        projectList.Add(item.Object as EnvDTE.Project);
-                }
-            }
-
-            var projects = dte.Solution.Projects.Cast<EnvDTE.Project>().Where(p => p.Kind != EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
-
-            if (projects.Count() > 0)
-                projectList.AddRange(projects);
-
-            return projectList;
-        }
-
-        public static EnvDTE.ProjectItem GetProjectItemWithName(EnvDTE.ProjectItems items, string itemName)
-        {
-            return GetAllProjectItemsRecursive(items).Cast<ProjectItem>().Where(i => i.Name == itemName).First();
-        }
-
-        public static string GetProjectItemFullPath(EnvDTE.ProjectItem item)
-        {
-            return item.Properties.Item("FullPath").Value.ToString();
-        }
-
-        public static IEnumerable<EnvDTE.ProjectItem> GetAllSolutionItems(EnvDTE.DTE dte)
-        {
-            List<EnvDTE.ProjectItem> itemList = new List<EnvDTE.ProjectItem>();
-
-            foreach (Project item in GetAllProjects(dte))
-            {
-                if (item == null || item.ProjectItems == null) continue;
-
-                itemList.AddRange(GetAllProjectItemsRecursive(item.ProjectItems));
-            }
-
-            return itemList;
-        }
-
-        public static IEnumerable<EnvDTE.ProjectItem> GetAllProjectItemsRecursive(EnvDTE.ProjectItems projectItems)
-        {
-            foreach (EnvDTE.ProjectItem projectItem in projectItems)
-            {
-                if (projectItem.ProjectItems == null) continue;
-
-                foreach (EnvDTE.ProjectItem subItem in GetAllProjectItemsRecursive(projectItem.ProjectItems))
-                {
-                    yield return subItem;
-                }
-
-                yield return projectItem;
-            }
         }
 
     }

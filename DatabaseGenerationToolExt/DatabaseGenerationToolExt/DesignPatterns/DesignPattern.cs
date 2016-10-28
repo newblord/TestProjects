@@ -19,13 +19,17 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             Setting = setting;
             GenerationEnvironment = new StringBuilder();
             NewFiles = new List<NewFile>();
+            dte = VisualStudioHelper.GetDTE();
+
+            CheckOutAction = fileName => dte.SourceControl.CheckOutItem(fileName);
+            SyncProjectsAction = keepFileNames => SyncProjects(keepFileNames);
         }
 
         #region Private Properties
 
-        private Action<string> checkOutAction;
-        private Action<IEnumerable<NewFile>> projectSyncAction;
-        private EnvDTE.DTE dte;
+        private Action<string> CheckOutAction;
+        private Action<IEnumerable<NewFile>> SyncProjectsAction;
+        private DTE dte;
 
         #endregion
 
@@ -63,12 +67,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
         /// all properties including the Reverse Navigation and Foreign Keys. The simplest way to exclude them is
         /// to use the data annotation [JsonIgnore] on reverse navigation and foreign keys.
         /// </summary>
-        public virtual string[] AdditionalReverseNavigationsDataAnnotations { get; set; } = new string[] 
+        public virtual string[] AdditionalReverseNavigationsDataAnnotations { get; set; } = new string[]
         {
             // "JsonIgnore"
         };
 
-        public virtual string[] AdditionalForeignKeysDataAnnotations { get; set; } = new string[] 
+        public virtual string[] AdditionalForeignKeysDataAnnotations { get; set; } = new string[]
         {
             // "JsonIgnore"
         };
@@ -228,6 +232,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             {
                 // check selectitem first
                 string defaultPath = string.Empty;
+                string currentProjectName = string.Empty;
                 var selectedItems = dte.SelectedItems.Cast<SelectedItem>();
                 if (selectedItems.Count() == 1)
                 {
@@ -236,6 +241,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
                     if (item.Project != null)
                     {
                         Project p = VisualStudioHelper.FindProject(item.Project.Name);
+                        currentProjectName = item.Project.Name;
                         defaultPath = VisualStudioHelper.GetProjectPath(item.Project);
                     }
                     else if (item.ProjectItem != null)
@@ -244,26 +250,47 @@ namespace DatabaseGenerationToolExt.DesignPatterns
                     }
                 }
 
-                var outputPath = VSHelper.GetOutputPath(dte, NewFiles.First().ProjectName, NewFiles.First().FolderName, defaultPath);
+                NewFiles.Reverse();
 
-                for (int i = 0; i < NewFiles.Count; i++)
+                var groupedFiles = (from f in NewFiles
+                                    group f by new { f.ProjectName, f.FolderName }
+                                      into l
+                                    select new
+                                    {
+                                        ProjectName = l.Key.ProjectName,
+                                        FolderName = l.Key.FolderName,
+                                        OutputFiles = l.ToArray()
+                                    }).ToArray();
+
+                for (int x = 0; x < groupedFiles.Length; x++)
                 {
-                    var outputFile = NewFiles[i];
+                    var outputPath = VSHelper.GetOutputPath(dte, NewFiles[x].ProjectName, NewFiles[x].FolderName, defaultPath);
+                    var outputFiles = groupedFiles[x].OutputFiles;
 
-                    outputFile.FilePath = Path.Combine(outputPath, outputFile.FileName);
-                    outputFile.FileContent = GenerationEnvironment.ToString(outputFile.Start, outputFile.Length);
-                    outputFile.OutputPath = outputPath;
+                    for (int i = 0; i < outputFiles.Length; i++)
+                    {
+                        var outputFile = NewFiles[i];
 
-                    CreateFile(outputFile);
-                    GenerationEnvironment.Remove(outputFile.Start, outputFile.Length);
+                        if(outputFile.ProjectName == null)
+                        {
+                            outputFile.ProjectName = currentProjectName;
+                        }
 
-                    list.Add(outputFile);
+                        outputFile.FilePath = Path.Combine(outputPath, outputFile.FileName);
+                        outputFile.FileContent = GenerationEnvironment.ToString(outputFile.Start, outputFile.Length);
+                        outputFile.OutputPath = outputPath;
+
+                        CreateFile(outputFile);
+                        GenerationEnvironment.Remove(outputFile.Start, outputFile.Length);
+
+                        list.Add(outputFile);
+                    }
                 }
             }
 
             if (list.Count > 0)
             {
-                projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(list, null, null));
+                SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
 
                 this.WriteLog(list);
             }
@@ -276,7 +303,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
                 File.WriteAllText(file.FilePath, file.FileContent);
             }
         }
-        
+
         private bool IsFileContentDifferent(NewFile file)
         {
             return !(File.Exists(file.FileName) && File.ReadAllText(file.FileName) == file.FileContent);
@@ -286,11 +313,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
         {
             for (int i = 0; i < list.Count(); i++)
             {
-                this._textTransformation.WriteLine("// " + list[i].FileName);
+                Logger.AddLog($"// {list[i].FileName}");
             }
         }
 
-        private void ProjectSync(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+        private void SyncProjects(IEnumerable<NewFile> keepFileNames)
         {
             var groupedFileNames = from f in keepFileNames
                                    group f by new { f.ProjectName, f.FolderName }
@@ -305,48 +332,41 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
             foreach (var item in groupedFileNames)
             {
-                if (String.IsNullOrEmpty(item.ProjectName) == true && String.IsNullOrEmpty(item.FolderName) == true)
+                ProjectItem pi = VisualStudioHelper.FindProjectItem(item.ProjectName, item.FolderName);
+                Project prj = VisualStudioHelper.FindProject(item.ProjectName);
+
+                if (pi != null)
                 {
-                    ProjectItemSyncPart(templateProjectItem, item.OutputFiles);
+                    prj.ProjectItems.AddFromDirectory(Path.GetDirectoryName(pi.FileNames[0]));
+
+                    if (!prj.Saved)
+                    {
+                        prj.Save();
+                    }
                 }
                 else
                 {
-                    EnvDTE.ProjectItem pi = VSHelper.FindProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
-
-                    if (pi != null)
-                    {
-                        EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.ProjectName);
-                        prj.ProjectItems.AddFromDirectory(Path.GetDirectoryName(pi.FileNames[0]));
-
-                        if (!prj.Saved)
-                        {
-                            prj.Save();
-                        }
-                    }
-                    else
-                    {
-                        EnvDTE.Project prj = VSHelper.GetProject(templateProjectItem.DTE, item.FirstItem.ProjectName);
-                        ProjectSyncPart(prj, item.OutputFiles);
-                    }
+                    SyncProjectFiles(prj, item.OutputFiles);
                 }
             }
 
+            // TODO: Check this code and do some testing on it
             // clean up
-            bool hasDefaultItems = groupedFileNames.Where(f => String.IsNullOrEmpty(f.ProjectName) && String.IsNullOrEmpty(f.FolderName)).Count() > 0;
-            if (hasDefaultItems == false)
-            {
-                ProjectItemSyncPart(templateProjectItem, new List<OutputFile>());
-            }
+            //bool hasDefaultItems = groupedFileNames.Where(f => String.IsNullOrEmpty(f.ProjectName) && String.IsNullOrEmpty(f.FolderName)).Count() > 0;
+            //if (hasDefaultItems == false)
+            //{
+            //    ProjectItemSyncPart(templateProjectItem, new List<OutputFile>());
+            //}
         }
 
-        private static void ProjectSyncPart(EnvDTE.Project project, IEnumerable<OutputFile> keepFileNames)
+        private static void SyncProjectFiles(Project project, IEnumerable<NewFile> keepFileNames)
         {
-            var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
+            var keepFileNameSet = new HashSet<NewFile>(keepFileNames);
 
-            var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+            var projectFiles = new Dictionary<string, ProjectItem>();
             //var originalOutput = Path.GetFileNameWithoutExtension(project.FileName);
 
-            foreach (EnvDTE.ProjectItem projectItem in project.ProjectItems)
+            foreach (ProjectItem projectItem in project.ProjectItems)
             {
                 projectFiles.Add(projectItem.FileNames[0], projectItem);
             }
@@ -367,18 +387,18 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             {
                 if (!projectFiles.ContainsKey(fileName.FileName))
                 {
-                    project.ProjectItems.AddFromFile(fileName.FileName);
+                    project.ProjectItems.AddFromFile(fileName.FilePath);
                 }
             }
         }
 
-        private static void ProjectItemSyncPart(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+        private static void ProjectItemSyncPart(ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
         {
             var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
-            var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+            var projectFiles = new Dictionary<string, ProjectItem>();
             var originalOutput = Path.GetFileNameWithoutExtension(templateProjectItem.FileNames[0]);
 
-            foreach (EnvDTE.ProjectItem projectItem in templateProjectItem.ProjectItems)
+            foreach (ProjectItem projectItem in templateProjectItem.ProjectItems)
             {
                 projectFiles.Add(projectItem.FileNames[0], projectItem);
             }
@@ -412,7 +432,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
             }
 
             // run on worker thread to prevent T4 calling back into VS
-            checkOutAction.EndInvoke(checkOutAction.BeginInvoke(fileName, null, null));
+            CheckOutAction.EndInvoke(CheckOutAction.BeginInvoke(fileName, null, null));
         }
 
         public virtual void WriteLine(string line)

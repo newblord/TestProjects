@@ -334,10 +334,12 @@ namespace DatabaseGenerationToolExt.Forms
             // Generate output
             if (tables.Count > 0 || storedProcs.Count > 0)
             {
-                DesignPattern pattern = new EntityFrameworkDesignPattern("4.6.1", Setting, Package);
+                EntityFrameworkDesignPattern pattern = new EntityFrameworkDesignPattern("4.6.1", Setting, Package);
                 pattern.CreateFiles(tables);
             }
 
+
+            // TODO: Need to add logger as a separate file that will need to be generated as well
             sw.Stop();
             Logger.AddLog($"// Total Elapsed Time: {sw.Elapsed.TotalSeconds.ToString()}");
 
