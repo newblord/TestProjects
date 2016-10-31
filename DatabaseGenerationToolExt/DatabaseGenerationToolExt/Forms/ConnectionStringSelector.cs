@@ -12,51 +12,58 @@ using System.Windows.Forms;
 
 namespace DatabaseGenerationToolExt.Forms
 {
-    public partial class ConnectionStringSelector : Form
-    {
-        public DatabaseConnection SelectedConnection { get; set; }
-        public string ConnectionStringName { get; private set; }
+	public partial class ConnectionStringSelector : Form
+	{
+		public DatabaseConnection SelectedConnection { get; set; }
+		public string ConnectionStringName { get; private set; }
 
-        public ConnectionStringSelector(Microsoft.VisualStudio.Shell.Package package)
-        {
-            InitializeComponent();
+		public ConnectionStringSelector(Microsoft.VisualStudio.Shell.Package package, string connectionStringName)
+		{
+			InitializeComponent();
 
-            List<DatabaseConnection> connections = ConnectionHelper.FindAllConnectionStrings();
+			List<DatabaseConnection> connections = ConnectionHelper.FindAllConnectionStrings();
 
-            if (connections.Count > 0)
-            {
-                connections.Insert(0, new DatabaseConnection());
+			if (connections.Count > 0)
+			{
+				DatabaseConnection value = connections.Where(x => x.ConnectionStringName == connectionStringName).FirstOrDefault();
 
-                cbConnections.DataSource = connections;
-                cbConnections.DisplayMember = "ConnectionStringName";
-                cbConnections.ValueMember = "ConnectionString";
-            }
-            else
-            {
-                MessageBox.Show("No Connection Strings were found in solution");
-            }
-        }
+				connections.Insert(0, new DatabaseConnection());
 
-        private void btnSelect_Click(object sender, EventArgs e)
-        {
-            if (cbConnections.SelectedIndex > 0)
-            {
-                List<DatabaseConnection> connections = (List<DatabaseConnection>)cbConnections.DataSource;
+				cbConnections.DataSource = connections;
+				cbConnections.DisplayMember = "ConnectionStringName";
+				cbConnections.ValueMember = "ConnectionStringName";
 
-                SelectedConnection = connections[cbConnections.SelectedIndex];
+				if(value != null)
+				{
+					cbConnections.SelectedValue = value.ConnectionStringName;
+				}
+			}
+			else
+			{
+				MessageBox.Show("No Connection Strings were found in solution");
+			}
+		}
 
-                this.Close();
-            }
-            else
-            {
-                MessageBox.Show("Select a connection string name");
-            }
-        }
+		private void btnSelect_Click(object sender, EventArgs e)
+		{
+			if (cbConnections.SelectedIndex > 0)
+			{
+				List<DatabaseConnection> connections = (List<DatabaseConnection>)cbConnections.DataSource;
 
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            SelectedConnection = null;
-            this.Close();
-        }
-    }
+				SelectedConnection = connections[cbConnections.SelectedIndex];
+
+				this.Close();
+			}
+			else
+			{
+				MessageBox.Show("Select a connection string name");
+			}
+		}
+
+		private void btnCancel_Click(object sender, EventArgs e)
+		{
+			SelectedConnection = null;
+			this.Close();
+		}
+	}
 }

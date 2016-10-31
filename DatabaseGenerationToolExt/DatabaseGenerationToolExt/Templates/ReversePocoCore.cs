@@ -12,6 +12,8 @@ using System.Data.Entity.Infrastructure.Pluralization;
 using System.Data;
 using System.Xml.Serialization;
 using System.IO;
+using EnvDTE;
+using DatabaseGenerationToolExt.Helpers;
 
 namespace DatabaseGenerationToolExt.Templates
 {
@@ -472,13 +474,32 @@ namespace DatabaseGenerationToolExt.Templates
 			return string.Join(" && ", index.Columns.Select(s => "x." + s.NameHumanCase + " == " + s.ParameterName));
 		}
 
-		public static void ProcessDatabaseXML(string templateFileName, ref List<TableData> tableNames, ref List<string> storedProcedureNames, ref DatabaseGenerationSetting setting)
+		public static void ProcessDatabaseXML(List<TableData> tableNames, List<string> storedProcedureNames, DatabaseGenerationSetting setting)
 		{
-			string fileName = templateFileName.Replace(".tt", "") + ".xml";
+			string fileName = setting.XmlAndLogFilePrefix + "Settings.xml";
 
-			if (System.IO.File.Exists(fileName))
+			string filePath = string.Empty;
+			var selectedItems = VisualStudioHelper.GetDTE().SelectedItems.Cast<SelectedItem>();
+			if (selectedItems.Count() == 1)
 			{
-				var xml = XDocument.Load(fileName);
+				SelectedItem item = selectedItems.FirstOrDefault();
+
+				if (item.Project != null)
+				{
+					Project p = VisualStudioHelper.FindProject(item.Project.Name);
+					filePath = VisualStudioHelper.GetProjectPath(item.Project);
+				}
+				else if (item.ProjectItem != null)
+				{
+					filePath = VisualStudioHelper.GetProjectPath(item.ProjectItem.ContainingProject);
+				}
+			}
+
+			filePath = Path.Combine(filePath, fileName);
+
+			if (System.IO.File.Exists(filePath))
+			{
+				var xml = XDocument.Load(filePath);
 
 				XElement settingNode = xml.Root.Descendants("DatabaseGenerationSetting").FirstOrDefault();
 				XmlSerializer serializer = new XmlSerializer(typeof(DatabaseGenerationSetting));

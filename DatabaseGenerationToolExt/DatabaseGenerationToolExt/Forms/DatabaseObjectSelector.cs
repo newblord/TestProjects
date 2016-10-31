@@ -13,45 +13,52 @@ using DatabaseGenerationToolExt.Helpers;
 
 namespace DatabaseGenerationToolExt.Forms
 {
-    public partial class DatabaseObjectSelector : Form
+	public partial class DatabaseObjectSelector : Form
 	{
-        private Package Package { get; set; }
+		private Package Package { get; set; }
 
-        public List<TableData> TableNames { get; set; }
+		public List<TableData> TableNames { get; set; }
 
 		public List<string> StoredProcedureNames { get; set; }
 
 		public DatabaseGenerationSetting Setting { get; set; }
 
-        public bool IsCanceled { get; set; } = false;
+		public bool IsCanceled { get; set; } = false;
 
 		public DatabaseObjectSelector(Package package)
 		{
-            InitializeComponent();
+			InitializeComponent();
 
-            Package = package;
+			Package = package;
 
-            ConnectionStringSelector conForm = new ConnectionStringSelector(Package);
+			TableNames = new List<TableData>();
+			StoredProcedureNames = new List<string>();
 
-            conForm.ShowDialog();
+			Setting = new DatabaseObjects.DatabaseGenerationSetting();
+			ReversePocoCore.ProcessDatabaseXML(TableNames, StoredProcedureNames, Setting);
 
-            if (conForm.SelectedConnection != null)
-            {
-                Setting = new DatabaseObjects.DatabaseGenerationSetting(conForm.SelectedConnection);
-                TableNames = new List<TableData>();
-                StoredProcedureNames = new List<string>();
+			using (ConnectionStringSelector conForm = new ConnectionStringSelector(Package, Setting.ConnectionStringName))
+			{
+				conForm.ShowDialog();
 
-                PopulateDropDownLists();
-                InitializeDatabaseObjects();
-                LoadDatabaseGenerationSettings();
-                // TODO: Need to fix this method to use a differnet file instead of hte TemplateFile now
-                //ReversePocoCore.ProcessDatabaseXML(Host.TemplateFile, ref TableNames, ref StoredProcedureNames, ref Setting);
-            }
-            else
-            {
-                conForm.Dispose();
-                IsCanceled = true;
-            }
+				if (conForm.SelectedConnection != null)
+				{
+					Logger.ResetLogs();
+
+					Setting.ConnectionStringName = conForm.SelectedConnection.ConnectionStringName;
+					Setting.ConnectionString = conForm.SelectedConnection.ConnectionString;
+					Setting.ProviderName = conForm.SelectedConnection.ProviderName;
+
+					PopulateDropDownLists();
+					InitializeDatabaseObjects();
+					LoadDatabaseGenerationSettings();
+				}
+				else
+				{
+					conForm.Dispose();
+					IsCanceled = true;
+				}
+			}
 		}
 
 		#region Private Methods
@@ -100,7 +107,6 @@ namespace DatabaseGenerationToolExt.Forms
 				cbxPartialClasses.DataBindings.Add("Checked", Setting, "MakeClassesPartial");
 				cbxPartialInterfaces.DataBindings.Add("Checked", Setting, "MakeInterfacesPartial");
 				cbxPartialContextInterface.DataBindings.Add("Checked", Setting, "MakeContextInterfacePartial");
-				cbxGenerateSeparateFiles.DataBindings.Add("Checked", Setting, "GenerateSeparateFiles");
 				cbxUseDataAnnotations.DataBindings.Add("Checked", Setting, "UseDataAnnotations");
 				cbxGenerateContextClass.DataBindings.Add("Checked", Setting, "GenerateContextClass");
 				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", Setting, "GenerateUnitOfWorkInterface");
@@ -321,29 +327,21 @@ namespace DatabaseGenerationToolExt.Forms
 
 			Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
 
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+			// Read schema
+			ReversePocoCore reversePocoCore = new ReversePocoCore(Setting);
 
-            sw.Start();
-            // Read schema
-            ReversePocoCore reversePocoCore = new ReversePocoCore(Setting);
+			var factory = ConnectionHelper.GetDbProviderFactory(Setting.ProviderName);
+			var tables = reversePocoCore.LoadTables(factory, TableNames);
+			var storedProcs = reversePocoCore.LoadStoredProcs(factory, StoredProcedureNames);
 
-            var factory = ConnectionHelper.GetDbProviderFactory(Setting.Providername);
-            var tables = reversePocoCore.LoadTables(factory, TableNames);
-            var storedProcs = reversePocoCore.LoadStoredProcs(factory, StoredProcedureNames);
+			// Generate output
+			if (tables.Count > 0 || storedProcs.Count > 0)
+			{
+				EntityFrameworkDesignPattern pattern = new EntityFrameworkDesignPattern("4.6.1", Setting, Package, TableNames, StoredProcedureNames);
+				pattern.CreateFiles(tables, storedProcs);
+			}
 
-            // Generate output
-            if (tables.Count > 0 || storedProcs.Count > 0)
-            {
-                EntityFrameworkDesignPattern pattern = new EntityFrameworkDesignPattern("4.6.1", Setting, Package);
-                pattern.CreateFiles(tables);
-            }
-
-
-            // TODO: Need to add logger as a separate file that will need to be generated as well
-            sw.Stop();
-            Logger.AddLog($"// Total Elapsed Time: {sw.Elapsed.TotalSeconds.ToString()}");
-
-            this.Close();
+			this.Close();
 		}
 
 		private void btnCancel_Click(object sender, EventArgs e)
@@ -368,9 +366,9 @@ namespace DatabaseGenerationToolExt.Forms
 			gvTables[3, rowIndex].Value = isChecked;
 			gvTables[4, rowIndex].Value = isChecked;
 			gvTables[5, rowIndex].Value = isChecked;
-            gvTables[6, rowIndex].Value = isChecked;
-            gvTables[7, rowIndex].Value = isChecked;
-        }
+			gvTables[6, rowIndex].Value = isChecked;
+			gvTables[7, rowIndex].Value = isChecked;
+		}
 
 		private void UpdateTableSettings()
 		{
@@ -378,7 +376,7 @@ namespace DatabaseGenerationToolExt.Forms
 
 			if (tableData.Any())
 			{
-				if(!cbxPocos.Focused)
+				if (!cbxPocos.Focused)
 					cbxPocos.Checked = tableData.Where(x => x.GeneratePoco).Count() == tableData.Count;
 				if (!cbxPocoInterfaces.Focused)
 					cbxPocoInterfaces.Checked = tableData.Where(x => x.GeneratePocoInterface).Count() == tableData.Count;
@@ -386,11 +384,11 @@ namespace DatabaseGenerationToolExt.Forms
 					cbxRepositories.Checked = tableData.Where(x => x.GenerateRepository).Count() == tableData.Count;
 				if (!cbxRepositoryInterfaces.Focused)
 					cbxRepositoryInterfaces.Checked = tableData.Where(x => x.GenerateRepositoryInterface).Count() == tableData.Count;
-                if (!cbxServices.Focused)
-                    cbxServices.Checked = tableData.Where(x => x.GenerateService).Count() == tableData.Count;
-                if (!cbxServiceInterfaces.Focused)
-                    cbxServiceInterfaces.Checked = tableData.Where(x => x.GenerateServiceInterface).Count() == tableData.Count;
-            }
+				if (!cbxServices.Focused)
+					cbxServices.Checked = tableData.Where(x => x.GenerateService).Count() == tableData.Count;
+				if (!cbxServiceInterfaces.Focused)
+					cbxServiceInterfaces.Checked = tableData.Where(x => x.GenerateServiceInterface).Count() == tableData.Count;
+			}
 		}
 
 		private void HandleTableSelectChange(bool isChecked)
@@ -460,10 +458,10 @@ namespace DatabaseGenerationToolExt.Forms
 						bool iPocoValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
 						bool repoValue = (bool)gvTables[4, e.RowIndex].FormattedValue;
 						bool iRepoValue = (bool)gvTables[5, e.RowIndex].FormattedValue;
-                        bool serviceValue = (bool)gvTables[6, e.RowIndex].FormattedValue;
-                        bool iServiceValue = (bool)gvTables[7, e.RowIndex].FormattedValue;
+						bool serviceValue = (bool)gvTables[6, e.RowIndex].FormattedValue;
+						bool iServiceValue = (bool)gvTables[7, e.RowIndex].FormattedValue;
 
-                        if (pocoValue || iPocoValue || repoValue || iRepoValue || serviceValue || iServiceValue)
+						if (pocoValue || iPocoValue || repoValue || iRepoValue || serviceValue || iServiceValue)
 						{
 							cbxSelect.Value = true;
 							HandleTableSelectChange(true);
@@ -511,8 +509,8 @@ namespace DatabaseGenerationToolExt.Forms
 				cbxPocoInterfaces.Checked = cbx.Checked;
 				cbxRepositories.Checked = cbx.Checked;
 				cbxRepositoryInterfaces.Checked = cbx.Checked;
-                cbxServices.Checked = cbx.Checked;
-                cbxServiceInterfaces.Checked = cbx.Checked;
+				cbxServices.Checked = cbx.Checked;
+				cbxServiceInterfaces.Checked = cbx.Checked;
 
 				for (int i = 0; i < gvTables.Rows.Count; i++)
 				{
@@ -579,38 +577,38 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-        private void cbxServices_CheckedChanged(object sender, EventArgs e)
-        {
-            CheckBox cbx = (CheckBox)sender;
+		private void cbxServices_CheckedChanged(object sender, EventArgs e)
+		{
+			CheckBox cbx = (CheckBox)sender;
 
-            if (cbx.Focused)
-            {
-                for (int i = 0; i < gvTables.Rows.Count; i++)
-                {
-                    ((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[6]).EditingCellValueChanged = true;
-                    gvTables.Rows[i].Cells[6].Value = cbx.Checked;
-                }
-            }
-        }
+			if (cbx.Focused)
+			{
+				for (int i = 0; i < gvTables.Rows.Count; i++)
+				{
+					((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[6]).EditingCellValueChanged = true;
+					gvTables.Rows[i].Cells[6].Value = cbx.Checked;
+				}
+			}
+		}
 
-        private void cbxServiceInterfaces_CheckedChanged(object sender, EventArgs e)
-        {
-            CheckBox cbx = (CheckBox)sender;
+		private void cbxServiceInterfaces_CheckedChanged(object sender, EventArgs e)
+		{
+			CheckBox cbx = (CheckBox)sender;
 
-            if (cbx.Focused)
-            {
-                for (int i = 0; i < gvTables.Rows.Count; i++)
-                {
-                    ((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[7]).EditingCellValueChanged = true;
-                    gvTables.Rows[i].Cells[7].Value = cbx.Checked;
-                }
-            }
-        }
+			if (cbx.Focused)
+			{
+				for (int i = 0; i < gvTables.Rows.Count; i++)
+				{
+					((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[7]).EditingCellValueChanged = true;
+					gvTables.Rows[i].Cells[7].Value = cbx.Checked;
+				}
+			}
+		}
 
-        #endregion
+		#endregion
 
-        #endregion
+		#endregion
 
-    }
+	}
 
 }

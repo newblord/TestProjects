@@ -131,7 +131,7 @@ namespace DatabaseGenerationToolExt.Helpers
             else if (String.IsNullOrEmpty(folderName) == false)
             {
                 item = GetAllProjectItems(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
-                        .Where(i => i.Name == folderName).First();
+                        .Where(i => i.Name == folderName).FirstOrDefault();
             }
 
             if (item != null)
@@ -173,7 +173,7 @@ namespace DatabaseGenerationToolExt.Helpers
             else if (isFolderSpecified)
             {
                 item = GetAllProjectItems(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
-                        .Where(i => i.Name == folderName).First();
+                        .Where(i => i.Name == folderName).FirstOrDefault();
             }
 
             if (item != null)

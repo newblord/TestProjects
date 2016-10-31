@@ -6,40 +6,35 @@ using System.Threading.Tasks;
 
 namespace DatabaseGenerationToolExt.Helpers
 {
-    public static class Logger
-    {
-        public static List<string> Warnings { get; private set; }
-        public static List<string> Errors { get; private set; }
-        public static List<string> Logs { get; private set; }
+	public static class Logger
+	{
+		public static StringBuilder Warnings { get; private set; }
+		public static StringBuilder Errors { get; private set; }
+		public static StringBuilder Logs { get; private set; }
 
-        public static void AddWarning(string warning)
-        {
-            if(Warnings == null)
-            {
-                Warnings = new List<string>();
-            }
+		public static void AddWarning(string warning)
+		{
+			Warnings.AppendLine(warning);
+		}
 
-            Warnings.Add(warning);
-        }
+		public static void AddError(string error)
+		{
+			Errors.AppendLine(error);
+		}
 
-        public static void AddError(string error)
-        {
-            if (Errors == null)
-            {
-                Errors = new List<string>();
-            }
+		public static void AddLog(string log)
+		{
+			Logs.AppendLine(log);
+		}
 
-            Errors.Add(error);
-        }
+		public static void ResetLogs()
+		{
+			Warnings = new StringBuilder();
+			Errors = new StringBuilder();
+			Logs = new StringBuilder();
 
-        public static void AddLog(string log)
-        {
-            if(Logs == null)
-            {
-                Logs = new List<string>();
-            }
-
-            Logs.Add(log);
-        }
-    }
+			Warnings.AppendLine("// Warnings");
+			Errors.AppendLine("// Errors");
+		}
+	}
 }
