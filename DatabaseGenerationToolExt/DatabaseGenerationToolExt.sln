@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseGenerationToolExt",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BEFBEA82-2D20-4F3F-94F6-B09DE8D701C9}"
 	ProjectSection(SolutionItems) = preProject
-		DatabaseGenerationToolExt\Features-Readme.txt = DatabaseGenerationToolExt\Features-Readme.txt
+		Features-Readme.txt = Features-Readme.txt
 	EndProjectSection
 EndProject
 Global
