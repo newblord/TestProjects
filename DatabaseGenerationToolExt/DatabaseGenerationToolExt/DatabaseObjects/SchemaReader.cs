@@ -1,4 +1,4 @@
-﻿using DatabaseGenerationToolExt.Templates;
+﻿using DatabaseGenerationToolExt.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +7,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace DatabaseGenerationToolExt.DatabaseObjects
 {
@@ -188,19 +187,70 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			R.SPECIFIC_NAME,
 			P.ORDINAL_POSITION";
 
-		private bool IncludeQueryTraceOn9481Flag;
-		public List<TableData> SelectedTables { get; set; }
+        public static readonly List<string> ReservedKeywords = new List<string>
+        {
+            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char",
+            "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
+            "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed",
+            "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface",
+            "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator",
+            "out", "override", "params", "private", "protected", "public", "readonly", "ref",
+            "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
+            "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong",
+            "unchecked", "unsafe", "ushort", "using", "virtual", "volatile", "void", "while"
+        };
+
+        // Filtering **************************************************************************************************************************
+        // Use the following table/view name regex filters to include or exclude tables/views
+        // Exclude filters are checked first and tables matching filters are removed.
+        //  * If left null, none are excluded.
+        //  * If not null, any tables matching the regex are excluded.
+        // Include filters are checked second.
+        //  * If left null, all are included.
+        //  * If not null, only the tables matching the regex are included.
+        // For clarity: if you want to include all the customer tables, but not the customer billing tables.
+        //		TableFilterInclude = new Regex("^[Cc]ustomer.*"); // This includes all the customer and customer billing tables
+        //		TableFilterExclude = new Regex(".*[Bb]illing.*"); // This excludes all the billing tables
+        //
+        // Example:	  TableFilterExclude = new Regex(".*auto.*");
+        //				  TableFilterInclude = new Regex("(.*_FR_.*)|(data_.*)");
+        //				  TableFilterInclude = new Regex("^table_name1$|^table_name2$|etc");
+        //				  ColumnFilterExclude = new Regex("^FK_.*$");
+        private Regex SchemaFilterExclude = null;
+        private Regex SchemaFilterInclude = null;
+        private Regex TableFilterExclude = null;
+        private Regex TableFilterInclude = null;
+        private Regex ColumnFilterExclude = null;
+
+        // Stored Procedures ******************************************************************************************************************
+        // Use the following regex filters to include or exclude stored procedures
+        private Regex StoredProcedureFilterExclude = null;
+        private Regex StoredProcedureFilterInclude = null;
+
+        // Column modification*****************************************************************************************************************
+        // Use the following list to replace column byte types with Enums.
+        // As long as the type can be mapped to your new type, all is well.
+        //EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "match_table_name", Column = "match_column_name", EnumType = "name_of_enum" });
+        //EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "OrderHeader", Column = "OrderStatus", EnumType = "OrderStatusType" }); // This will replace OrderHeader.OrderStatus type to be an OrderStatusType enum
+        public static List<EnumDefinition> EnumsDefinitions = new List<EnumDefinition>();
+
+        private bool IncludeQueryTraceOn9481Flag;
+        private DatabaseGenerationSetting Setting;
+
+        public List<TableData> SelectedTables { get; set; }
 		public List<string> StoredProcedureNames { get; set; }
 
 		protected readonly DbCommand Cmd;
 
-		public SchemaReader(DbConnection connection, DbProviderFactory factory, bool includeQueryTraceOn9481Flag)
+		public SchemaReader(DbConnection connection, DbProviderFactory factory, bool includeQueryTraceOn9481Flag, DatabaseGenerationSetting setting)
 		{
 			Cmd = factory.CreateCommand();
 			if (Cmd != null)
 				Cmd.Connection = connection;
 
 			IncludeQueryTraceOn9481Flag = includeQueryTraceOn9481Flag;
+            Setting = setting;
+
 			SelectedTables = new List<TableData>();
 			StoredProcedureNames = new List<string>();
 		}
@@ -248,7 +298,256 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			return false;
 		}
 
-		public Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns)
+        public Func<Table, bool> TableFilter = (Table t) =>
+        {
+            // Example: Exclude any table in dbo schema with "order" in its name.
+            //if(t.Schema.Equals("dbo", StringComparison.InvariantCultureIgnoreCase) && t.NameHumanCase.ToLowerInvariant().Contains("order"))
+            //	 return false;
+
+            return true;
+        };
+
+        // Table renaming *********************************************************************************************************************
+        // Use the following function to rename tables such as tblOrders to Orders, Shipments_AB to Shipments, etc.
+        // Example:
+        public Func<string, string, string> TableRename = (name, schema) =>
+        {
+            // Example
+            //if (name.StartsWith("tbl"))
+            //	 name = name.Remove(0, 3);
+            //name = name.Replace("_AB", "");
+
+            // If you turn camel casing off (Setting.UseCamelCase = false), and use the pluralisation service, and some of your
+            // tables names are all UPPERCASE, some words ending in IES such as CATEGORIES get singularised as CATEGORy.
+            // Therefore you can make them lowercase by using the following
+            // return Inflector.MakeLowerIfAllCaps(name);
+
+            return name;
+        };
+
+        // Use the following function if you need to apply additional modifications to a column
+        // eg. normalise names etc.
+        Func<Column, Table, Column> UpdateColumn = (Column column, Table table) =>
+        {
+            // Example
+            if (column.IsPrimaryKey)
+                column.NameHumanCase = "Id";
+
+            if (column.NameHumanCase.EndsWith("Key"))
+            {
+                column.NameHumanCase = column.NameHumanCase.Substring(0, column.NameHumanCase.LastIndexOf("Key")) + "Id";
+            }
+
+            // .IsConcurrencyToken() must be manually configured. However .IsRowVersion() can be automatically detected.
+            //if (table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase) && column.NameHumanCase.Equals("SomeColumn", StringComparison.InvariantCultureIgnoreCase))
+            //	 column.IsConcurrencyToken = true;
+
+            // Remove table name from primary key
+            //if (column.IsPrimaryKey && column.NameHumanCase.Equals(table.NameHumanCase + "Id", StringComparison.InvariantCultureIgnoreCase))
+            //	 column.NameHumanCase = "Id";
+
+            // Remove column from poco class as it will be inherited from a base class
+            //if (column.IsPrimaryKey && table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase))
+            //	 column.Hidden = true;
+
+            // Perform Enum property type replacement
+            var enumDefinition = EnumsDefinitions.FirstOrDefault(e =>
+                (e.Schema.Equals(table.Schema, StringComparison.InvariantCultureIgnoreCase)) &&
+                (e.Table.Equals(table.Name, StringComparison.InvariantCultureIgnoreCase) || e.Table.Equals(table.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)) &&
+                (e.Column.Equals(column.Name, StringComparison.InvariantCultureIgnoreCase) || e.Column.Equals(column.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)));
+
+            if (enumDefinition != null)
+            {
+                column.PropertyType = enumDefinition.EnumType;
+                if (!string.IsNullOrEmpty(column.Default))
+                    column.Default = "(" + enumDefinition.EnumType + ") " + column.Default;
+            }
+
+            return column;
+        };
+
+        // StoredProcedure return types *******************************************************************************************************
+        // Override generation of return models for stored procedures that return entities.
+        // If a stored procedure returns an entity, add it to the list below.
+        // This will suppress the generation of the return model, and instead return the entity.
+        // Example:							  Proc name		Return this entity type instead
+        //StoredProcedureReturnTypes.Add("SalesByYear", "SummaryOfSalesByYear");
+
+        Func<ForeignKey, ForeignKey> ForeignKeyFilter = (ForeignKey fk) =>
+        {
+            // Return null to exclude this foreign key
+            // Example, to exclude all foreign keys for the Categories table, use:
+            // if (fk.PkTableName == "Categories")
+            //	 return null;
+            return fk;
+        };
+
+        Func<string, string, short, string> ForeignKeyName = (tableName, foreignKeyName, attempt) =>
+        {
+            // 5 Attempts to correctly name the foreign key
+            switch (attempt)
+            {
+                case 1:
+                    // Try without appending foreign key name
+                    return tableName;
+
+                case 2:
+                    // Only called if foreign key name ends with "id"
+                    // Use foreign key name without "id" at end of string
+                    return foreignKeyName.Remove(foreignKeyName.Length - 2, 2);
+
+                case 3:
+                    // Use foreign key name only
+                    return foreignKeyName;
+
+                case 4:
+                    // Use table name and foreign key name
+                    return tableName + "_" + foreignKeyName;
+
+                case 5:
+                    // Used in for loop 1 to 99 to append a number to the end
+                    return tableName;
+
+                default:
+                    // Give up
+                    return tableName;
+            }
+        };
+
+        private static readonly Regex RxCleanUp = new Regex(@"[^\w\d\s_-]", RegexOptions.Compiled);
+
+        public static readonly Func<string, string> CleanUp = (str) =>
+        {
+            // Replace punctuation and symbols in variable names as these are not allowed.
+            int len = str.Length;
+            if (len == 0)
+                return str;
+            var sb = new StringBuilder();
+            bool replacedCharacter = false;
+            for (int n = 0; n < len; ++n)
+            {
+                char c = str[n];
+                if (c != '_' && c != '-' && (char.IsSymbol(c) || char.IsPunctuation(c)))
+                {
+                    int ascii = c;
+                    sb.AppendFormat("{0}", ascii);
+                    replacedCharacter = true;
+                    continue;
+                }
+                sb.Append(c);
+            }
+            if (replacedCharacter)
+                str = sb.ToString();
+
+            // Remove non alphanumerics
+            str = RxCleanUp.Replace(str, "");
+            if (char.IsDigit(str[0]))
+                str = "C" + str;
+
+            return str;
+        };
+
+        public Tables LoadTables(DbProviderFactory factory, List<TableData> selectedTables)
+        {
+            if (factory == null)
+                return new Tables();
+
+            try
+            {
+                using (DbConnection conn = factory.CreateConnection())
+                {
+                    conn.ConnectionString = Setting.ConnectionString;
+                    conn.Open();
+
+                    SelectedTables = selectedTables;
+
+                    var tables = ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.IncludeComments, TableRename, UpdateColumn, Setting.PrivateSetterForComputedColumns);
+                    tables.SetPrimaryKeys();
+
+                    var indexList = ReadIndexes(tables);
+                    ProcessIndexes(indexList, tables);
+
+                    // Must be done in this order
+                    var fkList = ReadForeignKeys(TableRename, ForeignKeyFilter);
+                    IdentifyForeignKeys(fkList, tables);
+                    ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, true, Setting.IncludeComments, ForeignKeyName);
+
+                    tables.ResetNavigationProperties();
+                    ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, false, Setting.IncludeComments, ForeignKeyName);
+
+                    foreach (var t in tables)
+                        t.SetHasPrimaryKey();
+
+                    conn.Close();
+                    return tables;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new Tables();
+            }
+        }
+
+        public List<StoredProcedure> LoadStoredProcs(DbProviderFactory factory, List<string> storedProcedureNames)
+        {
+            if (factory == null)
+                return new List<StoredProcedure>();
+
+            try
+            {
+                using (DbConnection conn = factory.CreateConnection())
+                {
+                    conn.ConnectionString = Setting.ConnectionString;
+                    conn.Open();
+
+                    StoredProcedureNames = storedProcedureNames;
+
+                    var storedProcs = ReadStoredProcs(SchemaFilterExclude, StoredProcedureFilterExclude, Setting.UseCamelCase, Setting.PrependSchemaName, StoredProcedure.StoredProcedureRename);
+                    conn.Close();
+
+                    // Remove unrequired stored procs
+                    for (int i = storedProcs.Count - 1; i >= 0; i--)
+                    {
+                        if (SchemaFilterInclude != null && !SchemaFilterInclude.IsMatch(storedProcs[i].Schema))
+                        {
+                            storedProcs.RemoveAt(i);
+                            continue;
+                        }
+                        if (StoredProcedureFilterInclude != null && !StoredProcedureFilterInclude.IsMatch(storedProcs[i].Name))
+                        {
+                            storedProcs.RemoveAt(i);
+                            continue;
+                        }
+                    }
+
+                    using (var sqlConnection = new SqlConnection(Setting.ConnectionString))
+                    {
+                        foreach (var proc in storedProcs)
+                            ReadStoredProcReturnObject(sqlConnection, proc);
+                    }
+
+                    // Remove stored procs where the return model type contains spaces and cannot be mapped
+                    var validStoredProcedures = new List<StoredProcedure>();
+                    foreach (var sp in storedProcs)
+                    {
+                        if (!sp.ReturnModels.Any())
+                        {
+                            validStoredProcedures.Add(sp);
+                            continue;
+                        }
+                        if (!sp.ReturnModels.Any(returnColumns => returnColumns.Any(c => c.ColumnName.Contains(" "))))
+                            validStoredProcedures.Add(sp);
+                    }
+                    return validStoredProcedures;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<StoredProcedure>();
+            }
+        }
+
+        public Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns)
 		{
 			var result = new Tables();
 			if (Cmd == null)
@@ -295,7 +594,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 								continue;
 
 							// Handle table names with underscores - singularise just the last word
-							table.ClassName = Inflector.MakeSingular(ReversePocoCore.CleanUp(tableName));
+							table.ClassName = Inflector.MakeSingular(CleanUp(tableName));
 							var titleCase = (useCamelCase ? Inflector.ToTitleCase(table.ClassName) : table.ClassName).Replace(" ", "").Replace("$", "").Replace(".", "");
 							table.NameHumanCase = titleCase;
 
@@ -304,7 +603,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 								table.NameHumanCase = table.Schema + "_" + table.NameHumanCase;
 
 							// Check for table or C# name clashes
-							if (ReversePocoCore.ReservedKeywords.Contains(table.NameHumanCase) ||
+							if (ReservedKeywords.Contains(table.NameHumanCase) ||
 								(useCamelCase && result.Find(x => x.NameHumanCase == table.NameHumanCase) != null))
 							{
 								table.NameHumanCase += "1";
@@ -487,8 +786,8 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 							Ordinal = (int)rdr["ORDINAL_POSITION"],
 							Mode = (parameterMode == "IN") ? StoredProcedureParameterMode.In : StoredProcedureParameterMode.InOut,
 							Name = rdr["PARAMETER_NAME"].ToString().Trim(),
-							SqlDbType = GetSqlDbType(typename, scale, precision),
-							PropertyType = GetPropertyType(typename, scale, precision),
+							SqlDbType = PropertyTypeHelper.GetSqlDbType(typename, scale, precision),
+							PropertyType = PropertyTypeHelper.GetPropertyType(typename, scale, precision),
 							DateTimePrecision = (Int16)rdr["DATETIME_PRECISION"],
 							MaxLength = (int)rdr["CHARACTER_MAXIMUM_LENGTH"],
 							Precision = precision,
@@ -496,12 +795,12 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 							UserDefinedTypeName = rdr["USER_DEFINED_TYPE"].ToString().Trim()
 						};
 
-						var clean = ReversePocoCore.CleanUp(param.Name.Replace("@", ""));
+						var clean = CleanUp(param.Name.Replace("@", ""));
 						param.NameHumanCase =
 							Inflector.MakeInitialLower(
 								(useCamelCase ? Inflector.ToTitleCase(clean) : clean).Replace(" ", ""));
 
-						if (ReversePocoCore.ReservedKeywords.Contains(param.NameHumanCase))
+						if (ReservedKeywords.Contains(param.NameHumanCase))
 							param.NameHumanCase = "@" + param.NameHumanCase;
 
 						sp.Parameters.Add(param);
@@ -611,7 +910,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 				var fkCol = fkCols.First();
 				var pkCol = pkCols.First();
 
-				var relationship = ReversePocoCore.CalcRelationship(pkTable, fkTable, fkCols.OrderBy(o => o.fkOrdinal).Select(c => c.col).ToList(), pkCols);
+				var relationship = ForeignKey.CalcRelationship(pkTable, fkTable, fkCols.OrderBy(o => o.fkOrdinal).Select(c => c.col).ToList(), pkCols);
 				if (relationship == Relationship.DoNotUse)
 					continue;
 
@@ -741,7 +1040,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			{
 				Name = rdr["ColumnName"].ToString().Trim(),
 				SqlPropertyType = typename,
-				PropertyType = GetPropertyType(typename, scale, precision),
+				PropertyType = PropertyTypeHelper.GetPropertyType(typename, scale, precision),
 				MaxLength = (int)rdr["MaxLength"],
 				Precision = precision,
 				Default = rdr["Default"].ToString().Trim(),
@@ -782,10 +1081,10 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 				col.MaxLength = 0;
 
 			col.CleanUpDefault();
-			col.NameHumanCase = ReversePocoCore.CleanUp(col.Name);
+			col.NameHumanCase = CleanUp(col.Name);
 			col.NameHumanCase = rxClean.Replace(col.NameHumanCase, "_$1");
 
-			if (ReversePocoCore.ReservedKeywords.Contains(col.NameHumanCase))
+			if (ReservedKeywords.Contains(col.NameHumanCase))
 				col.NameHumanCase = "@" + col.NameHumanCase;
 
 			var titleCase = (useCamelCase ? Inflector.ToTitleCase(col.NameHumanCase) : col.NameHumanCase).Replace(" ", "");
@@ -799,7 +1098,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			if (char.IsDigit(col.NameHumanCase[0]))
 				col.NameHumanCase = "_" + col.NameHumanCase;
 
-			table.HasNullableColumns = ReversePocoCore.IsNullable(col);
+			table.HasNullableColumns = col.IsNullable;
 
 			col = updateColumn(col, table);
 
@@ -812,217 +1111,6 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			return col;
 		}
 
-		private static string GetSqlDbType(string sqlType, int scale, int precision)
-		{
-			string sysType = "VarChar";
-			switch (sqlType)
-			{
-				case "hierarchyid":
-					sysType = "VarChar";
-					break;
-
-				case "bigint":
-					sysType = "BigInt";
-					break;
-
-				case "binary":
-					sysType = "Binary";
-					break;
-
-				case "bit":
-					sysType = "Bit";
-					break;
-
-				case "char":
-					sysType = "Char";
-					break;
-
-				case "datetime":
-					sysType = "DateTime";
-					break;
-
-				case "decimal":
-					sysType = "Decimal";
-					break;
-
-				case "float":
-					sysType = "Float";
-					break;
-
-				case "image":
-					sysType = "Image";
-					break;
-
-				case "int":
-					sysType = "Int";
-					break;
-
-				case "money":
-					sysType = "Money";
-					break;
-
-				case "nchar":
-					sysType = "NChar";
-					break;
-
-				case "ntext":
-					sysType = "NText";
-					break;
-
-				case "nvarchar":
-					sysType = "NVarChar";
-					break;
-
-				case "real":
-					sysType = "Real";
-					break;
-
-				case "uniqueidentifier":
-					sysType = "UniqueIdentifier";
-					break;
-
-				case "smalldatetime":
-					sysType = "SmallDateTime";
-					break;
-
-				case "smallint":
-					sysType = "SmallInt";
-					break;
-
-				case "smallmoney":
-					sysType = "SmallMoney";
-					break;
-
-				case "text":
-					sysType = "Text";
-					break;
-
-				case "timestamp":
-					sysType = "Timestamp";
-					break;
-
-				case "tinyint":
-					sysType = "TinyInt";
-					break;
-
-				case "varbinary":
-					sysType = "VarBinary";
-					break;
-
-				case "varchar":
-					sysType = "VarChar";
-					break;
-
-				case "variant":
-					sysType = "Variant";
-					break;
-
-				case "xml":
-					sysType = "Xml";
-					break;
-
-				case "udt":
-					sysType = "Udt";
-					break;
-
-				case "table type":
-				case "structured":
-					sysType = "Structured";
-					break;
-
-				case "date":
-					sysType = "Date";
-					break;
-
-				case "time":
-					sysType = "Time";
-					break;
-
-				case "datetime2":
-					sysType = "DateTime2";
-					break;
-
-				case "datetimeoffset":
-					sysType = "DateTimeOffset";
-					break;
-			}
-			return sysType;
-		}
-
-		private static string GetPropertyType(string sqlType, int scale, int precision)
-		{
-			string sysType = "string";
-			switch (sqlType)
-			{
-				case "hierarchyid":
-					sysType = "System.Data.Entity.Hierarchy.HierarchyId";
-					break;
-				case "bigint":
-					sysType = "long";
-					break;
-				case "smallint":
-					sysType = "short";
-					break;
-				case "int":
-					sysType = "int";
-					break;
-				case "uniqueidentifier":
-					sysType = "Guid";
-					break;
-				case "smalldatetime":
-				case "datetime":
-				case "datetime2":
-				case "date":
-					sysType = "DateTime";
-					break;
-				case "datetimeoffset":
-					sysType = "DateTimeOffset";
-					break;
-				case "table type":
-					sysType = "Data.DataTable";
-					break;
-				case "time":
-					sysType = "TimeSpan";
-					break;
-				case "float":
-					sysType = "double";
-					break;
-				case "real":
-					sysType = "float";
-					break;
-				case "numeric":
-				case "smallmoney":
-				case "decimal":
-				case "money":
-					sysType = "decimal";
-					break;
-				case "tinyint":
-					sysType = "byte";
-					break;
-				case "bit":
-					sysType = "bool";
-					break;
-				case "image":
-				case "binary":
-				case "varbinary":
-				case "varbinary(max)":
-				case "timestamp":
-					sysType = "byte[]";
-					break;
-				case "geography":
-					if (ReversePocoCore.Setting.DisableGeographyTypes)
-						sysType = "";
-					else
-						sysType = "System.Data.Entity.Spatial.DbGeography";
-					break;
-				case "geometry":
-					if (ReversePocoCore.Setting.DisableGeographyTypes)
-						sysType = "";
-					else
-						sysType = "System.Data.Entity.Spatial.DbGeometry";
-					break;
-			}
-			return sysType;
-		}
+		
 	}
 }

@@ -1,4 +1,4 @@
-﻿using DatabaseGenerationToolExt.Templates;
+﻿using DatabaseGenerationToolExt.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +26,18 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		public string SummaryComments { get; set; }
 
 		public bool IsIdentity { get; set; }
-		public bool IsNullable { get; set; }
+
+        private bool _isNullable;
+		public bool IsNullable {
+            get
+            {
+                return _isNullable && PropertyTypeHelper.NotNullable.Contains(PropertyType.ToLower());
+            }
+            set
+            {
+                _isNullable = value;
+            }
+        }
 		public bool IsPrimaryKey { get; set; }
 		public bool IsStoreGenerated { get; set; }
 		public bool IsRowVersion { get; set; }
@@ -86,12 +97,13 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 		private string WrapIfNullable(string propType, Column col)
 		{
-			if (!ReversePocoCore.IsNullable(col))
+			if (!IsNullable)
 				return propType;
-			return String.Format(ReversePocoCore.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", propType);
+			return String.Format(Global.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", propType);
 		}
 
-		public bool IsComputed
+       
+        public bool IsComputed
 		{
 			get
 			{

@@ -17,7 +17,7 @@ namespace DatabaseGenerationToolExt.Forms
 		public DatabaseConnection SelectedConnection { get; set; }
 		public string ConnectionStringName { get; private set; }
 
-		public ConnectionStringSelector(Microsoft.VisualStudio.Shell.Package package, string connectionStringName)
+		public ConnectionStringSelector()
 		{
 			InitializeComponent();
 
@@ -25,7 +25,7 @@ namespace DatabaseGenerationToolExt.Forms
 
 			if (connections.Count > 0)
 			{
-				DatabaseConnection value = connections.Where(x => x.ConnectionStringName == connectionStringName).FirstOrDefault();
+				DatabaseConnection value = connections.Where(x => x.ConnectionStringName == Global.Setting.ConnectionStringName).FirstOrDefault();
 
 				connections.Insert(0, new DatabaseConnection());
 

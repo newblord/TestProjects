@@ -84,13 +84,14 @@
       <DependentUpon>DatabaseObjectSelector.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\ConnectionHelper.cs" />
+    <Compile Include="Helpers\Global.cs" />
+    <Compile Include="Helpers\PropertyTypeHelper.cs" />
     <Compile Include="Helpers\VisualStudioHelper.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\ReverseEngineer.cs" />
     <Compile Include="ReverseEngineerPackage.cs" />
     <Compile Include="Commands\UpdateFromDatabase.cs" />
-    <Compile Include="Templates\ReversePocoCore.cs" />
     <Compile Include="Templates\TemplateFileManager.cs" />
     <Compile Include="Forms\DatabaseObjectSelector.cs">
       <SubType>Form</SubType>

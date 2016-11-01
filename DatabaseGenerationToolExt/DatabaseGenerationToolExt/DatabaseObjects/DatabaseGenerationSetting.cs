@@ -14,7 +14,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		public string ProviderName { get; set; }
 		public string ConnectionStringName { get; set; }
 		public string ConnectionString { get; set; }
-		string DefaultConstructorArgument
+		public string DefaultConstructorArgument
 		{
 			get
 			{

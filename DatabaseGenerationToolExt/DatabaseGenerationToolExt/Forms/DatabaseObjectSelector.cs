@@ -8,36 +8,29 @@ using System.Windows.Forms;
 using DatabaseGenerationToolExt.DatabaseObjects;
 using Microsoft.VisualStudio.Shell;
 using DatabaseGenerationToolExt.DesignPatterns;
-using DatabaseGenerationToolExt.Templates;
 using DatabaseGenerationToolExt.Helpers;
+using System.Data.Common;
 
 namespace DatabaseGenerationToolExt.Forms
 {
 	public partial class DatabaseObjectSelector : Form
 	{
-		private Package Package { get; set; }
-
 		public List<TableData> TableNames { get; set; }
 
 		public List<string> StoredProcedureNames { get; set; }
 
-		public DatabaseGenerationSetting Setting { get; set; }
-
 		public bool IsCanceled { get; set; } = false;
 
-		public DatabaseObjectSelector(Package package)
+		public DatabaseObjectSelector()
 		{
 			InitializeComponent();
-
-			Package = package;
 
 			TableNames = new List<TableData>();
 			StoredProcedureNames = new List<string>();
 
-			Setting = new DatabaseObjects.DatabaseGenerationSetting();
-			ReversePocoCore.ProcessDatabaseXML(TableNames, StoredProcedureNames, Setting);
+			DesignPattern.ProcessDatabaseXML(TableNames, StoredProcedureNames);
 
-			using (ConnectionStringSelector conForm = new ConnectionStringSelector(Package, Setting.ConnectionStringName))
+			using (ConnectionStringSelector conForm = new ConnectionStringSelector())
 			{
 				conForm.ShowDialog();
 
@@ -45,11 +38,11 @@ namespace DatabaseGenerationToolExt.Forms
 				{
 					Logger.ResetLogs();
 
-					Setting.ConnectionStringName = conForm.SelectedConnection.ConnectionStringName;
-					Setting.ConnectionString = conForm.SelectedConnection.ConnectionString;
-					Setting.ProviderName = conForm.SelectedConnection.ProviderName;
-
-					PopulateDropDownLists();
+                    Global.Setting.ConnectionStringName = conForm.SelectedConnection.ConnectionStringName;
+                    Global.Setting.ConnectionString = conForm.SelectedConnection.ConnectionString;
+                    Global.Setting.ProviderName = conForm.SelectedConnection.ProviderName;
+                    
+                    PopulateDropDownLists();
 					InitializeDatabaseObjects();
 					LoadDatabaseGenerationSettings();
 				}
@@ -96,27 +89,29 @@ namespace DatabaseGenerationToolExt.Forms
 
 		private void LoadDatabaseGenerationSettings()
 		{
-			if (Setting != null)
-			{
-				txtDbContextName.DataBindings.Add("Text", Setting, "DatabaseContextName");
-				txtContextInterfaceBaseClass.DataBindings.Add("Text", Setting, "ContextInterfaceBaseClass");
-				txtContextBaseClass.DataBindings.Add("Text", Setting, "ContextBaseClass");
-				txtConfigurationClassName.DataBindings.Add("Text", Setting, "ConfigurationClassName");
-				ddlIncludeComments.SelectedValue = (int)Setting.IncludeComments;
+            DatabaseGenerationSetting setting = Global.Setting;
 
-				cbxPartialClasses.DataBindings.Add("Checked", Setting, "MakeClassesPartial");
-				cbxPartialInterfaces.DataBindings.Add("Checked", Setting, "MakeInterfacesPartial");
-				cbxPartialContextInterface.DataBindings.Add("Checked", Setting, "MakeContextInterfacePartial");
-				cbxUseDataAnnotations.DataBindings.Add("Checked", Setting, "UseDataAnnotations");
-				cbxGenerateContextClass.DataBindings.Add("Checked", Setting, "GenerateContextClass");
-				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", Setting, "GenerateUnitOfWorkInterface");
-				cbxVirtualReverseNavProperty.DataBindings.Add("Checked", Setting, "VirtualReverseNavigationProperties");
-				cbxUseCamelCase.DataBindings.Add("Checked", Setting, "UseCamelCase");
-				cbxDisableGeographyTypes.DataBindings.Add("Checked", Setting, "DisableGeographyTypes");
-				cbxNullableShortHand.DataBindings.Add("Checked", Setting, "NullableShortHand");
-				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", Setting, "PrivateSetterForComputedColumns");
-				cbxPrependSchema.DataBindings.Add("Checked", Setting, "PrependSchemaName");
-				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", Setting, "IncludeQueryTraceOn9481Flag");
+            if (setting != null)
+			{
+				txtDbContextName.DataBindings.Add("Text", setting, "DatabaseContextName");
+				txtContextInterfaceBaseClass.DataBindings.Add("Text", setting, "ContextInterfaceBaseClass");
+				txtContextBaseClass.DataBindings.Add("Text", setting, "ContextBaseClass");
+				txtConfigurationClassName.DataBindings.Add("Text", setting, "ConfigurationClassName");
+				ddlIncludeComments.SelectedValue = (int)setting.IncludeComments;
+
+				cbxPartialClasses.DataBindings.Add("Checked", setting, "MakeClassesPartial");
+				cbxPartialInterfaces.DataBindings.Add("Checked", setting, "MakeInterfacesPartial");
+				cbxPartialContextInterface.DataBindings.Add("Checked", setting, "MakeContextInterfacePartial");
+				cbxUseDataAnnotations.DataBindings.Add("Checked", setting, "UseDataAnnotations");
+				cbxGenerateContextClass.DataBindings.Add("Checked", setting, "GenerateContextClass");
+				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", setting, "GenerateUnitOfWorkInterface");
+				cbxVirtualReverseNavProperty.DataBindings.Add("Checked", setting, "VirtualReverseNavigationProperties");
+				cbxUseCamelCase.DataBindings.Add("Checked", setting, "UseCamelCase");
+				cbxDisableGeographyTypes.DataBindings.Add("Checked", setting, "DisableGeographyTypes");
+				cbxNullableShortHand.DataBindings.Add("Checked", setting, "NullableShortHand");
+				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", setting, "PrivateSetterForComputedColumns");
+				cbxPrependSchema.DataBindings.Add("Checked", setting, "PrependSchemaName");
+				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", setting, "IncludeQueryTraceOn9481Flag");
 			}
 		}
 
@@ -145,7 +140,7 @@ namespace DatabaseGenerationToolExt.Forms
 							ORDER  BY s.NAME,o.NAME 
 							";
 
-			using (SqlConnection connection = new SqlConnection(Setting.ConnectionString))
+			using (SqlConnection connection = new SqlConnection(Global.Setting.ConnectionString))
 			{
 				connection.Open();
 				SqlCommand command = connection.CreateCommand();
@@ -325,20 +320,24 @@ namespace DatabaseGenerationToolExt.Forms
 
 			TableNames = tableData.Where(x => x.TableSelect == true).ToList();
 
-			Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
+            Global.Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
 
-			// Read schema
-			ReversePocoCore reversePocoCore = new ReversePocoCore(Setting);
+            // Read schema
 
-			var factory = ConnectionHelper.GetDbProviderFactory(Setting.ProviderName);
-			var tables = reversePocoCore.LoadTables(factory, TableNames);
-			var storedProcs = reversePocoCore.LoadStoredProcs(factory, StoredProcedureNames);
+
+			var factory = ConnectionHelper.GetDbProviderFactory(Global.Setting.ProviderName);
+
+            DbConnection conn = factory.CreateConnection();
+            SchemaReader reader = new SchemaReader(conn, factory, Global.Setting.IncludeQueryTraceOn9481Flag, Global.Setting);
+
+            var tables = reader.LoadTables(factory, TableNames);
+			var storedProcs = reader.LoadStoredProcs(factory, StoredProcedureNames);
 
 			// Generate output
 			if (tables.Count > 0 || storedProcs.Count > 0)
 			{
-				EntityFrameworkDesignPattern pattern = new EntityFrameworkDesignPattern("4.6.1", Setting, Package, TableNames, StoredProcedureNames);
-				pattern.CreateFiles(tables, storedProcs);
+                DesignPattern designPattern = new EntityFrameworkDesignPattern("4.6.1", Global.Setting, Global.Package, tables, storedProcs);
+                designPattern.CreateFiles();
 			}
 
 			this.Close();

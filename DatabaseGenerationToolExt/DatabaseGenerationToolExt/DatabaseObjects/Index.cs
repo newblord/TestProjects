@@ -20,5 +20,15 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		{
 			Columns = new List<Column>();
 		}
-	}
+
+        public static string CreateIndexParameterString(Index index)
+        {
+            return string.Join(", ", index.Columns.Select(s => s.PropertyType + " " + s.ParameterName));
+        }
+
+        public static string CreateIndexWhereString(Index index)
+        {
+            return string.Join(" && ", index.Columns.Select(s => "x." + s.NameHumanCase + " == " + s.ParameterName));
+        }
+    }
 }

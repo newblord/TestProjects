@@ -8,18 +8,19 @@ using System.IO;
 using DatabaseGenerationToolExt.Helpers;
 using EnvDTE;
 using System.Xml.Serialization;
+using System.Xml.Linq;
 
 namespace DatabaseGenerationToolExt.DesignPatterns
 {
 	public abstract class DesignPattern
 	{
 
-		public DesignPattern(string targetFrameworkVersion, DatabaseGenerationSetting setting, Microsoft.VisualStudio.Shell.Package package, List<TableData> tableNames, List<string> storedProcNames)
+		public DesignPattern(string targetFrameworkVersion, DatabaseGenerationSetting setting, Microsoft.VisualStudio.Shell.Package package, Tables tables, List<StoredProcedure> storedProcs)
 		{
 			TargetFrameworkVersion = targetFrameworkVersion;
 			Setting = setting;
-			TableNames = tableNames;
-			StoredProcedureNames = storedProcNames;
+            Tables = tables;
+			StoredProcedures = storedProcs;
 			GenerationEnvironment = new StringBuilder();
 			NewFiles = new List<NewFile>();
 			dte = VisualStudioHelper.GetDTE();
@@ -69,9 +70,9 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		public DatabaseGenerationSetting Setting { get; set; }
 
-		public List<TableData> TableNames { get; set; }
+		public Tables Tables { get; set; }
 
-		public List<string> StoredProcedureNames { get; set; }
+		public List<StoredProcedure> StoredProcedures { get; set; }
 
 		/// <summary>
 		/// If set to false, existing files are not overwritten
@@ -212,9 +213,60 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return c.InterfaceEntity;
 		}
 
-		#region File Generation Methods
+        public static void ProcessDatabaseXML(List<TableData> tableNames, List<string> storedProcedureNames)
+        {
+            string fileName = Global.Setting.XmlAndLogFilePrefix + "Settings.xml";
 
-		private NewFile currentFile;
+            string filePath = string.Empty;
+            var selectedItems = VisualStudioHelper.GetDTE().SelectedItems.Cast<SelectedItem>();
+            if (selectedItems.Count() == 1)
+            {
+                SelectedItem item = selectedItems.FirstOrDefault();
+
+                if (item.Project != null)
+                {
+                    Project p = VisualStudioHelper.FindProject(item.Project.Name);
+                    filePath = VisualStudioHelper.GetProjectPath(item.Project);
+                }
+                else if (item.ProjectItem != null)
+                {
+                    filePath = VisualStudioHelper.GetProjectPath(item.ProjectItem.ContainingProject);
+                }
+            }
+
+            filePath = Path.Combine(filePath, fileName);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                var xml = XDocument.Load(filePath);
+
+                XElement settingNode = xml.Root.Descendants("DatabaseGenerationSetting").FirstOrDefault();
+                XmlSerializer serializer = new XmlSerializer(typeof(DatabaseGenerationSetting));
+
+                if (settingNode != null)
+                {
+                    StringReader rdr = new StringReader(settingNode.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+                    DatabaseGenerationSetting setting = (DatabaseGenerationSetting)serializer.Deserialize(rdr);
+                    Global.InitializeSetting(setting);
+                }
+
+                List<XElement> tableNodes = (from c in xml.Root.Descendants("TableData") select c).ToList();
+                serializer = new XmlSerializer(typeof(TableData));
+
+                foreach (XElement item in tableNodes)
+                {
+                    StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+                    tableNames.Add((TableData)serializer.Deserialize(rdr));
+                }
+
+                storedProcedureNames = (from c in xml.Root.Descendants("StoredProcedure")
+                                        select c.Value).ToList();
+            }
+        }
+
+        #region File Generation Methods
+
+        private NewFile currentFile;
 		private List<string> Indents { get; set; }
 		private string TotalIndentValue { get; set; }
 		private List<NewFile> NewFiles { get; set; }
@@ -251,7 +303,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			currentFile = null;
 		}
 
-		public void StartNewFile(string fileName, string projectName, string folderName)
+		public void StartNewFile(string fileName, string projectName = "", string folderName = "")
 		{
 			Indents = new List<string>();
 			CurrentFile = new NewFile();
@@ -260,6 +312,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			CurrentFile.ProjectName = projectName;
 			CurrentFile.FolderName = folderName;
 		}
+
+        public virtual void CreateFiles()
+        {
+
+        }
 
 		public void ProcessFiles()
 		{
@@ -410,7 +467,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			PushIndent("\t");
 
 			XmlSerializer serializer = new XmlSerializer(typeof(TableData));
-			foreach (TableData tbl in TableNames)
+			foreach (TableData tbl in Tables.Select(x => x.TableData).ToList())
 			{
 				WriteLine("<TableData>");
 				PushIndent("\t");
@@ -432,9 +489,9 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			WriteLine("<StoredProcedures>");
 			PushIndent("\t");
-			foreach (string sproc in StoredProcedureNames)
+			foreach (StoredProcedure sproc in StoredProcedures)
 			{
-				WriteLine("<StoredProcedure>{0}</StoredProcedure>", sproc);
+				WriteLine("<StoredProcedure>{0}</StoredProcedure>", sproc.Name);
 			}
 			PopIndent();
 			WriteLine("</StoredProcedures>");
