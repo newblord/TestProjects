@@ -59,13 +59,13 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		public string ServiceInterfaceProjectName { get; set; }
 
 		public string ContextNamespace { get; set; } = "Context";
-		public string PocoInterfaceNamespace { get; set; } = "Poco.Interface";
-		public string PocoNamespace { get; set; } = "Poco";
-		public string PocoConfigurationNamespace { get; set; } = "Poco.Configuration";
-		public string RepositoryInterfaceNamespace { get; set; } = "Repository.Interface";
-		public string RepositoryNamespace { get; set; } = "Repository";
-		public string ServiceInterfaceNamespace { get; set; } = "Service.Interface";
-		public string ServiceNamespace { get; set; } = "Service";
+		public string ModelInterfaceNamespace { get; set; } = "Models.Interface";
+		public string ModelNamespace { get; set; } = "Models";
+		public string ModelConfigurationNamespace { get; set; } = "Models.Configuration";
+		public string RepositoryInterfaceNamespace { get; set; } = "Repositories.Interface";
+		public string RepositoryNamespace { get; set; } = "Repositories";
+		public string ServiceInterfaceNamespace { get; set; } = "Services.Interface";
+		public string ServiceNamespace { get; set; } = "Services";
 		public string UnitOfWorkNamespace { get; set; } = "Context.UnitOfWork";
 
 		public DatabaseGenerationSetting Setting { get; set; }
@@ -131,7 +131,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return true;
 		}
 
-		public virtual string WritePocoClassAttributes(Table t)
+		public virtual string WriteModelClassAttributes(Table t)
 		{
 			// Do nothing by default
 			// Example:
@@ -146,14 +146,14 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return string.Empty;
 		}
 
-		public virtual string WritePocoBaseClasses(Table t)
+		public virtual string WriteModelBaseClasses(Table t)
 		{
 			//if (t.ClassName == "User")
 			//	 return "IdentityUser<int, CustomUserLogin, CustomUserRole, CustomUserClaim>, ";
 			return "";
 		}
 
-		public virtual string WritePocoBaseClassBody(Table t)
+		public virtual string WriteModelBaseClassBody(Table t)
 		{
 			// Do nothing by default
 			// Example:
@@ -162,7 +162,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return string.Empty;
 		}
 
-		public virtual string WritePocoColumn(Column c)
+		public virtual string WriteModelColumn(Column c)
 		{
 			// Example of adding a [Required] data annotation attribute to all non-null fields
 			//if (!c.IsNullable)
@@ -204,7 +204,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return sb.ToString();
 		}
 
-		public virtual string WritePocoInterfaceColumn(Column c)
+		public virtual string WriteModelInterfaceColumn(Column c)
 		{
 			// Example of adding a [Required] data annotation attribute to all non-null fields
 			//if (!c.IsNullable)
@@ -474,8 +474,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("<TableSelect>{0}</TableSelect>", tbl.TableSelect);
 				WriteLine("<TableName>{0}</TableName>", tbl.TableName);
-				WriteLine("<GeneratePoco>{0}</GeneratePoco>", tbl.GeneratePoco);
-				WriteLine("<GeneratePocoInterface>{0}</GeneratePocoInterface>", tbl.GeneratePocoInterface);
+				WriteLine("<GenerateModel>{0}</GenerateModel>", tbl.GenerateModel);
+				WriteLine("<GenerateModelInterface>{0}</GenerateModelInterface>", tbl.GenerateModelInterface);
 				WriteLine("<GenerateRepository>{0}</GenerateRepository>", tbl.GenerateRepository);
 				WriteLine("<GenerateRepositoryInterface>{0}</GenerateRepositoryInterface>", tbl.GenerateRepositoryInterface);
 				WriteLine("<GenerateService>{0}</GenerateService>", tbl.GenerateService);
@@ -499,7 +499,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			PopIndent();
 			WriteLine("</Database>");
 
-			var outputPath = VSHelper.GetOutputPath(dte, projectName, string.Empty, defaultPath);
+			var outputPath = VisualStudioHelper.GetOutputPath(projectName, string.Empty, defaultPath);
 
 			NewFile file = new NewFile();
 
@@ -528,7 +528,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			logFileContent.AppendLine(Logger.Logs.ToString());
 			logFileContent.AppendLine();
 
-			var outputPath = VSHelper.GetOutputPath(dte, projectName, string.Empty, defaultPath);
+			var outputPath = VisualStudioHelper.GetOutputPath(projectName, string.Empty, defaultPath);
 
 			NewFile file = new NewFile();
 
@@ -635,9 +635,9 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			}
 		}
 
-		private static void ProjectItemSyncPart(ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+		private static void ProjectItemSyncPart(ProjectItem templateProjectItem, IEnumerable<NewFile> keepFileNames)
 		{
-			var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
+			var keepFileNameSet = new HashSet<NewFile>(keepFileNames);
 			var projectFiles = new Dictionary<string, ProjectItem>();
 			var originalOutput = Path.GetFileNameWithoutExtension(templateProjectItem.FileNames[0]);
 

@@ -369,10 +369,10 @@ namespace DatabaseGenerationToolExt.Forms
 
 			if (tableData.Any())
 			{
-				if (!cbxPocos.Focused)
-					cbxPocos.Checked = tableData.Where(x => x.GeneratePoco).Count() == tableData.Count;
-				if (!cbxPocoInterfaces.Focused)
-					cbxPocoInterfaces.Checked = tableData.Where(x => x.GeneratePocoInterface).Count() == tableData.Count;
+				if (!cbxModels.Focused)
+					cbxModels.Checked = tableData.Where(x => x.GenerateModel).Count() == tableData.Count;
+				if (!cbxModelInterfaces.Focused)
+					cbxModelInterfaces.Checked = tableData.Where(x => x.GenerateModelInterface).Count() == tableData.Count;
 				if (!cbxRepositories.Focused)
 					cbxRepositories.Checked = tableData.Where(x => x.GenerateRepository).Count() == tableData.Count;
 				if (!cbxRepositoryInterfaces.Focused)
@@ -447,14 +447,14 @@ namespace DatabaseGenerationToolExt.Forms
 						SkipTableCellValueEvent = true;
 
 						DataGridViewCheckBoxCell cbxSelect = (DataGridViewCheckBoxCell)gvTables[0, e.RowIndex];
-						bool pocoValue = (bool)gvTables[2, e.RowIndex].FormattedValue;
-						bool iPocoValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
+						bool modelValue = (bool)gvTables[2, e.RowIndex].FormattedValue;
+						bool iModelValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
 						bool repoValue = (bool)gvTables[4, e.RowIndex].FormattedValue;
 						bool iRepoValue = (bool)gvTables[5, e.RowIndex].FormattedValue;
 						bool serviceValue = (bool)gvTables[6, e.RowIndex].FormattedValue;
 						bool iServiceValue = (bool)gvTables[7, e.RowIndex].FormattedValue;
 
-						if (pocoValue || iPocoValue || repoValue || iRepoValue || serviceValue || iServiceValue)
+						if (modelValue || iModelValue || repoValue || iRepoValue || serviceValue || iServiceValue)
 						{
 							cbxSelect.Value = true;
 							HandleTableSelectChange(true);
@@ -498,8 +498,8 @@ namespace DatabaseGenerationToolExt.Forms
 
 				SkipTableCellValueEvent = true;
 
-				cbxPocos.Checked = cbx.Checked;
-				cbxPocoInterfaces.Checked = cbx.Checked;
+				cbxModels.Checked = cbx.Checked;
+				cbxModelInterfaces.Checked = cbx.Checked;
 				cbxRepositories.Checked = cbx.Checked;
 				cbxRepositoryInterfaces.Checked = cbx.Checked;
 				cbxServices.Checked = cbx.Checked;
@@ -514,7 +514,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxPocos_CheckStateChanged(object sender, EventArgs e)
+		private void cbxModels_CheckStateChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 
@@ -528,7 +528,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxPocoInterfaces_CheckStateChanged(object sender, EventArgs e)
+		private void cbxModelInterfaces_CheckStateChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 

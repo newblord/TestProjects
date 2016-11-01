@@ -10,8 +10,8 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 	{
 		public bool TableSelect { get; set; }
 		public string TableName { get; set; }
-		public bool GeneratePoco { get; set; }
-		public bool GeneratePocoInterface { get; set; }
+		public bool GenerateModel { get; set; }
+		public bool GenerateModelInterface { get; set; }
 		public bool GenerateRepository { get; set; }
 		public bool GenerateRepositoryInterface { get; set; }
 		public bool GenerateService { get; set; }

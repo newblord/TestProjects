@@ -54,7 +54,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		public bool MakeInterfacesPartial { get; set; } = true;
 		public bool MakeContextInterfacePartial { get; set; } = true;
 		/// <summary>
-		/// True value generates DataAnnotations on Poco classes and False will generate FluentAPI Configuration
+		/// True value generates DataAnnotations on Model classes and False will generate FluentAPI Configuration
 		/// </summary>
 		public bool UseDataAnnotations { get; set; } = true;
 		public bool GenerateContextClass { get; set; } = true;
@@ -92,7 +92,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		/// </summary>
 		public bool PrependSchemaName { get; set; } = true;
 		/// <summary>
-		/// Configuration, Mapping, Map, etc. This is appended to the Poco class name to configure the mappings.
+		/// Configuration, Mapping, Map, etc. This is appended to the Model class name to configure the mappings.
 		/// </summary>
 		public string ConfigurationClassName { get; set; } = "Configuration";
 		/// <summary>

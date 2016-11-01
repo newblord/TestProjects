@@ -344,7 +344,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			//if (column.IsPrimaryKey && column.NameHumanCase.Equals(table.NameHumanCase + "Id", StringComparison.InvariantCultureIgnoreCase))
 			//	 column.NameHumanCase = "Id";
 
-			// Remove column from poco class as it will be inherited from a base class
+			// Remove column from Model class as it will be inherited from a base class
 			//if (column.IsPrimaryKey && table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase))
 			//	 column.Hidden = true;
 

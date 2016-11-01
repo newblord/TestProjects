@@ -2,25 +2,25 @@
 
 	1)	  Clean TT Files
 		   - Done
-	2)   Add POCO Interface support
+	2)   Add Model Interface support
 			- Done
 	3)   Add Repository Interface support
 			- Done
-	4)   Add Data Annotation support to POCO classes
+	4)   Add Data Annotation support to Model classes
 			- Done
-	5)   Add switch to generate either Configuration or use Data Annotation for POCO classes
+	5)   Add switch to generate either Configuration or use Data Annotation for Model classes
 			- Done
-	6)   Data Annotation validations for POCO Interfaces
+	6)   Data Annotation validations for Model Interfaces
 			- Might not need this for future implementation
 	7)   Add Repository support
 			- Add CRUD methods - Done
 			- Add FindBy methods for Primary Keys - Done
 			- Add FindBy methods for Foreign Keys - Done
 			- Add FindBy methods for Indexes - Done
-			- Convert Reverse Navigation Properties on POCOs to methods on Repositories
+			- Convert Reverse Navigation Properties on Models to methods on Repositories
 				- Maybe use a flag for or setting for this - Done
 	8)   Add proper Entity Framework Add/Attach/Entity support to Repository files
-	9)   Add Custom Property change management for POCO classes
+	9)   Add Custom Property change management for Model classes
 			- Might be be able to piggy back on EF property management
 	10)  Add support for Entity Framework Entity Graph management
 	11)  Add Enum support

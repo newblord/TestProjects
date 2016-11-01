@@ -34,13 +34,13 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		//public string ServiceInterfaceProjectName { get; set; }
 
 		//public string ContextNamespace { get; set; } = "Context";
-		//public string PocoInterfaceNamespace { get; set; } = "Poco.Interface";
-		//public string PocoNamespace { get; set; } = "Poco";
-		//public string PocoConfigurationNamespace { get; set; } = "Poco.Configuration";
-		//public string RepositoryInterfaceNamespace { get; set; } = "Repository.Interface";
-		//public string RepositoryNamespace { get; set; } = "Repository";
-		//public string ServiceInterfaceNamespace { get; set; } = "Service.Interface";
-		//public string ServiceNamespace { get; set; } = "Service";
+		//public string ModelInterfaceNamespace { get; set; } = "Models.Interface";
+		//public string ModelNamespace { get; set; } = "Models";
+		//public string ModelConfigurationNamespace { get; set; } = "Models.Configuration";
+		//public string RepositoryInterfaceNamespace { get; set; } = "Repositories.Interface";
+		//public string RepositoryNamespace { get; set; } = "Repositories";
+		//public string ServiceInterfaceNamespace { get; set; } = "Services.Interface";
+		//public string ServiceNamespace { get; set; } = "Services";
 		//public string UnitOfWorkNamespace { get; set; } = "Context.UnitOfWork";
 
 		public override void CreateFiles()
@@ -68,7 +68,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("using System;");
 				WriteLine("using System.Data.Entity;");
-				WriteLine("using {0};", PocoNamespace);
+				WriteLine("using {0};", ModelNamespace);
 
 				if (IsSupportedFrameworkVersion("4.5"))
 				{
@@ -157,7 +157,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.Data.Entity.Infrastructure;");
 				WriteLine("using System.Data.Common;");
 				WriteLine("using System.Data.SqlClient;");
-				WriteLine("using {0};", PocoNamespace);
+				WriteLine("using {0};", ModelNamespace);
 
 				if (IsSupportedFrameworkVersion("4.5"))
 				{
@@ -167,7 +167,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (!Setting.UseDataAnnotations)
 				{
-					WriteLine("using {0};", PocoConfigurationNamespace);
+					WriteLine("using {0};", ModelConfigurationNamespace);
 				}
 				WriteLine("");
 
@@ -411,9 +411,9 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		private void CreateModels()
 		{
-			#region POCO classes
+			#region Models
 
-			foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.TableData.GeneratePoco).OrderBy(x => x.NameHumanCase) select t)
+			foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.TableData.GenerateModel).OrderBy(x => x.NameHumanCase) select t)
 			{
 				string baseClasses = string.Empty;
 
@@ -431,19 +431,19 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.ComponentModel.DataAnnotations;");
 				WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
 
-				if (tbl.TableData.GeneratePocoInterface)
+				if (tbl.TableData.GenerateModelInterface)
 				{
-					WriteLine("using {0};", PocoInterfaceNamespace);
-					baseClasses = string.Format("{0}I{1}", WritePocoBaseClasses(tbl), tbl.NameHumanCase);
+					WriteLine("using {0};", ModelInterfaceNamespace);
+					baseClasses = string.Format("{0}I{1}", WriteModelBaseClasses(tbl), tbl.NameHumanCase);
 				}
 
 				WriteLine("");
 
-				BeginNamespace(PocoNamespace);
+				BeginNamespace(ModelNamespace);
 
-				WritePocoClassAttributes(tbl);
+				WriteLine(WriteModelClassAttributes(tbl));
 				BeginClass(tbl.NameHumanCase, Setting.MakeClassesPartial, baseClasses);
-				WritePocoBaseClassBody(tbl);
+				WriteLine(WriteModelBaseClassBody(tbl));
 
 				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial)
 				{
@@ -475,7 +475,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						WriteLine("/// {0}", col.SummaryComments);
 						WriteLine("///</summary>");
 					}
-					WriteLine("{0}", WritePocoColumn(col));
+					WriteLine("{0}", WriteModelColumn(col));
 				}
 
 				if (tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
@@ -510,9 +510,9 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			#endregion
 
-			#region POCO Interfaces
+			#region Model Interfaces
 
-			foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.TableData.GeneratePocoInterface).OrderBy(x => x.NameHumanCase) select t)
+			foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.TableData.GenerateModelInterface).OrderBy(x => x.NameHumanCase) select t)
 			{
 				StartNewFile("I" + tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
 
@@ -520,17 +520,17 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", PocoNamespace);
+				WriteLine("using {0};", ModelNamespace);
 				WriteLine("");
 
-				BeginNamespace(PocoInterfaceNamespace);
+				BeginNamespace(ModelInterfaceNamespace);
 				BeginInterface("I" + tbl.NameHumanCase, Setting.MakeInterfacesPartial, "");
 
 				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
 					if (!col.IsComputed)
 					{
-						WriteLine("{0}", WritePocoInterfaceColumn(col));
+						WriteLine("{0}", WriteModelInterfaceColumn(col));
 					}
 				}
 
@@ -581,7 +581,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.Data.Entity;");
 				WriteLine("using System.Linq;");
 				WriteLine("using {0};", ContextNamespace);
-				WriteLine("using {0};", PocoNamespace);
+				WriteLine("using {0};", ModelNamespace);
 
 				if (tbl.TableData.GenerateRepositoryInterface)
 				{
@@ -718,7 +718,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", PocoNamespace);
+				WriteLine("using {0};", ModelNamespace);
 				WriteLine("");
 
 				BeginNamespace(RepositoryInterfaceNamespace);
@@ -799,7 +799,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.Collections.Generic;");
 				WriteLine("using System.Linq;");
 				WriteLine("using {0};", ContextNamespace);
-				WriteLine("using {0};", PocoNamespace);
+				WriteLine("using {0};", ModelNamespace);
 
 				if (tbl.TableData.GenerateRepositoryInterface)
 				{
@@ -931,7 +931,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", PocoNamespace);
+				WriteLine("using {0};", ModelNamespace);
 				WriteLine("");
 
 				BeginNamespace(ServiceInterfaceNamespace);
@@ -997,11 +997,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		private void CreateModelConfigurations()
 		{
-			#region POCO Configuration
+			#region Model Configurations
 
 			if (!Setting.UseDataAnnotations)
 			{
-				foreach (Table tbl in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey && t.TableData.GeneratePoco).OrderBy(x => x.NameHumanCase))
+				foreach (Table tbl in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey && t.TableData.GenerateModel).OrderBy(x => x.NameHumanCase))
 				{
 					StartNewFile(tbl.NameHumanCase + Setting.ConfigurationClassName + Setting.FileExtension, ConfigurationProjectName, ConfigurationFolderName);
 
@@ -1009,10 +1009,10 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					WriteLine("using System.Data.Entity.ModelConfiguration;");
 					WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
-					WriteLine("using {0};", PocoNamespace);
+					WriteLine("using {0};", ModelNamespace);
 					WriteLine("");
 
-					BeginNamespace(PocoConfigurationNamespace);
+					BeginNamespace(ModelConfigurationNamespace);
 					BeginClass(tbl.NameHumanCase + Setting.ConfigurationClassName, Setting.MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
 
 					WriteLine("public {0}()", tbl.NameHumanCase + Setting.ConfigurationClassName);
@@ -1057,7 +1057,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		private void CreateStoredProcedures()
 		{
 
-			if (StoredProcedures.Any() && Tables.Where(x => x.TableData.GeneratePoco).Count() > 0)
+			if (StoredProcedures.Any() && Tables.Where(x => x.TableData.GenerateModel).Count() > 0)
 			{
 				foreach (StoredProcedure sp in StoredProcedures.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.Name)))
 				{
