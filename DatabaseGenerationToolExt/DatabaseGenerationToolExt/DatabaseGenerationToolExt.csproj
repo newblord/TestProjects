@@ -93,14 +93,8 @@
     <Compile Include="Commands\ReverseEngineer.cs" />
     <Compile Include="ReverseEngineerPackage.cs" />
     <Compile Include="Commands\UpdateFromDatabase.cs" />
-    <Compile Include="Templates\TemplateFileManager.cs" />
     <Compile Include="Forms\DatabaseObjectSelector.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Templates\UOWTest.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>UOWTest.tt</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -110,15 +104,8 @@
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Templates\EF.Reverse.POCO.Core.ttinclude" />
-    <None Include="Templates\EF.Reverse.POCO.ttinclude" />
-    <None Include="Templates\TemplateFileManager.ttinclude" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Templates\UOWTest.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>UOWTest.cs</LastGenOutput>
-    </Content>
     <VSCTCompile Include="ReverseEngineerPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
