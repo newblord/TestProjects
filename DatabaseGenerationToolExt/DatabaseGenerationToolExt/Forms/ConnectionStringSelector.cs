@@ -33,7 +33,7 @@ namespace DatabaseGenerationToolExt.Forms
 				cbConnections.DisplayMember = "ConnectionStringName";
 				cbConnections.ValueMember = "ConnectionStringName";
 
-				if(value != null)
+				if (value != null)
 				{
 					cbConnections.SelectedValue = value.ConnectionStringName;
 				}

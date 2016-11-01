@@ -146,7 +146,7 @@ namespace DatabaseGenerationToolExt.Commands
 		/// <param name="e">Event args.</param>
 		private void MenuItemCallback(object sender, EventArgs e)
 		{
-            Global.InitializePackage(Package);
+			Global.InitializePackage(Package);
 
 			using (DatabaseObjectSelector frm = new DatabaseObjectSelector())
 			{

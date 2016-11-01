@@ -187,77 +187,75 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			R.SPECIFIC_NAME,
 			P.ORDINAL_POSITION";
 
-        public static readonly List<string> ReservedKeywords = new List<string>
-        {
-            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char",
-            "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
-            "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed",
-            "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface",
-            "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator",
-            "out", "override", "params", "private", "protected", "public", "readonly", "ref",
-            "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
-            "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong",
-            "unchecked", "unsafe", "ushort", "using", "virtual", "volatile", "void", "while"
-        };
+		public static readonly List<string> ReservedKeywords = new List<string>
+		  {
+				"abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char",
+				"checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
+				"double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed",
+				"float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface",
+				"internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator",
+				"out", "override", "params", "private", "protected", "public", "readonly", "ref",
+				"return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
+				"struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong",
+				"unchecked", "unsafe", "ushort", "using", "virtual", "volatile", "void", "while"
+		  };
 
-        // Filtering **************************************************************************************************************************
-        // Use the following table/view name regex filters to include or exclude tables/views
-        // Exclude filters are checked first and tables matching filters are removed.
-        //  * If left null, none are excluded.
-        //  * If not null, any tables matching the regex are excluded.
-        // Include filters are checked second.
-        //  * If left null, all are included.
-        //  * If not null, only the tables matching the regex are included.
-        // For clarity: if you want to include all the customer tables, but not the customer billing tables.
-        //		TableFilterInclude = new Regex("^[Cc]ustomer.*"); // This includes all the customer and customer billing tables
-        //		TableFilterExclude = new Regex(".*[Bb]illing.*"); // This excludes all the billing tables
-        //
-        // Example:	  TableFilterExclude = new Regex(".*auto.*");
-        //				  TableFilterInclude = new Regex("(.*_FR_.*)|(data_.*)");
-        //				  TableFilterInclude = new Regex("^table_name1$|^table_name2$|etc");
-        //				  ColumnFilterExclude = new Regex("^FK_.*$");
-        private Regex SchemaFilterExclude = null;
-        private Regex SchemaFilterInclude = null;
-        private Regex TableFilterExclude = null;
-        private Regex TableFilterInclude = null;
-        private Regex ColumnFilterExclude = null;
+		// Filtering **************************************************************************************************************************
+		// Use the following table/view name regex filters to include or exclude tables/views
+		// Exclude filters are checked first and tables matching filters are removed.
+		//  * If left null, none are excluded.
+		//  * If not null, any tables matching the regex are excluded.
+		// Include filters are checked second.
+		//  * If left null, all are included.
+		//  * If not null, only the tables matching the regex are included.
+		// For clarity: if you want to include all the customer tables, but not the customer billing tables.
+		//		TableFilterInclude = new Regex("^[Cc]ustomer.*"); // This includes all the customer and customer billing tables
+		//		TableFilterExclude = new Regex(".*[Bb]illing.*"); // This excludes all the billing tables
+		//
+		// Example:	  TableFilterExclude = new Regex(".*auto.*");
+		//				  TableFilterInclude = new Regex("(.*_FR_.*)|(data_.*)");
+		//				  TableFilterInclude = new Regex("^table_name1$|^table_name2$|etc");
+		//				  ColumnFilterExclude = new Regex("^FK_.*$");
+		private Regex SchemaFilterExclude = null;
+		private Regex SchemaFilterInclude = null;
+		private Regex TableFilterExclude = null;
+		private Regex TableFilterInclude = null;
+		private Regex ColumnFilterExclude = null;
 
-        // Stored Procedures ******************************************************************************************************************
-        // Use the following regex filters to include or exclude stored procedures
-        private Regex StoredProcedureFilterExclude = null;
-        private Regex StoredProcedureFilterInclude = null;
+		// Stored Procedures ******************************************************************************************************************
+		// Use the following regex filters to include or exclude stored procedures
+		private Regex StoredProcedureFilterExclude = null;
+		private Regex StoredProcedureFilterInclude = null;
 
-        // Column modification*****************************************************************************************************************
-        // Use the following list to replace column byte types with Enums.
-        // As long as the type can be mapped to your new type, all is well.
-        //EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "match_table_name", Column = "match_column_name", EnumType = "name_of_enum" });
-        //EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "OrderHeader", Column = "OrderStatus", EnumType = "OrderStatusType" }); // This will replace OrderHeader.OrderStatus type to be an OrderStatusType enum
-        public static List<EnumDefinition> EnumsDefinitions = new List<EnumDefinition>();
+		// Column modification*****************************************************************************************************************
+		// Use the following list to replace column byte types with Enums.
+		// As long as the type can be mapped to your new type, all is well.
+		//EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "match_table_name", Column = "match_column_name", EnumType = "name_of_enum" });
+		//EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "OrderHeader", Column = "OrderStatus", EnumType = "OrderStatusType" }); // This will replace OrderHeader.OrderStatus type to be an OrderStatusType enum
+		public static List<EnumDefinition> EnumsDefinitions = new List<EnumDefinition>();
 
-        private bool IncludeQueryTraceOn9481Flag;
-        private DatabaseGenerationSetting Setting;
+		private static readonly Regex RxCleanUp = new Regex(@"[^\w\d\s_-]", RegexOptions.Compiled);
 
-        public List<TableData> SelectedTables { get; set; }
-		public List<string> StoredProcedureNames { get; set; }
+		private DbProviderFactory Factory { get; set; }
 
-		protected readonly DbCommand Cmd;
+		protected DbCommand Cmd { get; }
 
-		public SchemaReader(DbConnection connection, DbProviderFactory factory, bool includeQueryTraceOn9481Flag, DatabaseGenerationSetting setting)
+		public SchemaReader()
 		{
-			Cmd = factory.CreateCommand();
-			if (Cmd != null)
-				Cmd.Connection = connection;
+			Inflector.PluralizationService = new System.Data.Entity.Infrastructure.Pluralization.EnglishPluralizationService();
 
-			IncludeQueryTraceOn9481Flag = includeQueryTraceOn9481Flag;
-            Setting = setting;
+			Factory = ConnectionHelper.GetDbProviderFactory(Global.Setting.ProviderName);
 
-			SelectedTables = new List<TableData>();
-			StoredProcedureNames = new List<string>();
+			if (Factory != null)
+			{
+				Cmd = Factory.CreateCommand();
+			}
+
 		}
 
 		private string IncludeQueryTraceOn9481()
 		{
-			if (IncludeQueryTraceOn9481Flag)
+			if (Global.Setting.IncludeQueryTraceOn9481Flag)
 				return @"
 				OPTION (QUERYTRACEON 9481)";
 			return string.Empty;
@@ -265,25 +263,25 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 		private string ProcessTableSQL()
 		{
-			string sql = TableSQL.Replace("{TABLE_NAMES}", string.Join("', '", SelectedTables.Select(x => x.TableName).ToList()));
+			string sql = TableSQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName).ToList()));
 			return sql;
 		}
 
 		private string ProcessForeignKeySQL()
 		{
-			string sql = ForeignKeySQL.Replace("{TABLE_NAMES}", string.Join("', '", SelectedTables.Select(x => x.TableName).ToList()));
+			string sql = ForeignKeySQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName).ToList()));
 			return sql;
 		}
 
 		private string ProcessIndexSQL()
 		{
-			string sql = IndexSQL.Replace("{TABLE_NAMES}", string.Join("', '", SelectedTables.Select(x => x.TableName).ToList()));
+			string sql = IndexSQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName).ToList()));
 			return sql;
 		}
 
 		private string ProcessStoredProcSQL()
 		{
-			string sql = StoredProcedureSQL.Replace("{SPROC_NAMES}", string.Join("', '", StoredProcedureNames));
+			string sql = StoredProcedureSQL.Replace("{SPROC_NAMES}", string.Join("', '", Global.SelectedStoredProcedures));
 			return sql;
 		}
 
@@ -298,256 +296,252 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			return false;
 		}
 
-        public Func<Table, bool> TableFilter = (Table t) =>
-        {
-            // Example: Exclude any table in dbo schema with "order" in its name.
-            //if(t.Schema.Equals("dbo", StringComparison.InvariantCultureIgnoreCase) && t.NameHumanCase.ToLowerInvariant().Contains("order"))
-            //	 return false;
+		private bool TableFilter(Table t)
+		{
+			// Example: Exclude any table in dbo schema with "order" in its name.
+			//if(t.Schema.Equals("dbo", StringComparison.InvariantCultureIgnoreCase) && t.NameHumanCase.ToLowerInvariant().Contains("order"))
+			//	 return false;
 
-            return true;
-        };
+			return true;
+		}
 
-        // Table renaming *********************************************************************************************************************
-        // Use the following function to rename tables such as tblOrders to Orders, Shipments_AB to Shipments, etc.
-        // Example:
-        public Func<string, string, string> TableRename = (name, schema) =>
-        {
-            // Example
-            //if (name.StartsWith("tbl"))
-            //	 name = name.Remove(0, 3);
-            //name = name.Replace("_AB", "");
+		// Table renaming *********************************************************************************************************************
+		// Use the following function to rename tables such as tblOrders to Orders, Shipments_AB to Shipments, etc.
+		// Example:
+		private string TableRename(string name, string schema)
+		{
+			// Example
+			//if (name.StartsWith("tbl"))
+			//	 name = name.Remove(0, 3);
+			//name = name.Replace("_AB", "");
 
-            // If you turn camel casing off (Setting.UseCamelCase = false), and use the pluralisation service, and some of your
-            // tables names are all UPPERCASE, some words ending in IES such as CATEGORIES get singularised as CATEGORy.
-            // Therefore you can make them lowercase by using the following
-            // return Inflector.MakeLowerIfAllCaps(name);
+			// If you turn camel casing off (Setting.UseCamelCase = false), and use the pluralisation service, and some of your
+			// tables names are all UPPERCASE, some words ending in IES such as CATEGORIES get singularised as CATEGORy.
+			// Therefore you can make them lowercase by using the following
+			// return Inflector.MakeLowerIfAllCaps(name);
 
-            return name;
-        };
+			return name;
+		}
 
-        // Use the following function if you need to apply additional modifications to a column
-        // eg. normalise names etc.
-        Func<Column, Table, Column> UpdateColumn = (Column column, Table table) =>
-        {
-            // Example
-            if (column.IsPrimaryKey)
-                column.NameHumanCase = "Id";
+		// Use the following function if you need to apply additional modifications to a column
+		// eg. normalise names etc.
+		private Column UpdateColumn(Column column, Table table)
+		{
+			// Example
+			if (column.IsPrimaryKey)
+				column.NameHumanCase = "Id";
 
-            if (column.NameHumanCase.EndsWith("Key"))
-            {
-                column.NameHumanCase = column.NameHumanCase.Substring(0, column.NameHumanCase.LastIndexOf("Key")) + "Id";
-            }
+			if (column.NameHumanCase.EndsWith("Key"))
+			{
+				column.NameHumanCase = column.NameHumanCase.Substring(0, column.NameHumanCase.LastIndexOf("Key")) + "Id";
+			}
 
-            // .IsConcurrencyToken() must be manually configured. However .IsRowVersion() can be automatically detected.
-            //if (table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase) && column.NameHumanCase.Equals("SomeColumn", StringComparison.InvariantCultureIgnoreCase))
-            //	 column.IsConcurrencyToken = true;
+			// .IsConcurrencyToken() must be manually configured. However .IsRowVersion() can be automatically detected.
+			//if (table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase) && column.NameHumanCase.Equals("SomeColumn", StringComparison.InvariantCultureIgnoreCase))
+			//	 column.IsConcurrencyToken = true;
 
-            // Remove table name from primary key
-            //if (column.IsPrimaryKey && column.NameHumanCase.Equals(table.NameHumanCase + "Id", StringComparison.InvariantCultureIgnoreCase))
-            //	 column.NameHumanCase = "Id";
+			// Remove table name from primary key
+			//if (column.IsPrimaryKey && column.NameHumanCase.Equals(table.NameHumanCase + "Id", StringComparison.InvariantCultureIgnoreCase))
+			//	 column.NameHumanCase = "Id";
 
-            // Remove column from poco class as it will be inherited from a base class
-            //if (column.IsPrimaryKey && table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase))
-            //	 column.Hidden = true;
+			// Remove column from poco class as it will be inherited from a base class
+			//if (column.IsPrimaryKey && table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase))
+			//	 column.Hidden = true;
 
-            // Perform Enum property type replacement
-            var enumDefinition = EnumsDefinitions.FirstOrDefault(e =>
-                (e.Schema.Equals(table.Schema, StringComparison.InvariantCultureIgnoreCase)) &&
-                (e.Table.Equals(table.Name, StringComparison.InvariantCultureIgnoreCase) || e.Table.Equals(table.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)) &&
-                (e.Column.Equals(column.Name, StringComparison.InvariantCultureIgnoreCase) || e.Column.Equals(column.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)));
+			// Perform Enum property type replacement
+			var enumDefinition = EnumsDefinitions.FirstOrDefault(e =>
+				 (e.Schema.Equals(table.Schema, StringComparison.InvariantCultureIgnoreCase)) &&
+				 (e.Table.Equals(table.Name, StringComparison.InvariantCultureIgnoreCase) || e.Table.Equals(table.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)) &&
+				 (e.Column.Equals(column.Name, StringComparison.InvariantCultureIgnoreCase) || e.Column.Equals(column.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)));
 
-            if (enumDefinition != null)
-            {
-                column.PropertyType = enumDefinition.EnumType;
-                if (!string.IsNullOrEmpty(column.Default))
-                    column.Default = "(" + enumDefinition.EnumType + ") " + column.Default;
-            }
+			if (enumDefinition != null)
+			{
+				column.PropertyType = enumDefinition.EnumType;
+				if (!string.IsNullOrEmpty(column.Default))
+					column.Default = "(" + enumDefinition.EnumType + ") " + column.Default;
+			}
 
-            return column;
-        };
+			return column;
+		}
 
-        // StoredProcedure return types *******************************************************************************************************
-        // Override generation of return models for stored procedures that return entities.
-        // If a stored procedure returns an entity, add it to the list below.
-        // This will suppress the generation of the return model, and instead return the entity.
-        // Example:							  Proc name		Return this entity type instead
-        //StoredProcedureReturnTypes.Add("SalesByYear", "SummaryOfSalesByYear");
+		// StoredProcedure return types *******************************************************************************************************
+		// Override generation of return models for stored procedures that return entities.
+		// If a stored procedure returns an entity, add it to the list below.
+		// This will suppress the generation of the return model, and instead return the entity.
+		// Example:							  Proc name		Return this entity type instead
+		//StoredProcedureReturnTypes.Add("SalesByYear", "SummaryOfSalesByYear");
 
-        Func<ForeignKey, ForeignKey> ForeignKeyFilter = (ForeignKey fk) =>
-        {
-            // Return null to exclude this foreign key
-            // Example, to exclude all foreign keys for the Categories table, use:
-            // if (fk.PkTableName == "Categories")
-            //	 return null;
-            return fk;
-        };
+		private ForeignKey ForeignKeyFilter(ForeignKey fk)
+		{
+			// Return null to exclude this foreign key
+			// Example, to exclude all foreign keys for the Categories table, use:
+			// if (fk.PkTableName == "Categories")
+			//	 return null;
+			return fk;
+		}
 
-        Func<string, string, short, string> ForeignKeyName = (tableName, foreignKeyName, attempt) =>
-        {
-            // 5 Attempts to correctly name the foreign key
-            switch (attempt)
-            {
-                case 1:
-                    // Try without appending foreign key name
-                    return tableName;
+		private string ForeignKeyName(string tableName, string foreignKeyName, short attempt)
+		{
+			// 5 Attempts to correctly name the foreign key
+			switch (attempt)
+			{
+				case 1:
+					// Try without appending foreign key name
+					return tableName;
 
-                case 2:
-                    // Only called if foreign key name ends with "id"
-                    // Use foreign key name without "id" at end of string
-                    return foreignKeyName.Remove(foreignKeyName.Length - 2, 2);
+				case 2:
+					// Only called if foreign key name ends with "id"
+					// Use foreign key name without "id" at end of string
+					return foreignKeyName.Remove(foreignKeyName.Length - 2, 2);
 
-                case 3:
-                    // Use foreign key name only
-                    return foreignKeyName;
+				case 3:
+					// Use foreign key name only
+					return foreignKeyName;
 
-                case 4:
-                    // Use table name and foreign key name
-                    return tableName + "_" + foreignKeyName;
+				case 4:
+					// Use table name and foreign key name
+					return tableName + "_" + foreignKeyName;
 
-                case 5:
-                    // Used in for loop 1 to 99 to append a number to the end
-                    return tableName;
+				case 5:
+					// Used in for loop 1 to 99 to append a number to the end
+					return tableName;
 
-                default:
-                    // Give up
-                    return tableName;
-            }
-        };
+				default:
+					// Give up
+					return tableName;
+			}
+		}
 
-        private static readonly Regex RxCleanUp = new Regex(@"[^\w\d\s_-]", RegexOptions.Compiled);
+		private static string CleanUp(string str)
+		{
+			// Replace punctuation and symbols in variable names as these are not allowed.
+			int len = str.Length;
+			if (len == 0)
+				return str;
+			var sb = new StringBuilder();
+			bool replacedCharacter = false;
+			for (int n = 0; n < len; ++n)
+			{
+				char c = str[n];
+				if (c != '_' && c != '-' && (char.IsSymbol(c) || char.IsPunctuation(c)))
+				{
+					int ascii = c;
+					sb.AppendFormat("{0}", ascii);
+					replacedCharacter = true;
+					continue;
+				}
+				sb.Append(c);
+			}
+			if (replacedCharacter)
+				str = sb.ToString();
 
-        public static readonly Func<string, string> CleanUp = (str) =>
-        {
-            // Replace punctuation and symbols in variable names as these are not allowed.
-            int len = str.Length;
-            if (len == 0)
-                return str;
-            var sb = new StringBuilder();
-            bool replacedCharacter = false;
-            for (int n = 0; n < len; ++n)
-            {
-                char c = str[n];
-                if (c != '_' && c != '-' && (char.IsSymbol(c) || char.IsPunctuation(c)))
-                {
-                    int ascii = c;
-                    sb.AppendFormat("{0}", ascii);
-                    replacedCharacter = true;
-                    continue;
-                }
-                sb.Append(c);
-            }
-            if (replacedCharacter)
-                str = sb.ToString();
+			// Remove non alphanumerics
+			str = RxCleanUp.Replace(str, "");
+			if (char.IsDigit(str[0]))
+				str = "C" + str;
 
-            // Remove non alphanumerics
-            str = RxCleanUp.Replace(str, "");
-            if (char.IsDigit(str[0]))
-                str = "C" + str;
+			return str;
+		}
 
-            return str;
-        };
+		public Tables LoadTables()
+		{
+			if (Factory == null)
+				return new Tables();
 
-        public Tables LoadTables(DbProviderFactory factory, List<TableData> selectedTables)
-        {
-            if (factory == null)
-                return new Tables();
+			try
+			{
+				using (DbConnection conn = Factory.CreateConnection())
+				{
+					conn.ConnectionString = Global.Setting.ConnectionString;
+					conn.Open();
+					Cmd.Connection = conn;
 
-            try
-            {
-                using (DbConnection conn = factory.CreateConnection())
-                {
-                    conn.ConnectionString = Setting.ConnectionString;
-                    conn.Open();
+					var tables = ReadTables();
+					tables.SetPrimaryKeys();
 
-                    SelectedTables = selectedTables;
+					var indexList = ReadIndexes(tables);
+					ProcessIndexes(indexList, tables);
 
-                    var tables = ReadSchema(SchemaFilterExclude, SchemaFilterInclude, TableFilterExclude, TableFilterInclude, ColumnFilterExclude, TableFilter, Setting.UseCamelCase, Setting.PrependSchemaName, Setting.IncludeComments, TableRename, UpdateColumn, Setting.PrivateSetterForComputedColumns);
-                    tables.SetPrimaryKeys();
+					// Must be done in this order
+					var fkList = ReadForeignKeys();
+					IdentifyForeignKeys(fkList, tables);
+					ProcessForeignKeys(fkList, tables, true);
 
-                    var indexList = ReadIndexes(tables);
-                    ProcessIndexes(indexList, tables);
+					tables.ResetNavigationProperties();
+					ProcessForeignKeys(fkList, tables, false);
 
-                    // Must be done in this order
-                    var fkList = ReadForeignKeys(TableRename, ForeignKeyFilter);
-                    IdentifyForeignKeys(fkList, tables);
-                    ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, true, Setting.IncludeComments, ForeignKeyName);
+					foreach (var t in tables)
+						t.SetHasPrimaryKey();
 
-                    tables.ResetNavigationProperties();
-                    ProcessForeignKeys(fkList, tables, Setting.UseCamelCase, Setting.PrependSchemaName, false, Setting.IncludeComments, ForeignKeyName);
+					conn.Close();
+					return tables;
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Tables();
+			}
+		}
 
-                    foreach (var t in tables)
-                        t.SetHasPrimaryKey();
+		public List<StoredProcedure> LoadStoredProcs()
+		{
+			if (Factory == null)
+				return new List<StoredProcedure>();
 
-                    conn.Close();
-                    return tables;
-                }
-            }
-            catch (Exception ex)
-            {
-                return new Tables();
-            }
-        }
+			try
+			{
+				using (DbConnection conn = Factory.CreateConnection())
+				{
+					conn.ConnectionString = Global.Setting.ConnectionString;
+					conn.Open();
+					Cmd.Connection = conn;
 
-        public List<StoredProcedure> LoadStoredProcs(DbProviderFactory factory, List<string> storedProcedureNames)
-        {
-            if (factory == null)
-                return new List<StoredProcedure>();
+					var storedProcs = ReadStoredProcedures();
+					conn.Close();
 
-            try
-            {
-                using (DbConnection conn = factory.CreateConnection())
-                {
-                    conn.ConnectionString = Setting.ConnectionString;
-                    conn.Open();
+					// Remove unrequired stored procs
+					for (int i = storedProcs.Count - 1; i >= 0; i--)
+					{
+						if (SchemaFilterInclude != null && !SchemaFilterInclude.IsMatch(storedProcs[i].Schema))
+						{
+							storedProcs.RemoveAt(i);
+							continue;
+						}
+						if (StoredProcedureFilterInclude != null && !StoredProcedureFilterInclude.IsMatch(storedProcs[i].Name))
+						{
+							storedProcs.RemoveAt(i);
+							continue;
+						}
+					}
 
-                    StoredProcedureNames = storedProcedureNames;
+					using (var sqlConnection = new SqlConnection(Global.Setting.ConnectionString))
+					{
+						foreach (var proc in storedProcs)
+							ReadStoredProcReturnObject(sqlConnection, proc);
+					}
 
-                    var storedProcs = ReadStoredProcs(SchemaFilterExclude, StoredProcedureFilterExclude, Setting.UseCamelCase, Setting.PrependSchemaName, StoredProcedure.StoredProcedureRename);
-                    conn.Close();
+					// Remove stored procs where the return model type contains spaces and cannot be mapped
+					var validStoredProcedures = new List<StoredProcedure>();
+					foreach (var sp in storedProcs)
+					{
+						if (!sp.ReturnModels.Any())
+						{
+							validStoredProcedures.Add(sp);
+							continue;
+						}
+						if (!sp.ReturnModels.Any(returnColumns => returnColumns.Any(c => c.ColumnName.Contains(" "))))
+							validStoredProcedures.Add(sp);
+					}
+					return validStoredProcedures;
+				}
+			}
+			catch (Exception ex)
+			{
+				return new List<StoredProcedure>();
+			}
+		}
 
-                    // Remove unrequired stored procs
-                    for (int i = storedProcs.Count - 1; i >= 0; i--)
-                    {
-                        if (SchemaFilterInclude != null && !SchemaFilterInclude.IsMatch(storedProcs[i].Schema))
-                        {
-                            storedProcs.RemoveAt(i);
-                            continue;
-                        }
-                        if (StoredProcedureFilterInclude != null && !StoredProcedureFilterInclude.IsMatch(storedProcs[i].Name))
-                        {
-                            storedProcs.RemoveAt(i);
-                            continue;
-                        }
-                    }
-
-                    using (var sqlConnection = new SqlConnection(Setting.ConnectionString))
-                    {
-                        foreach (var proc in storedProcs)
-                            ReadStoredProcReturnObject(sqlConnection, proc);
-                    }
-
-                    // Remove stored procs where the return model type contains spaces and cannot be mapped
-                    var validStoredProcedures = new List<StoredProcedure>();
-                    foreach (var sp in storedProcs)
-                    {
-                        if (!sp.ReturnModels.Any())
-                        {
-                            validStoredProcedures.Add(sp);
-                            continue;
-                        }
-                        if (!sp.ReturnModels.Any(returnColumns => returnColumns.Any(c => c.ColumnName.Contains(" "))))
-                            validStoredProcedures.Add(sp);
-                    }
-                    return validStoredProcedures;
-                }
-            }
-            catch (Exception ex)
-            {
-                return new List<StoredProcedure>();
-            }
-        }
-
-        public Tables ReadSchema(Regex schemaFilterExclude, Regex schemaFilterInclude, Regex tableFilterExclude, Regex tableFilterInclude, Regex columnFilterExclude, Func<Table, bool> tableFilter, bool useCamelCase, bool prependSchemaName, CommentsStyle includeComments, Func<string, string, string> tableRename, Func<Column, Table, Column> updateColumn, bool usePrivateSetterForComputedColumns)
+		public Tables ReadTables()
 		{
 			var result = new Tables();
 			if (Cmd == null)
@@ -564,11 +558,11 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 				while (rdr.Read())
 				{
 					string schema = rdr["SchemaName"].ToString().Trim();
-					if (IsFilterExcluded(schemaFilterExclude, schemaFilterInclude, schema))
+					if (IsFilterExcluded(SchemaFilterExclude, SchemaFilterInclude, schema))
 						continue;
 
 					string tableName = rdr["TableName"].ToString().Trim();
-					if (IsFilterExcluded(tableFilterExclude, tableFilterInclude, tableName))
+					if (IsFilterExcluded(TableFilterExclude, TableFilterInclude, tableName))
 						continue;
 
 					if (lastTable != tableName || table == null)
@@ -587,36 +581,36 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 								HasNullableColumns = false
 							};
 
-							table.TableData = SelectedTables.Where(x => x.TableName == tableName).FirstOrDefault();
+							table.TableData = Global.SelectedTables.Where(x => x.TableName == tableName).FirstOrDefault();
 
-							tableName = tableRename(tableName, schema);
-							if (IsFilterExcluded(tableFilterExclude, null, tableName)) // Retest exclusion filter after table rename
+							tableName = TableRename(tableName, schema);
+							if (IsFilterExcluded(TableFilterExclude, null, tableName)) // Retest exclusion filter after table rename
 								continue;
 
 							// Handle table names with underscores - singularise just the last word
 							table.ClassName = Inflector.MakeSingular(CleanUp(tableName));
-							var titleCase = (useCamelCase ? Inflector.ToTitleCase(table.ClassName) : table.ClassName).Replace(" ", "").Replace("$", "").Replace(".", "");
+							var titleCase = (Global.Setting.UseCamelCase ? Inflector.ToTitleCase(table.ClassName) : table.ClassName).Replace(" ", "").Replace("$", "").Replace(".", "");
 							table.NameHumanCase = titleCase;
 
 
-							if ((string.Compare(table.Schema, "dbo", StringComparison.OrdinalIgnoreCase) != 0) && prependSchemaName)
+							if ((string.Compare(table.Schema, "dbo", StringComparison.OrdinalIgnoreCase) != 0) && Global.Setting.PrependSchemaName)
 								table.NameHumanCase = table.Schema + "_" + table.NameHumanCase;
 
 							// Check for table or C# name clashes
 							if (ReservedKeywords.Contains(table.NameHumanCase) ||
-								(useCamelCase && result.Find(x => x.NameHumanCase == table.NameHumanCase) != null))
+								 (Global.Setting.UseCamelCase && result.Find(x => x.NameHumanCase == table.NameHumanCase) != null))
 							{
 								table.NameHumanCase += "1";
 							}
 
-							if (!tableFilter(table))
+							if (!TableFilter(table))
 								continue;
 
 							result.Add(table);
 						}
 					}
 
-					var col = CreateColumn(rdr, rxClean, table, useCamelCase, columnFilterExclude, updateColumn);
+					var col = CreateColumn(rdr, rxClean, table);
 					if (col != null)
 						table.Columns.Add(col);
 				}
@@ -636,13 +630,13 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 			foreach (Table tbl in result)
 			{
-				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(includeComments, usePrivateSetterForComputedColumns));
+				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(Global.Setting.IncludeComments, Global.Setting.PrivateSetterForComputedColumns));
 			}
 
 			return result;
 		}
 
-		public List<ForeignKey> ReadForeignKeys(Func<string, string, string> tableRename, Func<ForeignKey, ForeignKey> foreignKeyFilter)
+		public List<ForeignKey> ReadForeignKeys()
 		{
 			var fkList = new List<ForeignKey>();
 			if (Cmd == null)
@@ -665,13 +659,13 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 					int ordinal = (int)rdr["ORDINAL_POSITION"];
 					bool cascadeOnDelete = ((int)rdr["CascadeOnDelete"]) == 1;
 
-					string fkTableNameFiltered = tableRename(fkTableName, fkSchema);
-					string pkTableNameFiltered = tableRename(pkTableName, pkSchema);
+					string fkTableNameFiltered = TableRename(fkTableName, fkSchema);
+					string pkTableNameFiltered = TableRename(pkTableName, pkSchema);
 
 					var fk = new ForeignKey(fkTableName, fkSchema, pkTableName, pkSchema, fkColumn, pkColumn,
-							constraintName, fkTableNameFiltered, pkTableNameFiltered, ordinal, cascadeOnDelete);
+							  constraintName, fkTableNameFiltered, pkTableNameFiltered, ordinal, cascadeOnDelete);
 
-					var filteredFk = foreignKeyFilter(fk);
+					var filteredFk = ForeignKeyFilter(fk);
 					if (filteredFk != null)
 						fkList.Add(filteredFk);
 				}
@@ -726,7 +720,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			return indexes;
 		}
 
-		public List<StoredProcedure> ReadStoredProcs(Regex schemaFilterExclude, Regex storedProcedureFilterExclude, bool useCamelCase, bool prependSchemaName, Func<string, string, string> StoredProcedureRename)
+		public List<StoredProcedure> ReadStoredProcedures()
 		{
 			var result = new List<StoredProcedure>();
 			if (Cmd == null)
@@ -744,14 +738,14 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 					string spType = rdr["ROUTINE_TYPE"].ToString().Trim().ToUpper();
 
 					string schema = rdr["SPECIFIC_SCHEMA"].ToString().Trim();
-					if (schemaFilterExclude != null && schemaFilterExclude.IsMatch(schema))
+					if (SchemaFilterExclude != null && SchemaFilterExclude.IsMatch(schema))
 						continue;
 
 					string spName = rdr["SPECIFIC_NAME"].ToString().Trim();
 
 					var fullname = schema + "." + spName;
 
-					if (storedProcedureFilterExclude != null && (storedProcedureFilterExclude.IsMatch(spName) || storedProcedureFilterExclude.IsMatch(fullname)))
+					if (StoredProcedureFilterExclude != null && (StoredProcedureFilterExclude.IsMatch(spName) || StoredProcedureFilterExclude.IsMatch(fullname)))
 						continue;
 
 					if (lastSp != fullname || sp == null)
@@ -760,15 +754,15 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 						sp = new StoredProcedure
 						{
 							Name = spName,
-							NameHumanCase = (useCamelCase ? Inflector.ToTitleCase(spName) : spName).Replace(" ", "").Replace("$", ""),
+							NameHumanCase = (Global.Setting.UseCamelCase ? Inflector.ToTitleCase(spName) : spName).Replace(" ", "").Replace("$", ""),
 							Schema = schema
 						};
-						if ((string.Compare(schema, "dbo", StringComparison.OrdinalIgnoreCase) != 0) && prependSchemaName)
+						if ((string.Compare(schema, "dbo", StringComparison.OrdinalIgnoreCase) != 0) && Global.Setting.PrependSchemaName)
 							sp.NameHumanCase = schema + "_" + sp.NameHumanCase;
 
-						sp.NameHumanCase = StoredProcedureRename(sp.NameHumanCase, schema);
+						sp.NameHumanCase = StoredProcedureHelper.StoredProcedureRename(sp.NameHumanCase, schema);
 
-						if (storedProcedureFilterExclude != null && storedProcedureFilterExclude.IsMatch(sp.NameHumanCase))
+						if (StoredProcedureFilterExclude != null && StoredProcedureFilterExclude.IsMatch(sp.NameHumanCase))
 							continue;
 
 						result.Add(sp);
@@ -797,8 +791,8 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 						var clean = CleanUp(param.Name.Replace("@", ""));
 						param.NameHumanCase =
-							Inflector.MakeInitialLower(
-								(useCamelCase ? Inflector.ToTitleCase(clean) : clean).Replace(" ", ""));
+							 Inflector.MakeInitialLower(
+								  (Global.Setting.UseCamelCase ? Inflector.ToTitleCase(clean) : clean).Replace(" ", ""));
 
 						if (ReservedKeywords.Contains(param.NameHumanCase))
 							param.NameHumanCase = "@" + param.NameHumanCase;
@@ -873,36 +867,36 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			}
 		}
 
-		public void ProcessForeignKeys(List<ForeignKey> fkList, Tables tables, bool useCamelCase, bool prependSchemaName, bool checkForFkNameClashes, CommentsStyle includeComments, Func<string, string, short, string> ForeignKeyName)
+		public void ProcessForeignKeys(List<ForeignKey> fkList, Tables tables, bool checkForFkNameClashes)
 		{
 			var constraints = fkList.Select(x => x.FkSchema + "." + x.ConstraintName).Distinct();
 			foreach (var constraint in constraints)
 			{
 				var foreignKeys = fkList
-						.Where(x => string.Format("{0}.{1}", x.FkSchema, x.ConstraintName).Equals(constraint, StringComparison.InvariantCultureIgnoreCase))
-						.ToList();
+						  .Where(x => string.Format("{0}.{1}", x.FkSchema, x.ConstraintName).Equals(constraint, StringComparison.InvariantCultureIgnoreCase))
+						  .ToList();
 
 				var foreignKey = foreignKeys.First();
 
-                Table fkTable = foreignKey.FKTable;
+				Table fkTable = foreignKey.FKTable;
 
-                Table pkTable = foreignKey.PKTable;
+				Table pkTable = foreignKey.PKTable;
 
 				var fkCols = foreignKeys.Select(x => new
-				    {
-					    fkOrdinal = x.Ordinal,
-					    col = fkTable.Columns.Find(n => string.Equals(n.Name, x.FkColumnName, StringComparison.InvariantCultureIgnoreCase))
-				    })
-					.Where(x => x != null)
-					.ToList();
+				{
+					fkOrdinal = x.Ordinal,
+					col = fkTable.Columns.Find(n => string.Equals(n.Name, x.FkColumnName, StringComparison.InvariantCultureIgnoreCase))
+				})
+					 .Where(x => x != null)
+					 .ToList();
 
 				if (!fkCols.Any())
 					continue;
 
 				var pkCols = foreignKeys.Select(x => pkTable.Columns.Find(n => string.Equals(n.Name, x.PkColumnName, StringComparison.InvariantCultureIgnoreCase)))
-												.Where(x => x != null && x.IsPrimaryKey)
-												.OrderBy(o => o.Ordinal)
-												.ToList();
+														  .Where(x => x != null && x.IsPrimaryKey)
+														  .OrderBy(o => o.Ordinal)
+														  .ToList();
 
 				if (!pkCols.Any())
 					continue;
@@ -910,16 +904,16 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 				var fkCol = fkCols.First();
 				var pkCol = pkCols.First();
 
-				var relationship = ForeignKey.CalcRelationship(pkTable, fkTable, fkCols.OrderBy(o => o.fkOrdinal).Select(c => c.col).ToList(), pkCols);
+				var relationship = CalcRelationship(pkTable, fkTable, fkCols.OrderBy(o => o.fkOrdinal).Select(c => c.col).ToList(), pkCols);
 				if (relationship == Relationship.DoNotUse)
 					continue;
 
-				string pkTableHumanCase = foreignKey.PkTableHumanCase(useCamelCase, prependSchemaName);
-				string pkPropName = fkTable.GetUniqueColumnName(pkTableHumanCase, foreignKey, useCamelCase, checkForFkNameClashes, true, ForeignKeyName);
+				string pkTableHumanCase = foreignKey.PkTableHumanCase(Global.Setting.UseCamelCase, Global.Setting.PrependSchemaName);
+				string pkPropName = fkTable.GetUniqueColumnName(pkTableHumanCase, foreignKey, Global.Setting.UseCamelCase, checkForFkNameClashes, true, ForeignKeyName);
 				bool fkMakePropNameSingular = (relationship == Relationship.OneToOne);
-				string fkPropName = pkTable.GetUniqueColumnName(fkTable.NameHumanCase, foreignKey, useCamelCase, checkForFkNameClashes, fkMakePropNameSingular, ForeignKeyName);
+				string fkPropName = pkTable.GetUniqueColumnName(fkTable.NameHumanCase, foreignKey, Global.Setting.UseCamelCase, checkForFkNameClashes, fkMakePropNameSingular, ForeignKeyName);
 
-				fkCol.col.EntityForeignKeys.Add(string.Format("public virtual {0} {1} {2}{3}", pkTableHumanCase, pkPropName, "{ get; set; }", includeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
+				fkCol.col.EntityForeignKeys.Add(string.Format("public virtual {0} {1} {2}{3}", pkTableHumanCase, pkPropName, "{ get; set; }", Global.Setting.IncludeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
 
 				string manyToManyMapping, mapKey;
 				if (foreignKeys.Count > 1)
@@ -934,12 +928,12 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 					mapKey = string.Format("\"{0}\"", fkCol.col.Name);
 				}
 
-				fkCol.col.ConfigForeignKeys.Add(string.Format("{0};{1}", GetRelationship(relationship, fkCol.col, pkCol, pkPropName, fkPropName, manyToManyMapping, mapKey, foreignKey.CascadeOnDelete), includeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
+				fkCol.col.ConfigForeignKeys.Add(string.Format("{0};{1}", GetRelationship(relationship, fkCol.col, pkCol, pkPropName, fkPropName, manyToManyMapping, mapKey, foreignKey.CascadeOnDelete), Global.Setting.IncludeComments != CommentsStyle.None ? " // " + foreignKey.ConstraintName : string.Empty));
 
-                var rv = new ReverseNavigation(relationship, pkTableHumanCase, pkCol, fkTable, fkPropName, fkCol.col, constraint, includeComments);
-                pkTable.ReverseNavigationProperties.Add(rv);
-            }
-        }
+				var rv = new ReverseNavigation(relationship, pkTableHumanCase, pkCol, fkTable, fkPropName, fkCol.col, constraint, Global.Setting.IncludeComments);
+				pkTable.ReverseNavigationProperties.Add(rv);
+			}
+		}
 
 		public void IdentifyForeignKeys(List<ForeignKey> fkList, Tables tables)
 		{
@@ -961,22 +955,71 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 				if (pkCol == null)
 					continue;   // Could not find pk column
 
-                foreignKey.FKTable = fkTable;
-                foreignKey.PKTable = pkTable;
-                foreignKey.FKColumn = fkCol;
+				foreignKey.FKTable = fkTable;
+				foreignKey.PKTable = pkTable;
+				foreignKey.FKColumn = fkCol;
 				foreignKey.PKColumn = pkCol;
 
 				fkTable.ForeignKeys.Add(foreignKey);
 			}
 		}
 
+		private Relationship CalcRelationship(Table pkTable, Table fkTable, List<Column> fkCols, List<Column> pkCols)
+		{
+			if (fkCols.Count() == 1 && pkCols.Count() == 1)
+				return CalcRelationshipSingle(pkTable, fkTable, fkCols.First(), pkCols.First());
+
+			// This relationship has multiple composite keys
+
+			bool fkTableAllPrimaryKeys = (fkTable.PrimaryKeys.Count() == fkCols.Count());
+			bool pkTableAllPrimaryKeys = (pkTable.PrimaryKeys.Count() == pkCols.Count());
+			bool fkColumnsAllPrimaryKeys = (fkCols.Count(x => x.IsPrimaryKey) == fkCols.Count());
+			bool pkColumnsAllPrimaryKeys = (pkCols.Count(x => x.IsPrimaryKey) == pkCols.Count());
+
+			// 1:1
+			if (fkColumnsAllPrimaryKeys && pkColumnsAllPrimaryKeys && fkTableAllPrimaryKeys && pkTableAllPrimaryKeys)
+				return Relationship.OneToOne;
+
+			// 1:n
+			if (fkColumnsAllPrimaryKeys && !pkColumnsAllPrimaryKeys && fkTableAllPrimaryKeys)
+				return Relationship.OneToMany;
+
+			// n:1
+			if (!fkColumnsAllPrimaryKeys && pkColumnsAllPrimaryKeys && pkTableAllPrimaryKeys)
+				return Relationship.ManyToOne;
+
+			// n:n
+			return Relationship.ManyToMany;
+		}
+
+		private Relationship CalcRelationshipSingle(Table pkTable, Table fkTable, Column fkCol, Column pkCol)
+		{
+			bool fkTableSinglePrimaryKey = (fkTable.PrimaryKeys.Count() == 1);
+			bool pkTableSinglePrimaryKey = (pkTable.PrimaryKeys.Count() == 1);
+
+			// 1:1
+			if (fkCol.IsPrimaryKey && pkCol.IsPrimaryKey && fkTableSinglePrimaryKey && pkTableSinglePrimaryKey)
+				return Relationship.OneToOne;
+
+			// 1:n
+			if (fkCol.IsPrimaryKey && !pkCol.IsPrimaryKey && fkTableSinglePrimaryKey)
+				return Relationship.OneToMany;
+
+			// n:1
+			if (!fkCol.IsPrimaryKey && pkCol.IsPrimaryKey && pkTableSinglePrimaryKey)
+				return Relationship.ManyToOne;
+
+			// n:n
+			return Relationship.ManyToMany;
+		}
+
 		private static string GetRelationship(Relationship relationship, Column fkCol, Column pkCol, string pkPropName, string fkPropName, string manyToManyMapping, string mapKey, bool cascadeOnDelete)
 		{
 			return string.Format("Has{0}(a => a.{1}){2}{3}",
-				GetHasMethod(relationship, fkCol, pkCol),
-				pkPropName,
-				GetWithMethod(relationship, fkCol, fkPropName, manyToManyMapping, mapKey),
-				cascadeOnDelete ? string.Empty : ".WillCascadeOnDelete(false)");
+				 GetHasMethod(relationship, fkCol, pkCol),
+				 pkPropName,
+				 GetWithMethod(relationship, fkCol, fkPropName, manyToManyMapping, mapKey),
+				 cascadeOnDelete ? string.Empty : ".WillCascadeOnDelete(false)");
 		}
 
 		// HasOptional
@@ -1027,7 +1070,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			}
 		}
 
-		private Column CreateColumn(IDataRecord rdr, Regex rxClean, Table table, bool useCamelCase, Regex columnFilterExclude, Func<Column, Table, Column> updateColumn)
+		private Column CreateColumn(IDataRecord rdr, Regex rxClean, Table table)
 		{
 			if (rdr == null)
 				throw new ArgumentNullException("rdr");
@@ -1066,7 +1109,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			}
 
 			var fullName = string.Format("{0}.{1}.{2}", table.Schema, table.Name, col.Name);
-			if (columnFilterExclude != null && !col.IsPrimaryKey && (columnFilterExclude.IsMatch(col.Name) || columnFilterExclude.IsMatch(fullName)))
+			if (ColumnFilterExclude != null && !col.IsPrimaryKey && (ColumnFilterExclude.IsMatch(col.Name) || ColumnFilterExclude.IsMatch(fullName)))
 				col.Hidden = true;
 
 			col.IsFixedLength = (typename == "char" || typename == "nchar");
@@ -1087,7 +1130,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			if (ReservedKeywords.Contains(col.NameHumanCase))
 				col.NameHumanCase = "@" + col.NameHumanCase;
 
-			var titleCase = (useCamelCase ? Inflector.ToTitleCase(col.NameHumanCase) : col.NameHumanCase).Replace(" ", "");
+			var titleCase = (Global.Setting.UseCamelCase ? Inflector.ToTitleCase(col.NameHumanCase) : col.NameHumanCase).Replace(" ", "");
 			if (titleCase != string.Empty)
 				col.NameHumanCase = titleCase;
 
@@ -1100,7 +1143,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 			table.HasNullableColumns = col.IsNullable;
 
-			col = updateColumn(col, table);
+			col = UpdateColumn(col, table);
 
 			col.ParameterName = Inflector.MakeInitialLower(col.NameHumanCase);
 
@@ -1110,7 +1153,5 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 			return col;
 		}
-
-		
 	}
 }

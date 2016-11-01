@@ -15,9 +15,7 @@ namespace DatabaseGenerationToolExt.Forms
 {
 	public partial class DatabaseObjectSelector : Form
 	{
-		public List<TableData> TableNames { get; set; }
 
-		public List<string> StoredProcedureNames { get; set; }
 
 		public bool IsCanceled { get; set; } = false;
 
@@ -25,10 +23,7 @@ namespace DatabaseGenerationToolExt.Forms
 		{
 			InitializeComponent();
 
-			TableNames = new List<TableData>();
-			StoredProcedureNames = new List<string>();
-
-			DesignPattern.ProcessDatabaseXML(TableNames, StoredProcedureNames);
+			DesignPattern.ProcessDatabaseXML();
 
 			using (ConnectionStringSelector conForm = new ConnectionStringSelector())
 			{
@@ -38,17 +33,18 @@ namespace DatabaseGenerationToolExt.Forms
 				{
 					Logger.ResetLogs();
 
-                    Global.Setting.ConnectionStringName = conForm.SelectedConnection.ConnectionStringName;
-                    Global.Setting.ConnectionString = conForm.SelectedConnection.ConnectionString;
-                    Global.Setting.ProviderName = conForm.SelectedConnection.ProviderName;
-                    
-                    PopulateDropDownLists();
+					Global.Setting.ConnectionStringName = conForm.SelectedConnection.ConnectionStringName;
+					Global.Setting.ConnectionString = conForm.SelectedConnection.ConnectionString;
+					Global.Setting.ProviderName = conForm.SelectedConnection.ProviderName;
+
+					PopulateDropDownLists();
 					InitializeDatabaseObjects();
 					LoadDatabaseGenerationSettings();
 				}
 				else
 				{
 					conForm.Dispose();
+					Global.ResetValues();
 					IsCanceled = true;
 				}
 			}
@@ -89,9 +85,9 @@ namespace DatabaseGenerationToolExt.Forms
 
 		private void LoadDatabaseGenerationSettings()
 		{
-            DatabaseGenerationSetting setting = Global.Setting;
+			DatabaseGenerationSetting setting = Global.Setting;
 
-            if (setting != null)
+			if (setting != null)
 			{
 				txtDbContextName.DataBindings.Add("Text", setting, "DatabaseContextName");
 				txtContextInterfaceBaseClass.DataBindings.Add("Text", setting, "ContextInterfaceBaseClass");
@@ -153,7 +149,7 @@ namespace DatabaseGenerationToolExt.Forms
 
 				while (reader.Read())
 				{
-					TableData data = TableNames.Where(x => x.TableName == reader["Name"].ToString()).FirstOrDefault();
+					TableData data = Global.SelectedTables.Where(x => x.TableName == reader["Name"].ToString()).FirstOrDefault();
 
 					if (data == null)
 					{
@@ -297,6 +293,11 @@ namespace DatabaseGenerationToolExt.Forms
 			UpdateTableSettings();
 		}
 
+		private void DatabaseObjectSelector_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			Global.ResetValues();
+		}
+
 		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
 		{
 			TabPage tp = e.TabPage;
@@ -318,26 +319,22 @@ namespace DatabaseGenerationToolExt.Forms
 		{
 			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
 
-			TableNames = tableData.Where(x => x.TableSelect == true).ToList();
+			Global.SelectedTables = tableData.Where(x => x.TableSelect == true).ToList();
 
-            Global.Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
+			Global.Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
 
-            // Read schema
+			// Read schema
 
+			SchemaReader reader = new SchemaReader();
 
-			var factory = ConnectionHelper.GetDbProviderFactory(Global.Setting.ProviderName);
-
-            DbConnection conn = factory.CreateConnection();
-            SchemaReader reader = new SchemaReader(conn, factory, Global.Setting.IncludeQueryTraceOn9481Flag, Global.Setting);
-
-            var tables = reader.LoadTables(factory, TableNames);
-			var storedProcs = reader.LoadStoredProcs(factory, StoredProcedureNames);
+			var tables = reader.LoadTables();
+			var storedProcs = reader.LoadStoredProcs();
 
 			// Generate output
 			if (tables.Count > 0 || storedProcs.Count > 0)
 			{
-                DesignPattern designPattern = new EntityFrameworkDesignPattern("4.6.1", Global.Setting, Global.Package, tables, storedProcs);
-                designPattern.CreateFiles();
+				DesignPattern designPattern = new EntityFrameworkDesignPattern("4.61", tables, storedProcs);
+				designPattern.CreateFiles();
 			}
 
 			this.Close();
@@ -345,9 +342,6 @@ namespace DatabaseGenerationToolExt.Forms
 
 		private void btnCancel_Click(object sender, EventArgs e)
 		{
-			TableNames = new List<TableData>();
-			StoredProcedureNames = new List<string>();
-
 			this.Close();
 		}
 

@@ -735,6 +735,7 @@
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Database Object Selector";
+			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.DatabaseObjectSelector_FormClosing);
 			this.Load += new System.EventHandler(this.DatabaseObjectSelector_Load);
 			this.tcDatabaseObjects.ResumeLayout(false);
 			this.tpSettings.ResumeLayout(false);

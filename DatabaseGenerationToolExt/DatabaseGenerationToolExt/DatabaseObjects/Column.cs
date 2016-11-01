@@ -27,17 +27,18 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 		public bool IsIdentity { get; set; }
 
-        private bool _isNullable;
-		public bool IsNullable {
-            get
-            {
-                return _isNullable && PropertyTypeHelper.NotNullable.Contains(PropertyType.ToLower());
-            }
-            set
-            {
-                _isNullable = value;
-            }
-        }
+		private bool _isNullable;
+		public bool IsNullable
+		{
+			get
+			{
+				return _isNullable && PropertyTypeHelper.NotNullable.Contains(PropertyType.ToLower());
+			}
+			set
+			{
+				_isNullable = value;
+			}
+		}
 		public bool IsPrimaryKey { get; set; }
 		public bool IsStoreGenerated { get; set; }
 		public bool IsRowVersion { get; set; }
@@ -102,8 +103,8 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			return String.Format(Global.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", propType);
 		}
 
-       
-        public bool IsComputed
+
+		public bool IsComputed
 		{
 			get
 			{

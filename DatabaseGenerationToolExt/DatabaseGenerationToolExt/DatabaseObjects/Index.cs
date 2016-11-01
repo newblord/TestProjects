@@ -21,14 +21,14 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			Columns = new List<Column>();
 		}
 
-        public static string CreateIndexParameterString(Index index)
-        {
-            return string.Join(", ", index.Columns.Select(s => s.PropertyType + " " + s.ParameterName));
-        }
+		public string CreateParameterString()
+		{
+			return string.Join(", ", Columns.Select(s => s.PropertyType + " " + s.ParameterName));
+		}
 
-        public static string CreateIndexWhereString(Index index)
-        {
-            return string.Join(" && ", index.Columns.Select(s => "x." + s.NameHumanCase + " == " + s.ParameterName));
-        }
-    }
+		public string CreateWhereString()
+		{
+			return string.Join(" && ", Columns.Select(s => "x." + s.NameHumanCase + " == " + s.ParameterName));
+		}
+	}
 }

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace DatabaseGenerationToolExt.DatabaseObjects
 {
-    public class DatabaseConnection
-    {
-        public string ConnectionStringName { get; set; }
-        public string ConnectionString { get; set; }
-        public string ProviderName { get; set; }
-        public string ConfigFilePath { get; set; }
-    }
+	public class DatabaseConnection
+	{
+		public string ConnectionStringName { get; set; }
+		public string ConnectionString { get; set; }
+		public string ProviderName { get; set; }
+		public string ConfigFilePath { get; set; }
+	}
 }

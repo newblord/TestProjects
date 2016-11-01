@@ -15,11 +15,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 	public abstract class DesignPattern
 	{
 
-		public DesignPattern(string targetFrameworkVersion, DatabaseGenerationSetting setting, Microsoft.VisualStudio.Shell.Package package, Tables tables, List<StoredProcedure> storedProcs)
+		public DesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs)
 		{
 			TargetFrameworkVersion = targetFrameworkVersion;
-			Setting = setting;
-            Tables = tables;
+			Setting = Global.Setting;
+			Tables = tables;
 			StoredProcedures = storedProcs;
 			GenerationEnvironment = new StringBuilder();
 			NewFiles = new List<NewFile>();
@@ -213,60 +213,60 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return c.InterfaceEntity;
 		}
 
-        public static void ProcessDatabaseXML(List<TableData> tableNames, List<string> storedProcedureNames)
-        {
-            string fileName = Global.Setting.XmlAndLogFilePrefix + "Settings.xml";
+		public static void ProcessDatabaseXML()
+		{
+			string fileName = Global.Setting.XmlAndLogFilePrefix + "Settings.xml";
 
-            string filePath = string.Empty;
-            var selectedItems = VisualStudioHelper.GetDTE().SelectedItems.Cast<SelectedItem>();
-            if (selectedItems.Count() == 1)
-            {
-                SelectedItem item = selectedItems.FirstOrDefault();
+			string filePath = string.Empty;
+			var selectedItems = VisualStudioHelper.GetDTE().SelectedItems.Cast<SelectedItem>();
+			if (selectedItems.Count() == 1)
+			{
+				SelectedItem item = selectedItems.FirstOrDefault();
 
-                if (item.Project != null)
-                {
-                    Project p = VisualStudioHelper.FindProject(item.Project.Name);
-                    filePath = VisualStudioHelper.GetProjectPath(item.Project);
-                }
-                else if (item.ProjectItem != null)
-                {
-                    filePath = VisualStudioHelper.GetProjectPath(item.ProjectItem.ContainingProject);
-                }
-            }
+				if (item.Project != null)
+				{
+					Project p = VisualStudioHelper.FindProject(item.Project.Name);
+					filePath = VisualStudioHelper.GetProjectPath(item.Project);
+				}
+				else if (item.ProjectItem != null)
+				{
+					filePath = VisualStudioHelper.GetProjectPath(item.ProjectItem.ContainingProject);
+				}
+			}
 
-            filePath = Path.Combine(filePath, fileName);
+			filePath = Path.Combine(filePath, fileName);
 
-            if (System.IO.File.Exists(filePath))
-            {
-                var xml = XDocument.Load(filePath);
+			if (System.IO.File.Exists(filePath))
+			{
+				var xml = XDocument.Load(filePath);
 
-                XElement settingNode = xml.Root.Descendants("DatabaseGenerationSetting").FirstOrDefault();
-                XmlSerializer serializer = new XmlSerializer(typeof(DatabaseGenerationSetting));
+				XElement settingNode = xml.Root.Descendants("DatabaseGenerationSetting").FirstOrDefault();
+				XmlSerializer serializer = new XmlSerializer(typeof(DatabaseGenerationSetting));
 
-                if (settingNode != null)
-                {
-                    StringReader rdr = new StringReader(settingNode.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
-                    DatabaseGenerationSetting setting = (DatabaseGenerationSetting)serializer.Deserialize(rdr);
-                    Global.InitializeSetting(setting);
-                }
+				if (settingNode != null)
+				{
+					StringReader rdr = new StringReader(settingNode.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+					DatabaseGenerationSetting setting = (DatabaseGenerationSetting)serializer.Deserialize(rdr);
+					Global.InitializeSetting(setting);
+				}
 
-                List<XElement> tableNodes = (from c in xml.Root.Descendants("TableData") select c).ToList();
-                serializer = new XmlSerializer(typeof(TableData));
+				List<XElement> tableNodes = (from c in xml.Root.Descendants("TableData") select c).ToList();
+				serializer = new XmlSerializer(typeof(TableData));
 
-                foreach (XElement item in tableNodes)
-                {
-                    StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
-                    tableNames.Add((TableData)serializer.Deserialize(rdr));
-                }
+				foreach (XElement item in tableNodes)
+				{
+					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+					Global.SelectedTables.Add((TableData)serializer.Deserialize(rdr));
+				}
 
-                storedProcedureNames = (from c in xml.Root.Descendants("StoredProcedure")
-                                        select c.Value).ToList();
-            }
-        }
+				Global.SelectedStoredProcedures = (from c in xml.Root.Descendants("StoredProcedure")
+															  select c.Value).ToList();
+			}
+		}
 
-        #region File Generation Methods
+		#region File Generation Methods
 
-        private NewFile currentFile;
+		private NewFile currentFile;
 		private List<string> Indents { get; set; }
 		private string TotalIndentValue { get; set; }
 		private List<NewFile> NewFiles { get; set; }
@@ -313,10 +313,10 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			CurrentFile.FolderName = folderName;
 		}
 
-        public virtual void CreateFiles()
-        {
+		public virtual void CreateFiles()
+		{
 
-        }
+		}
 
 		public void ProcessFiles()
 		{
@@ -360,7 +360,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				for (int x = 0; x < groupedFiles.Length; x++)
 				{
-					if(!string.IsNullOrEmpty(groupedFiles[x].FolderName))
+					if (!string.IsNullOrEmpty(groupedFiles[x].FolderName))
 					{
 						Project p = null;
 
@@ -381,12 +381,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						}
 					}
 
-					var outputPath = VisualStudioHelper.GetOutputPath(groupedFiles[x].ProjectName, groupedFiles[x].FolderName, defaultPath);
+					var outputPath = VisualStudioHelper.GetOutputPath(groupedFiles[x].ProjectName ?? currentProjectName, groupedFiles[x].FolderName, defaultPath);
 					var outputFiles = groupedFiles[x].OutputFiles;
 
 					for (int i = 0; i < outputFiles.Length; i++)
 					{
-						var outputFile = NewFiles[i];
+						var outputFile = outputFiles[i];
 
 						if (outputFile.ProjectName == null)
 						{

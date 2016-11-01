@@ -136,7 +136,7 @@ public class TemplateFileManager
 		CurrentBlock = header;
 	}
 
-    private Block CurrentBlock
+	private Block CurrentBlock
 	{
 		get { return currentBlock; }
 		set
@@ -812,8 +812,8 @@ public class VSHelper
 	private static ProjectItem FindProjectItem(ProjectItems items, string fullName, bool canCreateIfNotExists)
 	{
 		ProjectItem item = (from i in items.Cast<ProjectItem>()
-											where i.Name == Path.GetFileName(fullName)
-											select i).FirstOrDefault();
+								  where i.Name == Path.GetFileName(fullName)
+								  select i).FirstOrDefault();
 		if (item == null)
 		{
 			File.CreateText(fullName);

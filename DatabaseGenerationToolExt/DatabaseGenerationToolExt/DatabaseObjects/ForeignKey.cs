@@ -11,12 +11,12 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		public string FkTableName { get; private set; }
 		public string FkTableNameFiltered { get; private set; }
 		public string FkSchema { get; private set; }
-        public Table FKTable { get; internal set; }
+		public Table FKTable { get; internal set; }
 		public string PkTableName { get; private set; }
 		public string PkTableNameFiltered { get; private set; }
 		public string PkSchema { get; private set; }
-        public Table PKTable { get; internal set; }
-        public string FkColumnName { get; private set; }
+		public Table PKTable { get; internal set; }
+		public string FkColumnName { get; private set; }
 		public Column FKColumn { get; internal set; }
 		public string PkColumnName { get; private set; }
 		public Column PKColumn { get; internal set; }
@@ -48,53 +48,5 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			return pkTableHumanCase;
 		}
 
-        public static Relationship CalcRelationship(Table pkTable, Table fkTable, List<Column> fkCols, List<Column> pkCols)
-        {
-            if (fkCols.Count() == 1 && pkCols.Count() == 1)
-                return CalcRelationshipSingle(pkTable, fkTable, fkCols.First(), pkCols.First());
-
-            // This relationship has multiple composite keys
-
-            bool fkTableAllPrimaryKeys = (fkTable.PrimaryKeys.Count() == fkCols.Count());
-            bool pkTableAllPrimaryKeys = (pkTable.PrimaryKeys.Count() == pkCols.Count());
-            bool fkColumnsAllPrimaryKeys = (fkCols.Count(x => x.IsPrimaryKey) == fkCols.Count());
-            bool pkColumnsAllPrimaryKeys = (pkCols.Count(x => x.IsPrimaryKey) == pkCols.Count());
-
-            // 1:1
-            if (fkColumnsAllPrimaryKeys && pkColumnsAllPrimaryKeys && fkTableAllPrimaryKeys && pkTableAllPrimaryKeys)
-                return Relationship.OneToOne;
-
-            // 1:n
-            if (fkColumnsAllPrimaryKeys && !pkColumnsAllPrimaryKeys && fkTableAllPrimaryKeys)
-                return Relationship.OneToMany;
-
-            // n:1
-            if (!fkColumnsAllPrimaryKeys && pkColumnsAllPrimaryKeys && pkTableAllPrimaryKeys)
-                return Relationship.ManyToOne;
-
-            // n:n
-            return Relationship.ManyToMany;
-        }
-
-        public static Relationship CalcRelationshipSingle(Table pkTable, Table fkTable, Column fkCol, Column pkCol)
-        {
-            bool fkTableSinglePrimaryKey = (fkTable.PrimaryKeys.Count() == 1);
-            bool pkTableSinglePrimaryKey = (pkTable.PrimaryKeys.Count() == 1);
-
-            // 1:1
-            if (fkCol.IsPrimaryKey && pkCol.IsPrimaryKey && fkTableSinglePrimaryKey && pkTableSinglePrimaryKey)
-                return Relationship.OneToOne;
-
-            // 1:n
-            if (fkCol.IsPrimaryKey && !pkCol.IsPrimaryKey && fkTableSinglePrimaryKey)
-                return Relationship.OneToMany;
-
-            // n:1
-            if (!fkCol.IsPrimaryKey && pkCol.IsPrimaryKey && pkTableSinglePrimaryKey)
-                return Relationship.ManyToOne;
-
-            // n:n
-            return Relationship.ManyToMany;
-        }
-    }
+	}
 }
