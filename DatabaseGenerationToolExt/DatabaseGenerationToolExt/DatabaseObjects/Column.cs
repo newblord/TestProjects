@@ -32,7 +32,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		{
 			get
 			{
-				return _isNullable && PropertyTypeHelper.NotNullable.Contains(PropertyType.ToLower());
+				return _isNullable && !PropertyTypeHelper.NotNullable.Contains(PropertyType.ToLower());
 			}
 			set
 			{

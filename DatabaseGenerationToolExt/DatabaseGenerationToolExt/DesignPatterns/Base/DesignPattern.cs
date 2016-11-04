@@ -18,7 +18,6 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		public DesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs)
 		{
 			TargetFrameworkVersion = targetFrameworkVersion;
-			Setting = Global.Setting;
 			Tables = tables;
 			StoredProcedures = storedProcs;
 			GenerationEnvironment = new StringBuilder();
@@ -49,10 +48,14 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		public string ModelProjectName { get; set; }
 		public string ModelInterfaceFolderName { get; set; } = "ModelInterfaces";
 		public string ModelInterfaceProjectName { get; set; }
+		public string ModelDtoFolderName { get; set; } = "ModelDTOs";
+		public string ModelDtoProjectName { get; set; }
 		public string RepositoryFolderName { get; set; } = "Repositories";
 		public string RepositoryProjectName { get; set; }
 		public string RepositoryInterfaceFolderName { get; set; } = "RepositoryInterfaces";
 		public string RepositoryInterfaceProjectName { get; set; }
+		public string SpecificationFolderName { get; set; } = "Specifications";
+		public string SpecificationProjectName { get; set; }
 		public string ServiceFolderName { get; set; } = "Services";
 		public string ServiceProjectName { get; set; }
 		public string ServiceInterfaceFolderName { get; set; } = "ServiceInterfaces";
@@ -60,15 +63,23 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		public string ContextNamespace { get; set; } = "Context";
 		public string ModelInterfaceNamespace { get; set; } = "Models.Interface";
+		public string ModelDtoNamespace { get; set; } = "Models.DTO";
 		public string ModelNamespace { get; set; } = "Models";
 		public string ModelConfigurationNamespace { get; set; } = "Models.Configuration";
 		public string RepositoryInterfaceNamespace { get; set; } = "Repositories.Interface";
 		public string RepositoryNamespace { get; set; } = "Repositories";
+		public string SpecificationNamespace { get; set; } = "Specification";
 		public string ServiceInterfaceNamespace { get; set; } = "Services.Interface";
 		public string ServiceNamespace { get; set; } = "Services";
 		public string UnitOfWorkNamespace { get; set; } = "Context.UnitOfWork";
 
-		public DatabaseGenerationSetting Setting { get; set; }
+		public DatabaseGenerationSetting Setting
+		{
+			get
+			{
+				return Global.Setting;
+			}
+		}
 
 		public Tables Tables { get; set; }
 
@@ -162,55 +173,55 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return string.Empty;
 		}
 
-		public virtual string WriteModelColumn(Column c)
+		public virtual void WriteModelColumn(Column c)
 		{
 			// Example of adding a [Required] data annotation attribute to all non-null fields
 			//if (!c.IsNullable)
-			//	 return "[System.ComponentModel.DataAnnotations.Required] " + c.Entity;
-
-			StringBuilder sb = new StringBuilder();
+			//	 WriteLine("[System.ComponentModel.DataAnnotations.Required] " + c.Entity);
 
 			if (Setting.UseDataAnnotations)
 			{
 				if (c.IsIdentity)
-					sb.AppendLine("[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
+					WriteLine("[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
 				if (c.IsComputed)
-					sb.AppendLine("[DatabaseGenerated(DatabaseGeneratedOption.Computed)]");
+					WriteLine("[DatabaseGenerated(DatabaseGeneratedOption.Computed)]");
 				if (c.IsPrimaryKey && !c.IsIdentity && !c.IsStoreGenerated)
-					sb.AppendLine("[DatabaseGenerated(DatabaseGeneratedOption.None)]");
+					WriteLine("[DatabaseGenerated(DatabaseGeneratedOption.None)]");
 
 				if (c.IsPrimaryKey)
-					sb.AppendLine("[Key]");
+					WriteLine("[Key]");
 				if (!c.IsNullable)
-					sb.AppendLine("[Required]");
+					WriteLine("[Required]");
 				if (!c.IsMaxLength && c.MaxLength > 0)
 				{
-					sb.AppendLine(string.Format("[MaxLength({0})]", c.MaxLength));
+					WriteLine(string.Format("[MaxLength({0})]", c.MaxLength));
 					if (c.PropertyType.Equals("string", StringComparison.InvariantCultureIgnoreCase))
-						sb.AppendLine(string.Format("[StringLength({0})]", c.MaxLength));
+						WriteLine(string.Format("[StringLength({0})]", c.MaxLength));
 				}
 				if (c.IsMaxLength)
-					sb.AppendLine("[MaxLength]");
+					WriteLine("[MaxLength]");
 
-				sb.AppendLine(string.Format("[Column(\"{0}\", TypeName=\"{1}\")]"
+				WriteLine(string.Format("[Column(\"{0}\", TypeName=\"{1}\")]"
 									 , c.Name
 									 , c.SqlPropertyType
 								//,c.IsPrimaryKey ? string.Format(", Order = {0}", c.PrimaryKeyOrdinal) : ""
 								));
 			}
 
-			sb.AppendLine(c.Entity);
-
-			return sb.ToString();
+			WriteLine(c.Entity);
+			WriteLine("");
 		}
 
-		public virtual string WriteModelInterfaceColumn(Column c)
+		public virtual void WriteModelInterfaceColumn(Column c)
 		{
-			// Example of adding a [Required] data annotation attribute to all non-null fields
-			//if (!c.IsNullable)
-			//	 return "[System.ComponentModel.DataAnnotations.Required] " + c.Entity;
+			WriteLine(c.InterfaceEntity);
+			WriteLine("");
+		}
 
-			return c.InterfaceEntity;
+		public virtual void WriteModelDTOColumn(Column c)
+		{
+			WriteLine(c.Entity);
+			WriteLine("");
 		}
 
 		public static void ProcessDatabaseXML()
@@ -408,7 +419,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
 
-					this.WriteLog(list);
+					//this.WriteLog(list);
 
 					Stopwatch.Stop();
 					Logger.AddLog("");
@@ -467,19 +478,20 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			PushIndent("\t");
 
 			XmlSerializer serializer = new XmlSerializer(typeof(TableData));
-			foreach (TableData tbl in Tables.Select(x => x.TableData).ToList())
+			foreach (TableData tbl in Tables.Select(x => x.TableData).OrderBy(x => x.TableName).ToList())
 			{
 				WriteLine("<TableData>");
 				PushIndent("\t");
 
 				WriteLine("<TableSelect>{0}</TableSelect>", tbl.TableSelect);
 				WriteLine("<TableName>{0}</TableName>", tbl.TableName);
-				WriteLine("<GenerateModel>{0}</GenerateModel>", tbl.GenerateModel);
 				WriteLine("<GenerateModelInterface>{0}</GenerateModelInterface>", tbl.GenerateModelInterface);
+				WriteLine("<GenerateModelDto>{0}</GenerateModelDto>", tbl.GenerateModelDto);
 				WriteLine("<GenerateRepository>{0}</GenerateRepository>", tbl.GenerateRepository);
 				WriteLine("<GenerateRepositoryInterface>{0}</GenerateRepositoryInterface>", tbl.GenerateRepositoryInterface);
 				WriteLine("<GenerateService>{0}</GenerateService>", tbl.GenerateService);
 				WriteLine("<GenerateServiceInterface>{0}</GenerateServiceInterface>", tbl.GenerateServiceInterface);
+				WriteLine("<GenerateSpecification>{0}</GenerateSpecification>", tbl.GenerateSpecification);
 
 				PopIndent();
 				WriteLine("</TableData>");
@@ -738,19 +750,13 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			PushIndent("\t");
 		}
 
-		public virtual void CloseBrace()
-		{
-			PopIndent();
-			WriteLine("}");
-		}
-
-		public virtual void OpenMethodBrace()
+		public virtual void OpenBrace()
 		{
 			WriteLine("{");
 			PushIndent("\t");
 		}
 
-		public virtual void CloseMethodBrace()
+		public virtual void CloseBrace()
 		{
 			PopIndent();
 			WriteLine("}");

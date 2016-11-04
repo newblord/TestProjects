@@ -361,6 +361,7 @@ namespace DatabaseGenerationToolExt.Forms
 			gvTables[5, rowIndex].Value = isChecked;
 			gvTables[6, rowIndex].Value = isChecked;
 			gvTables[7, rowIndex].Value = isChecked;
+			gvTables[8, rowIndex].Value = isChecked;
 		}
 
 		private void UpdateTableSettings()
@@ -369,10 +370,12 @@ namespace DatabaseGenerationToolExt.Forms
 
 			if (tableData.Any())
 			{
-				if (!cbxModels.Focused)
-					cbxModels.Checked = tableData.Where(x => x.GenerateModel).Count() == tableData.Count;
 				if (!cbxModelInterfaces.Focused)
 					cbxModelInterfaces.Checked = tableData.Where(x => x.GenerateModelInterface).Count() == tableData.Count;
+				if (!cbxModelDtos.Focused)
+					cbxModelDtos.Checked = tableData.Where(x => x.GenerateModelDto).Count() == tableData.Count;
+				if (!cbxSpecifications.Focused)
+					cbxSpecifications.Checked = tableData.Where(x => x.GenerateSpecification).Count() == tableData.Count;
 				if (!cbxRepositories.Focused)
 					cbxRepositories.Checked = tableData.Where(x => x.GenerateRepository).Count() == tableData.Count;
 				if (!cbxRepositoryInterfaces.Focused)
@@ -447,14 +450,15 @@ namespace DatabaseGenerationToolExt.Forms
 						SkipTableCellValueEvent = true;
 
 						DataGridViewCheckBoxCell cbxSelect = (DataGridViewCheckBoxCell)gvTables[0, e.RowIndex];
-						bool modelValue = (bool)gvTables[2, e.RowIndex].FormattedValue;
-						bool iModelValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
-						bool repoValue = (bool)gvTables[4, e.RowIndex].FormattedValue;
-						bool iRepoValue = (bool)gvTables[5, e.RowIndex].FormattedValue;
-						bool serviceValue = (bool)gvTables[6, e.RowIndex].FormattedValue;
-						bool iServiceValue = (bool)gvTables[7, e.RowIndex].FormattedValue;
+						bool iModelValue = (bool)gvTables[2, e.RowIndex].FormattedValue;
+						bool modelDtoValue = (bool)gvTables[3, e.RowIndex].FormattedValue;
+						bool specValue = (bool)gvTables[4, e.RowIndex].FormattedValue;
+						bool repoValue = (bool)gvTables[5, e.RowIndex].FormattedValue;
+						bool iRepoValue = (bool)gvTables[6, e.RowIndex].FormattedValue;
+						bool serviceValue = (bool)gvTables[7, e.RowIndex].FormattedValue;
+						bool iServiceValue = (bool)gvTables[8, e.RowIndex].FormattedValue;
 
-						if (modelValue || iModelValue || repoValue || iRepoValue || serviceValue || iServiceValue)
+						if (iModelValue || modelDtoValue || specValue || repoValue || iRepoValue || serviceValue || iServiceValue)
 						{
 							cbxSelect.Value = true;
 							HandleTableSelectChange(true);
@@ -498,8 +502,9 @@ namespace DatabaseGenerationToolExt.Forms
 
 				SkipTableCellValueEvent = true;
 
-				cbxModels.Checked = cbx.Checked;
 				cbxModelInterfaces.Checked = cbx.Checked;
+				cbxModelDtos.Checked = cbx.Checked;
+				cbxSpecifications.Checked = cbx.Checked;
 				cbxRepositories.Checked = cbx.Checked;
 				cbxRepositoryInterfaces.Checked = cbx.Checked;
 				cbxServices.Checked = cbx.Checked;
@@ -514,7 +519,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxModels_CheckStateChanged(object sender, EventArgs e)
+		private void cbxModelInterfaces_CheckStateChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 
@@ -528,7 +533,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxModelInterfaces_CheckStateChanged(object sender, EventArgs e)
+		private void cbxModelDtos_CheckedChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 
@@ -542,7 +547,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxRepositories_CheckStateChanged(object sender, EventArgs e)
+		private void cbxSpecifications_CheckedChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 
@@ -556,7 +561,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxRepositoryInterfaces_CheckStateChanged(object sender, EventArgs e)
+		private void cbxRepositories_CheckStateChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 
@@ -570,7 +575,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxServices_CheckedChanged(object sender, EventArgs e)
+		private void cbxRepositoryInterfaces_CheckStateChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 
@@ -584,7 +589,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void cbxServiceInterfaces_CheckedChanged(object sender, EventArgs e)
+		private void cbxServices_CheckedChanged(object sender, EventArgs e)
 		{
 			CheckBox cbx = (CheckBox)sender;
 
@@ -598,10 +603,24 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		#endregion
+		private void cbxServiceInterfaces_CheckedChanged(object sender, EventArgs e)
+		{
+			CheckBox cbx = (CheckBox)sender;
+
+			if (cbx.Focused)
+			{
+				for (int i = 0; i < gvTables.Rows.Count; i++)
+				{
+					((DataGridViewCheckBoxCell)gvTables.Rows[i].Cells[8]).EditingCellValueChanged = true;
+					gvTables.Rows[i].Cells[8].Value = cbx.Checked;
+				}
+			}
+		}
 
 		#endregion
 
+		#endregion
+		
 	}
 
 }

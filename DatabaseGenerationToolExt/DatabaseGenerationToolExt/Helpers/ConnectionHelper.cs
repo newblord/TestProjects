@@ -24,15 +24,15 @@ namespace DatabaseGenerationToolExt.Helpers
 
 				var configFile = new ExeConfigurationFileMap { ExeConfigFilename = path };
 				var config = System.Configuration.ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
-				var connSection = config.ConnectionStrings;
+				var connectionStrings = config.ConnectionStrings.ConnectionStrings.Cast<ConnectionStringSettings>().Where(x => !x.Name.Equals("LocalSqlServer", StringComparison.CurrentCultureIgnoreCase)).ToArray();
 
-				for (int i = 0; i < connSection.ConnectionStrings.Count; i++)
+				for (int i = 0; i < connectionStrings.Length; i++)
 				{
 					DatabaseObjects.DatabaseConnection con = new DatabaseObjects.DatabaseConnection();
 
-					con.ConnectionStringName = connSection.ConnectionStrings[i].Name;
-					con.ConnectionString = connSection.ConnectionStrings[i].ConnectionString;
-					con.ProviderName = connSection.ConnectionStrings[i].ProviderName;
+					con.ConnectionStringName = connectionStrings[i].Name;
+					con.ConnectionString = connectionStrings[i].ConnectionString;
+					con.ProviderName = connectionStrings[i].ProviderName;
 					con.ConfigFilePath = path;
 
 					connections.Add(con);

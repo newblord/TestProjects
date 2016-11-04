@@ -328,13 +328,13 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		private Column UpdateColumn(Column column, Table table)
 		{
 			// Example
-			if (column.IsPrimaryKey)
-				column.NameHumanCase = "Id";
+			//if (column.IsPrimaryKey)
+			//	column.NameHumanCase = "Id";
 
-			if (column.NameHumanCase.EndsWith("Key"))
-			{
-				column.NameHumanCase = column.NameHumanCase.Substring(0, column.NameHumanCase.LastIndexOf("Key")) + "Id";
-			}
+			//if (column.NameHumanCase.EndsWith("Key"))
+			//{
+			//	column.NameHumanCase = column.NameHumanCase.Substring(0, column.NameHumanCase.LastIndexOf("Key")) + "Id";
+			//}
 
 			// .IsConcurrencyToken() must be manually configured. However .IsRowVersion() can be automatically detected.
 			//if (table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase) && column.NameHumanCase.Equals("SomeColumn", StringComparison.InvariantCultureIgnoreCase))

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DatabaseGenerationToolExt.DatabaseObjects
 {
 	public class DatabaseGenerationSetting
 	{
+		private string _databaseContextName = "POCTest";
 		private string _databaseContextInterfaceName = null;
 		private string _defaultConstructorArgument = null;
 
@@ -27,7 +29,16 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		}
 		public string XmlAndLogFilePrefix { get; set; } = "ReverseEngineer";
 
-		public string DatabaseContextName { get; set; } = "POCTest";
+		public string DatabaseContextName {
+			get
+			{
+				return _databaseContextName;
+			}
+			set
+			{
+				_databaseContextName = Regex.Replace(value,"context", "", RegexOptions.IgnoreCase);
+			}
+		}
 		/// <summary>
 		/// Defaults to "I" + DatabaseContextName
 		/// </summary>

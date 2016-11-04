@@ -60,12 +60,13 @@
 			this.tpTables = new System.Windows.Forms.TabPage();
 			this.gvTables = new System.Windows.Forms.DataGridView();
 			this.gbTables = new System.Windows.Forms.GroupBox();
+			this.cbxSpecifications = new System.Windows.Forms.CheckBox();
+			this.cbxModelDtos = new System.Windows.Forms.CheckBox();
 			this.cbxServiceInterfaces = new System.Windows.Forms.CheckBox();
 			this.cbxServices = new System.Windows.Forms.CheckBox();
 			this.cbxRepositoryInterfaces = new System.Windows.Forms.CheckBox();
 			this.cbxRepositories = new System.Windows.Forms.CheckBox();
 			this.cbxModelInterfaces = new System.Windows.Forms.CheckBox();
-			this.cbxModels = new System.Windows.Forms.CheckBox();
 			this.tpViews = new System.Windows.Forms.TabPage();
 			this.gvViews = new System.Windows.Forms.DataGridView();
 			this.ViewSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -79,8 +80,9 @@
 			this.btnCancel = new System.Windows.Forms.Button();
 			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.TableModel = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.TableIModel = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableModelDto = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableSpecification = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.Service = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -439,8 +441,9 @@
 			this.gvTables.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.TableSelect,
             this.TableName,
-            this.TableModel,
             this.TableIModel,
+            this.TableModelDto,
+            this.TableSpecification,
             this.TableRepository,
             this.TableIRepository,
             this.Service,
@@ -457,12 +460,13 @@
 			// 
 			// gbTables
 			// 
+			this.gbTables.Controls.Add(this.cbxSpecifications);
+			this.gbTables.Controls.Add(this.cbxModelDtos);
 			this.gbTables.Controls.Add(this.cbxServiceInterfaces);
 			this.gbTables.Controls.Add(this.cbxServices);
 			this.gbTables.Controls.Add(this.cbxRepositoryInterfaces);
 			this.gbTables.Controls.Add(this.cbxRepositories);
 			this.gbTables.Controls.Add(this.cbxModelInterfaces);
-			this.gbTables.Controls.Add(this.cbxModels);
 			this.gbTables.Dock = System.Windows.Forms.DockStyle.Top;
 			this.gbTables.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.gbTables.Location = new System.Drawing.Point(3, 3);
@@ -472,11 +476,35 @@
 			this.gbTables.TabStop = false;
 			this.gbTables.Text = "Table Settings";
 			// 
+			// cbxSpecifications
+			// 
+			this.cbxSpecifications.AutoSize = true;
+			this.cbxSpecifications.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxSpecifications.Location = new System.Drawing.Point(421, 22);
+			this.cbxSpecifications.Name = "cbxSpecifications";
+			this.cbxSpecifications.Size = new System.Drawing.Size(106, 17);
+			this.cbxSpecifications.TabIndex = 7;
+			this.cbxSpecifications.Text = "All Specifications";
+			this.cbxSpecifications.UseVisualStyleBackColor = true;
+			this.cbxSpecifications.CheckedChanged += new System.EventHandler(this.cbxSpecifications_CheckedChanged);
+			// 
+			// cbxModelDtos
+			// 
+			this.cbxModelDtos.AutoSize = true;
+			this.cbxModelDtos.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.cbxModelDtos.Location = new System.Drawing.Point(7, 22);
+			this.cbxModelDtos.Name = "cbxModelDtos";
+			this.cbxModelDtos.Size = new System.Drawing.Size(100, 17);
+			this.cbxModelDtos.TabIndex = 6;
+			this.cbxModelDtos.Text = "All Model DTOs";
+			this.cbxModelDtos.UseVisualStyleBackColor = true;
+			this.cbxModelDtos.CheckedChanged += new System.EventHandler(this.cbxModelDtos_CheckedChanged);
+			// 
 			// cbxServiceInterfaces
 			// 
 			this.cbxServiceInterfaces.AutoSize = true;
 			this.cbxServiceInterfaces.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxServiceInterfaces.Location = new System.Drawing.Point(338, 51);
+			this.cbxServiceInterfaces.Location = new System.Drawing.Point(281, 51);
 			this.cbxServiceInterfaces.Name = "cbxServiceInterfaces";
 			this.cbxServiceInterfaces.Size = new System.Drawing.Size(126, 17);
 			this.cbxServiceInterfaces.TabIndex = 5;
@@ -488,7 +516,7 @@
 			// 
 			this.cbxServices.AutoSize = true;
 			this.cbxServices.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxServices.Location = new System.Drawing.Point(338, 23);
+			this.cbxServices.Location = new System.Drawing.Point(281, 22);
 			this.cbxServices.Name = "cbxServices";
 			this.cbxServices.Size = new System.Drawing.Size(81, 17);
 			this.cbxServices.TabIndex = 4;
@@ -500,7 +528,7 @@
 			// 
 			this.cbxRepositoryInterfaces.AutoSize = true;
 			this.cbxRepositoryInterfaces.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxRepositoryInterfaces.Location = new System.Drawing.Point(170, 51);
+			this.cbxRepositoryInterfaces.Location = new System.Drawing.Point(132, 51);
 			this.cbxRepositoryInterfaces.Name = "cbxRepositoryInterfaces";
 			this.cbxRepositoryInterfaces.Size = new System.Drawing.Size(140, 17);
 			this.cbxRepositoryInterfaces.TabIndex = 3;
@@ -512,7 +540,7 @@
 			// 
 			this.cbxRepositories.AutoSize = true;
 			this.cbxRepositories.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxRepositories.Location = new System.Drawing.Point(170, 23);
+			this.cbxRepositories.Location = new System.Drawing.Point(132, 22);
 			this.cbxRepositories.Name = "cbxRepositories";
 			this.cbxRepositories.Size = new System.Drawing.Size(98, 17);
 			this.cbxRepositories.TabIndex = 2;
@@ -531,18 +559,6 @@
 			this.cbxModelInterfaces.Text = "All Model Interfaces";
 			this.cbxModelInterfaces.UseVisualStyleBackColor = true;
 			this.cbxModelInterfaces.CheckStateChanged += new System.EventHandler(this.cbxModelInterfaces_CheckStateChanged);
-			// 
-			// cbxModels
-			// 
-			this.cbxModels.AutoSize = true;
-			this.cbxModels.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxModels.Location = new System.Drawing.Point(7, 23);
-			this.cbxModels.Name = "cbxModels";
-			this.cbxModels.Size = new System.Drawing.Size(74, 17);
-			this.cbxModels.TabIndex = 0;
-			this.cbxModels.Text = "All Models";
-			this.cbxModels.UseVisualStyleBackColor = true;
-			this.cbxModels.CheckStateChanged += new System.EventHandler(this.cbxModels_CheckStateChanged);
 			// 
 			// tpViews
 			// 
@@ -674,21 +690,31 @@
 			this.TableName.Name = "TableName";
 			this.TableName.ReadOnly = true;
 			// 
-			// TableModel
-			// 
-			this.TableModel.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableModel.DataPropertyName = "GenerateModel";
-			this.TableModel.HeaderText = "Model";
-			this.TableModel.Name = "TableModel";
-			this.TableModel.Width = 50;
-			// 
 			// TableIModel
 			// 
 			this.TableIModel.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
 			this.TableIModel.DataPropertyName = "GenerateModelInterface";
 			this.TableIModel.HeaderText = "Model Interface";
 			this.TableIModel.Name = "TableIModel";
-			this.TableIModel.Width = 60;
+			this.TableIModel.Width = 55;
+			// 
+			// TableModelDto
+			// 
+			this.TableModelDto.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableModelDto.DataPropertyName = "GenerateModelDto";
+			this.TableModelDto.HeaderText = "Model DTO";
+			this.TableModelDto.Name = "TableModelDto";
+			this.TableModelDto.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+			this.TableModelDto.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+			this.TableModelDto.Width = 40;
+			// 
+			// TableSpecification
+			// 
+			this.TableSpecification.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableSpecification.DataPropertyName = "GenerateSpecification";
+			this.TableSpecification.HeaderText = "Specification";
+			this.TableSpecification.Name = "TableSpecification";
+			this.TableSpecification.Width = 70;
 			// 
 			// TableRepository
 			// 
@@ -696,7 +722,7 @@
 			this.TableRepository.DataPropertyName = "GenerateRepository";
 			this.TableRepository.HeaderText = "Repository";
 			this.TableRepository.Name = "TableRepository";
-			this.TableRepository.Width = 65;
+			this.TableRepository.Width = 60;
 			// 
 			// TableIRepository
 			// 
@@ -704,7 +730,7 @@
 			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
 			this.TableIRepository.HeaderText = "Repository Interface";
 			this.TableIRepository.Name = "TableIRepository";
-			this.TableIRepository.Width = 65;
+			this.TableIRepository.Width = 62;
 			// 
 			// Service
 			// 
@@ -712,7 +738,7 @@
 			this.Service.DataPropertyName = "GenerateService";
 			this.Service.HeaderText = "Service";
 			this.Service.Name = "Service";
-			this.Service.Width = 50;
+			this.Service.Width = 47;
 			// 
 			// ServiceInterface
 			// 
@@ -720,7 +746,7 @@
 			this.ServiceInterface.DataPropertyName = "GenerateServiceInterface";
 			this.ServiceInterface.HeaderText = "Service Interface";
 			this.ServiceInterface.Name = "ServiceInterface";
-			this.ServiceInterface.Width = 65;
+			this.ServiceInterface.Width = 60;
 			// 
 			// DatabaseObjectSelector
 			// 
@@ -778,7 +804,6 @@
 		private System.Windows.Forms.CheckBox cbxRepositoryInterfaces;
 		private System.Windows.Forms.CheckBox cbxRepositories;
 		private System.Windows.Forms.CheckBox cbxModelInterfaces;
-		private System.Windows.Forms.CheckBox cbxModels;
 		private System.Windows.Forms.CheckBox cbxPartialClasses;
 		private System.Windows.Forms.CheckBox cbxPartialInterfaces;
 		private System.Windows.Forms.CheckBox cbxPartialContextInterface;
@@ -810,10 +835,13 @@
 		private System.Windows.Forms.CheckBox cbxVirtualReverseNavProperty;
         private System.Windows.Forms.CheckBox cbxServiceInterfaces;
         private System.Windows.Forms.CheckBox cbxServices;
+		private System.Windows.Forms.CheckBox cbxSpecifications;
+		private System.Windows.Forms.CheckBox cbxModelDtos;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableSelect;
 		private System.Windows.Forms.DataGridViewTextBoxColumn TableName;
-		private System.Windows.Forms.DataGridViewCheckBoxColumn TableModel;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIModel;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn TableModelDto;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn TableSpecification;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableRepository;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn TableIRepository;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn Service;

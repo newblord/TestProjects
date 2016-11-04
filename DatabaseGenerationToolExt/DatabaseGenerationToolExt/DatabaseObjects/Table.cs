@@ -88,6 +88,16 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			return Columns.SingleOrDefault(x => String.Compare(x.Name, columnName, StringComparison.OrdinalIgnoreCase) == 0);
 		}
 
+		public IEnumerable<ForeignKey> GetFilteredForeignKeys()
+		{
+			var selectMethods = ForeignKeys.Where(w => !Indexes.Where(x => x.Columns.Count == 1).Any(x => x.Columns[0].NameHumanCase	== w.FKColumn.NameHumanCase))
+														.Where(w => !PrimaryKeys.Any(x => x.NameHumanCase == w.FKColumn.NameHumanCase))
+														.GroupBy(fkey => fkey.FKColumn.NameHumanCase)
+														.Select(group => group.FirstOrDefault())
+														.ToList();
+			return selectMethods;
+		}
+
 		public string GetUniqueColumnName(string tableNameHumanCase, ForeignKey foreignKey, bool useCamelCase, bool checkForFkNameClashes, bool makeSingular, Func<string, string, short, string> ForeignKeyName)
 		{
 			if (ReverseNavigationUniquePropName.Count == 0)
