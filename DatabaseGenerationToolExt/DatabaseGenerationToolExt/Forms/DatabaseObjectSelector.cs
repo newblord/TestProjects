@@ -105,7 +105,6 @@ namespace DatabaseGenerationToolExt.Forms
 				cbxUseCamelCase.DataBindings.Add("Checked", setting, "UseCamelCase");
 				cbxDisableGeographyTypes.DataBindings.Add("Checked", setting, "DisableGeographyTypes");
 				cbxNullableShortHand.DataBindings.Add("Checked", setting, "NullableShortHand");
-				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", setting, "PrivateSetterForComputedColumns");
 				cbxPrependSchema.DataBindings.Add("Checked", setting, "PrependSchemaName");
 				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", setting, "IncludeQueryTraceOn9481Flag");
 			}

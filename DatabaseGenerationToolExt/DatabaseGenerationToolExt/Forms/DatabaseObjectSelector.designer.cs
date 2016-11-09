@@ -40,7 +40,6 @@
 			this.cbxUseCamelCase = new System.Windows.Forms.CheckBox();
 			this.cbxDisableGeographyTypes = new System.Windows.Forms.CheckBox();
 			this.cbxNullableShortHand = new System.Windows.Forms.CheckBox();
-			this.cbxPrivateSetterForComputedColumns = new System.Windows.Forms.CheckBox();
 			this.cbxPrependSchema = new System.Windows.Forms.CheckBox();
 			this.cbxIncludeQueryTraceOn = new System.Windows.Forms.CheckBox();
 			this.label4 = new System.Windows.Forms.Label();
@@ -59,6 +58,15 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.tpTables = new System.Windows.Forms.TabPage();
 			this.gvTables = new System.Windows.Forms.DataGridView();
+			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.TableIModel = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableModelDto = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableSpecification = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.Service = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.ServiceInterface = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.gbTables = new System.Windows.Forms.GroupBox();
 			this.cbxSpecifications = new System.Windows.Forms.CheckBox();
 			this.cbxModelDtos = new System.Windows.Forms.CheckBox();
@@ -78,15 +86,6 @@
 			this.btnGenerate = new System.Windows.Forms.Button();
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			this.btnCancel = new System.Windows.Forms.Button();
-			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.TableIModel = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableModelDto = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableSpecification = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.TableIRepository = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.Service = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.ServiceInterface = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.tcDatabaseObjects.SuspendLayout();
 			this.tpSettings.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
@@ -201,7 +200,6 @@
 			this.flowLayoutPanel1.Controls.Add(this.cbxUseCamelCase);
 			this.flowLayoutPanel1.Controls.Add(this.cbxDisableGeographyTypes);
 			this.flowLayoutPanel1.Controls.Add(this.cbxNullableShortHand);
-			this.flowLayoutPanel1.Controls.Add(this.cbxPrivateSetterForComputedColumns);
 			this.flowLayoutPanel1.Controls.Add(this.cbxPrependSchema);
 			this.flowLayoutPanel1.Controls.Add(this.cbxIncludeQueryTraceOn);
 			this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
@@ -243,22 +241,11 @@
 			this.cbxNullableShortHand.Text = "Nullable Short Hand";
 			this.cbxNullableShortHand.UseVisualStyleBackColor = true;
 			// 
-			// cbxPrivateSetterForComputedColumns
-			// 
-			this.cbxPrivateSetterForComputedColumns.AutoSize = true;
-			this.cbxPrivateSetterForComputedColumns.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPrivateSetterForComputedColumns.Location = new System.Drawing.Point(3, 78);
-			this.cbxPrivateSetterForComputedColumns.Name = "cbxPrivateSetterForComputedColumns";
-			this.cbxPrivateSetterForComputedColumns.Size = new System.Drawing.Size(253, 19);
-			this.cbxPrivateSetterForComputedColumns.TabIndex = 19;
-			this.cbxPrivateSetterForComputedColumns.Text = "Use Private Setter For Computer Columns";
-			this.cbxPrivateSetterForComputedColumns.UseVisualStyleBackColor = true;
-			// 
 			// cbxPrependSchema
 			// 
 			this.cbxPrependSchema.AutoSize = true;
 			this.cbxPrependSchema.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxPrependSchema.Location = new System.Drawing.Point(3, 103);
+			this.cbxPrependSchema.Location = new System.Drawing.Point(3, 78);
 			this.cbxPrependSchema.Name = "cbxPrependSchema";
 			this.cbxPrependSchema.Size = new System.Drawing.Size(122, 19);
 			this.cbxPrependSchema.TabIndex = 21;
@@ -269,7 +256,7 @@
 			// 
 			this.cbxIncludeQueryTraceOn.AutoSize = true;
 			this.cbxIncludeQueryTraceOn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.cbxIncludeQueryTraceOn.Location = new System.Drawing.Point(3, 128);
+			this.cbxIncludeQueryTraceOn.Location = new System.Drawing.Point(3, 103);
 			this.cbxIncludeQueryTraceOn.Name = "cbxIncludeQueryTraceOn";
 			this.cbxIncludeQueryTraceOn.Size = new System.Drawing.Size(212, 19);
 			this.cbxIncludeQueryTraceOn.TabIndex = 22;
@@ -457,6 +444,81 @@
 			this.gvTables.TabIndex = 2;
 			this.gvTables.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellContentClick);
 			this.gvTables.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellValueChanged);
+			// 
+			// TableSelect
+			// 
+			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableSelect.DataPropertyName = "TableSelect";
+			this.TableSelect.HeaderText = "";
+			this.TableSelect.Name = "TableSelect";
+			this.TableSelect.Width = 20;
+			// 
+			// TableName
+			// 
+			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+			this.TableName.DataPropertyName = "TableName";
+			this.TableName.HeaderText = "Name";
+			this.TableName.MinimumWidth = 150;
+			this.TableName.Name = "TableName";
+			this.TableName.ReadOnly = true;
+			// 
+			// TableIModel
+			// 
+			this.TableIModel.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIModel.DataPropertyName = "GenerateModelInterface";
+			this.TableIModel.HeaderText = "Model Interface";
+			this.TableIModel.Name = "TableIModel";
+			this.TableIModel.Width = 55;
+			// 
+			// TableModelDto
+			// 
+			this.TableModelDto.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableModelDto.DataPropertyName = "GenerateModelDto";
+			this.TableModelDto.HeaderText = "Model DTO";
+			this.TableModelDto.Name = "TableModelDto";
+			this.TableModelDto.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+			this.TableModelDto.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+			this.TableModelDto.Width = 40;
+			// 
+			// TableSpecification
+			// 
+			this.TableSpecification.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableSpecification.DataPropertyName = "GenerateSpecification";
+			this.TableSpecification.HeaderText = "Specification";
+			this.TableSpecification.Name = "TableSpecification";
+			this.TableSpecification.Width = 70;
+			// 
+			// TableRepository
+			// 
+			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableRepository.DataPropertyName = "GenerateRepository";
+			this.TableRepository.HeaderText = "Repository";
+			this.TableRepository.Name = "TableRepository";
+			this.TableRepository.Width = 60;
+			// 
+			// TableIRepository
+			// 
+			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
+			this.TableIRepository.HeaderText = "Repository Interface";
+			this.TableIRepository.Name = "TableIRepository";
+			this.TableIRepository.Width = 62;
+			// 
+			// Service
+			// 
+			this.Service.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.Service.DataPropertyName = "GenerateService";
+			this.Service.HeaderText = "Service";
+			this.Service.Name = "Service";
+			this.Service.Width = 47;
+			// 
+			// ServiceInterface
+			// 
+			this.ServiceInterface.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.ServiceInterface.DataPropertyName = "GenerateServiceInterface";
+			this.ServiceInterface.HeaderText = "Service Interface";
+			this.ServiceInterface.Name = "ServiceInterface";
+			this.ServiceInterface.Width = 60;
 			// 
 			// gbTables
 			// 
@@ -673,81 +735,6 @@
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
 			// 
-			// TableSelect
-			// 
-			this.TableSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableSelect.DataPropertyName = "TableSelect";
-			this.TableSelect.HeaderText = "";
-			this.TableSelect.Name = "TableSelect";
-			this.TableSelect.Width = 20;
-			// 
-			// TableName
-			// 
-			this.TableName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-			this.TableName.DataPropertyName = "TableName";
-			this.TableName.HeaderText = "Name";
-			this.TableName.MinimumWidth = 150;
-			this.TableName.Name = "TableName";
-			this.TableName.ReadOnly = true;
-			// 
-			// TableIModel
-			// 
-			this.TableIModel.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIModel.DataPropertyName = "GenerateModelInterface";
-			this.TableIModel.HeaderText = "Model Interface";
-			this.TableIModel.Name = "TableIModel";
-			this.TableIModel.Width = 55;
-			// 
-			// TableModelDto
-			// 
-			this.TableModelDto.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableModelDto.DataPropertyName = "GenerateModelDto";
-			this.TableModelDto.HeaderText = "Model DTO";
-			this.TableModelDto.Name = "TableModelDto";
-			this.TableModelDto.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-			this.TableModelDto.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-			this.TableModelDto.Width = 40;
-			// 
-			// TableSpecification
-			// 
-			this.TableSpecification.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableSpecification.DataPropertyName = "GenerateSpecification";
-			this.TableSpecification.HeaderText = "Specification";
-			this.TableSpecification.Name = "TableSpecification";
-			this.TableSpecification.Width = 70;
-			// 
-			// TableRepository
-			// 
-			this.TableRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableRepository.DataPropertyName = "GenerateRepository";
-			this.TableRepository.HeaderText = "Repository";
-			this.TableRepository.Name = "TableRepository";
-			this.TableRepository.Width = 60;
-			// 
-			// TableIRepository
-			// 
-			this.TableIRepository.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.TableIRepository.DataPropertyName = "GenerateRepositoryInterface";
-			this.TableIRepository.HeaderText = "Repository Interface";
-			this.TableIRepository.Name = "TableIRepository";
-			this.TableIRepository.Width = 62;
-			// 
-			// Service
-			// 
-			this.Service.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.Service.DataPropertyName = "GenerateService";
-			this.Service.HeaderText = "Service";
-			this.Service.Name = "Service";
-			this.Service.Width = 47;
-			// 
-			// ServiceInterface
-			// 
-			this.ServiceInterface.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.ServiceInterface.DataPropertyName = "GenerateServiceInterface";
-			this.ServiceInterface.HeaderText = "Service Interface";
-			this.ServiceInterface.Name = "ServiceInterface";
-			this.ServiceInterface.Width = 60;
-			// 
 			// DatabaseObjectSelector
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -811,7 +798,6 @@
 		private System.Windows.Forms.CheckBox cbxUseCamelCase;
 		private System.Windows.Forms.CheckBox cbxDisableGeographyTypes;
 		private System.Windows.Forms.CheckBox cbxNullableShortHand;
-		private System.Windows.Forms.CheckBox cbxPrivateSetterForComputedColumns;
 		private System.Windows.Forms.CheckBox cbxGenerateUnitOfWorkInterface;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;

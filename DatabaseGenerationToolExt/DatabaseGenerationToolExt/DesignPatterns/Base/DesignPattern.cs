@@ -463,7 +463,6 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			WriteLine("<UseCamelCase>{0}</UseCamelCase>", Setting.UseCamelCase);
 			WriteLine("<DisableGeographyTypes>{0}</DisableGeographyTypes>", Setting.DisableGeographyTypes);
 			WriteLine("<NullableShortHand>{0}</NullableShortHand>", Setting.NullableShortHand);
-			WriteLine("<PrivateSetterForComputedColumns>{0}</PrivateSetterForComputedColumns>", Setting.PrivateSetterForComputedColumns);
 			WriteLine("<FileExtension>{0}</FileExtension>", Setting.FileExtension);
 			WriteLine("<GeneratedFileExtension>{0}</GeneratedFileExtension>", Setting.GeneratedFileExtension);
 			WriteLine("<PrependSchemaName>{0}</PrependSchemaName>", Setting.PrependSchemaName);

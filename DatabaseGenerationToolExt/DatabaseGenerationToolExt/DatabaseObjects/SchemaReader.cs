@@ -630,7 +630,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 			foreach (Table tbl in result)
 			{
-				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(Global.Setting.IncludeComments, Global.Setting.PrivateSetterForComputedColumns));
+				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(Global.Setting.IncludeComments));
 			}
 
 			return result;

@@ -87,10 +87,6 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		/// </summary>
 		public bool NullableShortHand { get; set; } = true;
 		/// <summary>
-		/// If the columns is computed, use a private setter.
-		/// </summary>
-		public bool PrivateSetterForComputedColumns { get; set; } = true;
-		/// <summary>
 		/// File Extension used for context and Unit of Work files
 		/// </summary>
 		public string FileExtension { get; set; } = ".cs";
