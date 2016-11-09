@@ -408,30 +408,31 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						outputFile.FileContent = GenerationEnvironment.ToString(outputFile.Start, outputFile.Length);
 						outputFile.OutputPath = outputPath;
 
-						CreateFile(outputFile);
+						bool isFileCreated = CreateFile(outputFile);
 						GenerationEnvironment.Remove(outputFile.Start, outputFile.Length);
 
-						list.Add(outputFile);
+						if(isFileCreated)
+						{
+							list.Add(outputFile);
+						}
 					}
 				}
 
 				if (list.Count > 0)
 				{
 					SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
-
-					//this.WriteLog(list);
-
-					Stopwatch.Stop();
-					Logger.AddLog("");
-					Logger.AddLog($"// Total Time Elapsed: {Stopwatch.Elapsed.TotalSeconds}");
-
-					list = new List<NewFile>();
-
-					list.Add(CreateDatabaseSettingXmlFile(defaultPath, currentProjectName));
-					list.Add(CreateLogFile(defaultPath, currentProjectName));
-
-					SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
 				}
+
+				Stopwatch.Stop();
+				Logger.AddLog("");
+				Logger.AddLog($"// Total Time Elapsed: {Stopwatch.Elapsed.TotalSeconds}");
+
+				list = new List<NewFile>();
+
+				list.Add(CreateDatabaseSettingXmlFile(defaultPath, currentProjectName));
+				list.Add(CreateLogFile(defaultPath, currentProjectName));
+
+				SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
 			}
 		}
 
@@ -555,17 +556,22 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return file;
 		}
 
-		private void CreateFile(NewFile file)
+		private bool CreateFile(NewFile file)
 		{
 			if (IsFileContentDifferent(file))
 			{
 				File.WriteAllText(file.FilePath, file.FileContent);
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 
 		private bool IsFileContentDifferent(NewFile file)
 		{
-			return !(File.Exists(file.FileName) && File.ReadAllText(file.FileName) == file.FileContent);
+			return !(File.Exists(file.FilePath) && File.ReadAllText(file.FilePath) == file.FileContent);
 		}
 
 		private void WriteLog(List<NewFile> list)
