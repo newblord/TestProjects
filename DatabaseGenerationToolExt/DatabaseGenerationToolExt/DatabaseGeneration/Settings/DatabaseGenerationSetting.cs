@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DatabaseGenerationToolExt.DatabaseObjects
+namespace DatabaseGenerationToolExt.DatabaseGeneration.Settings
 {
 	public class DatabaseGenerationSetting
 	{
@@ -87,10 +87,6 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		/// </summary>
 		public bool NullableShortHand { get; set; } = true;
 		/// <summary>
-		/// If the columns is computed, use a private setter.
-		/// </summary>
-		public bool PrivateSetterForComputedColumns { get; set; } = true;
-		/// <summary>
 		/// File Extension used for context and Unit of Work files
 		/// </summary>
 		public string FileExtension { get; set; } = ".cs";
@@ -109,7 +105,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		/// <summary>
 		/// Adds comments to the generated code
 		/// </summary>
-		public CommentsStyle IncludeComments { get; set; } = CommentsStyle.AtEndOfField;
+		public Models.CommentsStyle IncludeComments { get; set; } = Models.CommentsStyle.AtEndOfField;
 		/// <summary>
 		/// If SqlServer 2014 appears frozen / take a long time when this file is saved, try setting this to true (you will also need elevated privileges).
 		/// </summary>

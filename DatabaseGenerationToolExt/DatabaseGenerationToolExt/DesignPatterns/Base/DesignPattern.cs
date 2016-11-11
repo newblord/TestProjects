@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using DatabaseGenerationToolExt.DatabaseObjects;
+using DatabaseGenerationToolExt.DesignPatterns.Models;
 using System;
 using System.Text;
 using System.Collections.Generic;
@@ -9,6 +9,8 @@ using DatabaseGenerationToolExt.Helpers;
 using EnvDTE;
 using System.Xml.Serialization;
 using System.Xml.Linq;
+using DatabaseGenerationToolExt.DatabaseGeneration.Models;
+using DatabaseGenerationToolExt.DatabaseGeneration.Settings;
 
 namespace DatabaseGenerationToolExt.DesignPatterns
 {
@@ -262,16 +264,23 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				}
 
 				List<XElement> tableNodes = (from c in xml.Root.Descendants("TableData") select c).ToList();
-				serializer = new XmlSerializer(typeof(TableData));
+				serializer = new XmlSerializer(typeof(Forms.Models.TableData));
 
 				foreach (XElement item in tableNodes)
 				{
 					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
-					Global.SelectedTables.Add((TableData)serializer.Deserialize(rdr));
+					Global.SelectedTables.Add((Forms.Models.TableData)serializer.Deserialize(rdr));
 				}
 
-				Global.SelectedStoredProcedures = (from c in xml.Root.Descendants("StoredProcedure")
-															  select c.Value).ToList();
+				List<XElement> sprocNodes = (from c in xml.Root.Descendants("StoredProcedureData") select c).ToList();
+				serializer = new XmlSerializer(typeof(Forms.Models.StoredProcedureData));
+
+				foreach (XElement item in sprocNodes)
+				{
+					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+					Global.SelectedStoredProcedures.Add((Forms.Models.StoredProcedureData)serializer.Deserialize(rdr));
+				}
+				
 			}
 		}
 
@@ -399,7 +408,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					{
 						var outputFile = outputFiles[i];
 
-						if (outputFile.ProjectName == null)
+						if (string.IsNullOrEmpty(outputFile.ProjectName))
 						{
 							outputFile.ProjectName = currentProjectName;
 						}
@@ -408,30 +417,31 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						outputFile.FileContent = GenerationEnvironment.ToString(outputFile.Start, outputFile.Length);
 						outputFile.OutputPath = outputPath;
 
-						CreateFile(outputFile);
+						bool isFileCreated = CreateFile(outputFile);
 						GenerationEnvironment.Remove(outputFile.Start, outputFile.Length);
 
-						list.Add(outputFile);
+						if(isFileCreated)
+						{
+							list.Add(outputFile);
+						}
+					}
+
+					if (list.Count > 0)
+					{
+						SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
 					}
 				}
 
-				if (list.Count > 0)
-				{
-					SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
+				Stopwatch.Stop();
+				Logger.AddLog("");
+				Logger.AddLog($"// Total Time Elapsed: {Stopwatch.Elapsed.TotalSeconds}");
 
-					//this.WriteLog(list);
+				list = new List<NewFile>();
 
-					Stopwatch.Stop();
-					Logger.AddLog("");
-					Logger.AddLog($"// Total Time Elapsed: {Stopwatch.Elapsed.TotalSeconds}");
+				list.Add(CreateDatabaseSettingXmlFile(defaultPath, currentProjectName));
+				list.Add(CreateLogFile(defaultPath, currentProjectName));
 
-					list = new List<NewFile>();
-
-					list.Add(CreateDatabaseSettingXmlFile(defaultPath, currentProjectName));
-					list.Add(CreateLogFile(defaultPath, currentProjectName));
-
-					SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
-				}
+				SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
 			}
 		}
 
@@ -463,7 +473,6 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			WriteLine("<UseCamelCase>{0}</UseCamelCase>", Setting.UseCamelCase);
 			WriteLine("<DisableGeographyTypes>{0}</DisableGeographyTypes>", Setting.DisableGeographyTypes);
 			WriteLine("<NullableShortHand>{0}</NullableShortHand>", Setting.NullableShortHand);
-			WriteLine("<PrivateSetterForComputedColumns>{0}</PrivateSetterForComputedColumns>", Setting.PrivateSetterForComputedColumns);
 			WriteLine("<FileExtension>{0}</FileExtension>", Setting.FileExtension);
 			WriteLine("<GeneratedFileExtension>{0}</GeneratedFileExtension>", Setting.GeneratedFileExtension);
 			WriteLine("<PrependSchemaName>{0}</PrependSchemaName>", Setting.PrependSchemaName);
@@ -477,8 +486,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			WriteLine("<Tables>");
 			PushIndent("\t");
 
-			XmlSerializer serializer = new XmlSerializer(typeof(TableData));
-			foreach (TableData tbl in Tables.Select(x => x.TableData).OrderBy(x => x.TableName).ToList())
+			XmlSerializer serializer = new XmlSerializer(typeof(Forms.Models.TableData));
+			foreach (Forms.Models.TableData tbl in Tables.Select(x => x.TableData).OrderBy(x => x.TableName))
 			{
 				WriteLine("<TableData>");
 				PushIndent("\t");
@@ -501,9 +510,16 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			WriteLine("<StoredProcedures>");
 			PushIndent("\t");
-			foreach (StoredProcedure sproc in StoredProcedures)
+			foreach (Forms.Models.StoredProcedureData sproc in StoredProcedures.Select(x => x.StoredProcData).OrderBy(x => x.StoredProcName))
 			{
-				WriteLine("<StoredProcedure>{0}</StoredProcedure>", sproc.Name);
+				WriteLine("<StoredProcedureData>");
+				PushIndent("\t");
+
+				WriteLine("<StoredProcSelect>{0}</StoredProcSelect>", sproc.StoredProcSelect);
+				WriteLine("<StoredProcName>{0}</StoredProcName>", sproc.StoredProcName);
+
+				PopIndent();
+				WriteLine("</StoredProcedureData>");
 			}
 			PopIndent();
 			WriteLine("</StoredProcedures>");
@@ -556,17 +572,22 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			return file;
 		}
 
-		private void CreateFile(NewFile file)
+		private bool CreateFile(NewFile file)
 		{
 			if (IsFileContentDifferent(file))
 			{
 				File.WriteAllText(file.FilePath, file.FileContent);
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 
 		private bool IsFileContentDifferent(NewFile file)
 		{
-			return !(File.Exists(file.FileName) && File.ReadAllText(file.FileName) == file.FileContent);
+			return !(File.Exists(file.FilePath) && File.ReadAllText(file.FilePath) == file.FileContent);
 		}
 
 		private void WriteLog(List<NewFile> list)

@@ -94,7 +94,7 @@ namespace DatabaseGenerationToolExt.Commands
 
 				if (command != null)
 				{
-
+					command.Visible = false;
 				}
 			}
 			catch (Exception ex)

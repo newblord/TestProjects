@@ -1,5 +1,4 @@
-﻿using DatabaseGenerationToolExt.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -7,8 +6,10 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using DatabaseGenerationToolExt.Helpers;
+using DatabaseGenerationToolExt.DatabaseGeneration.Models;
 
-namespace DatabaseGenerationToolExt.DatabaseObjects
+namespace DatabaseGenerationToolExt.DatabaseGeneration
 {
 	public class SchemaReader
 	{
@@ -263,25 +264,25 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 		private string ProcessTableSQL()
 		{
-			string sql = TableSQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName).ToList()));
+			string sql = TableSQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName)));
 			return sql;
 		}
 
 		private string ProcessForeignKeySQL()
 		{
-			string sql = ForeignKeySQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName).ToList()));
+			string sql = ForeignKeySQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName)));
 			return sql;
 		}
 
 		private string ProcessIndexSQL()
 		{
-			string sql = IndexSQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName).ToList()));
+			string sql = IndexSQL.Replace("{TABLE_NAMES}", string.Join("', '", Global.SelectedTables.Select(x => x.TableName)));
 			return sql;
 		}
 
 		private string ProcessStoredProcSQL()
 		{
-			string sql = StoredProcedureSQL.Replace("{SPROC_NAMES}", string.Join("', '", Global.SelectedStoredProcedures));
+			string sql = StoredProcedureSQL.Replace("{SPROC_NAMES}", string.Join("', '", Global.SelectedStoredProcedures.Select(x => x.StoredProcName)));
 			return sql;
 		}
 
@@ -581,7 +582,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 								HasNullableColumns = false
 							};
 
-							table.TableData = Global.SelectedTables.Where(x => x.TableName == tableName).FirstOrDefault();
+							table.TableData = Global.SelectedTables.Where(x => x.TableName.Equals(tableName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
 
 							tableName = TableRename(tableName, schema);
 							if (IsFilterExcluded(TableFilterExclude, null, tableName)) // Retest exclusion filter after table rename
@@ -630,7 +631,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 			foreach (Table tbl in result)
 			{
-				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(Global.Setting.IncludeComments, Global.Setting.PrivateSetterForComputedColumns));
+				tbl.Columns.ForEach(x => x.SetupEntityAndConfig(Global.Setting.IncludeComments));
 			}
 
 			return result;
@@ -764,6 +765,8 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 						if (StoredProcedureFilterExclude != null && StoredProcedureFilterExclude.IsMatch(sp.NameHumanCase))
 							continue;
+
+						sp.StoredProcData = Global.SelectedStoredProcedures.Where(x => x.StoredProcName.Equals(sp.Name, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
 
 						result.Add(sp);
 					}

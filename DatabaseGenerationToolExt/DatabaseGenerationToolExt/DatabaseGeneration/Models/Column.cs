@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseGenerationToolExt.DatabaseObjects
+namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 {
 	public class Column
 	{
@@ -69,7 +69,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			EntityForeignKeys = new List<string>();
 		}
 
-		private void SetupEntity(CommentsStyle includeComments, bool usePrivateSetterForComputedColumns)
+		private void SetupEntity(CommentsStyle includeComments)
 		{
 			var comments = string.Empty;
 			if (includeComments != CommentsStyle.None)
@@ -92,17 +92,12 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 				SummaryComments = comments;
 			}
 
-			Entity = string.Format("public {0} {1} {{ get; {2}set; }}{3}", WrapIfNullable(PropertyType, this), NameHumanCase, usePrivateSetterForComputedColumns && IsComputed ? "private " : string.Empty, inlineComments);
-			InterfaceEntity = string.Format("{0} {1} {{ get; set; }}{2}", WrapIfNullable(PropertyType, this), NameHumanCase, inlineComments);
-		}
+			if (IsNullable)
+				PropertyType = String.Format(Global.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", PropertyType);
 
-		private string WrapIfNullable(string propType, Column col)
-		{
-			if (!IsNullable)
-				return propType;
-			return String.Format(Global.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", propType);
+			Entity = string.Format("public {0} {1} {{ get; {2}set; }}{3}", PropertyType, NameHumanCase, IsComputed ? "private " : string.Empty, inlineComments);
+			InterfaceEntity = string.Format("{0} {1} {{ get; set; }}{2}", PropertyType, NameHumanCase, inlineComments);
 		}
-
 
 		public bool IsComputed
 		{
@@ -135,9 +130,9 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 												databaseGeneratedOption);
 		}
 
-		public void SetupEntityAndConfig(CommentsStyle includeComments, bool usePrivateSetterForComputedColumns)
+		public void SetupEntityAndConfig(CommentsStyle includeComments)
 		{
-			SetupEntity(includeComments, usePrivateSetterForComputedColumns);
+			SetupEntity(includeComments);
 			SetupConfig();
 		}
 

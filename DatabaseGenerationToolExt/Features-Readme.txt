@@ -30,18 +30,15 @@
 			- Takes about 40 seconds to generate all files
 	13)  Refactor UpdateFromDatabase WinForm
 			- Recreate Tables tab - Done
-			- Recreate Views Tab
-			- Recreate Stored Procedure Tab
+			- Recreate Stored Procedure Tab - Done
 			- Add tab for Database Generation Settings - Done
 			- Add Settings to xml file - Done
 	14)  Add DTO file creation
+			- Done
 	15)  Add Business Service and IBusinessService for tables
 			- Standard methods from Repository need to be Implemented - Done
-			- Try to create Business Service for only main tables
-				- ex: Loan Application has several tables that extend the main LoanApplication table, 
-						the Business Service would only be generated for the main LoanApplication table
-						and the repositories for the other tables will be added as properties or using IOC
 	16)  Business Specification Files
+			- Done
 	17)  Complete Unit Of Work Design Pattern
 	18)  Add IOC or Dependency Injection
 	19)  When GenerateContext is disabled switch to ADO.NET Connection to database instead of Entity Framework

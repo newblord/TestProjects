@@ -5,17 +5,14 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using DatabaseGenerationToolExt.DatabaseObjects;
-using Microsoft.VisualStudio.Shell;
+using DatabaseGenerationToolExt.Forms.Models;
 using DatabaseGenerationToolExt.DesignPatterns;
 using DatabaseGenerationToolExt.Helpers;
-using System.Data.Common;
 
 namespace DatabaseGenerationToolExt.Forms
 {
 	public partial class DatabaseObjectSelector : Form
 	{
-
 
 		public bool IsCanceled { get; set; } = false;
 
@@ -39,7 +36,7 @@ namespace DatabaseGenerationToolExt.Forms
 
 					PopulateDropDownLists();
 					InitializeDatabaseObjects();
-					LoadDatabaseGenerationSettings();
+					LoadSettings();
 				}
 				else
 				{
@@ -67,8 +64,27 @@ namespace DatabaseGenerationToolExt.Forms
 
 			HandleTableSelectHeaderChange(cbx);
 
-			cbx.CheckStateChanged += new EventHandler(checkboxHeader_CheckStateChanged);
+			cbx.CheckStateChanged += new EventHandler(TableCheckboxHeader_CheckStateChanged);
 			gvTables.Controls.Add(cbx);
+		}
+
+		private void SetupStoredProcedureGridViewHeaderCheckbox()
+		{
+			Rectangle rect = gvStoredProcedures.GetCellDisplayRectangle(0, -1, true);
+			rect.Size = new Size(20, 40);
+			rect.Y = rect.Height / 4;
+			rect.X = rect.Location.X + (rect.Width / 4);
+			CheckBox cbx = new CheckBox();
+			cbx.Name = "StoredProcSelectHeader";
+			cbx.Size = new Size(18, 18);
+			cbx.Location = rect.Location;
+			cbx.BackColor = Color.Transparent;
+			cbx.ThreeState = true;
+
+			HandleTableSelectHeaderChange(cbx);
+
+			cbx.CheckStateChanged += new EventHandler(StoredProcCheckboxHeader_CheckStateChanged);
+			gvStoredProcedures.Controls.Add(cbx);
 		}
 
 		private void PopulateDropDownLists()
@@ -83,9 +99,9 @@ namespace DatabaseGenerationToolExt.Forms
 			ddlIncludeComments.ValueMember = "Value";
 		}
 
-		private void LoadDatabaseGenerationSettings()
+		private void LoadSettings()
 		{
-			DatabaseGenerationSetting setting = Global.Setting;
+			DatabaseGeneration.Settings.DatabaseGenerationSetting setting = Global.Setting;
 
 			if (setting != null)
 			{
@@ -105,7 +121,6 @@ namespace DatabaseGenerationToolExt.Forms
 				cbxUseCamelCase.DataBindings.Add("Checked", setting, "UseCamelCase");
 				cbxDisableGeographyTypes.DataBindings.Add("Checked", setting, "DisableGeographyTypes");
 				cbxNullableShortHand.DataBindings.Add("Checked", setting, "NullableShortHand");
-				cbxPrivateSetterForComputedColumns.DataBindings.Add("Checked", setting, "PrivateSetterForComputedColumns");
 				cbxPrependSchema.DataBindings.Add("Checked", setting, "PrependSchemaName");
 				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", setting, "IncludeQueryTraceOn9481Flag");
 			}
@@ -114,8 +129,7 @@ namespace DatabaseGenerationToolExt.Forms
 		private void InitializeDatabaseObjects()
 		{
 			InitializeDatabaseTables();
-			//InitializeDatabaseViews();
-			//InitializeDatabaseStoredProcedures();
+			InitializeDatabaseStoredProcedures();
 			//InitializeDatabaseFunctions();
 		}
 
@@ -168,121 +182,55 @@ namespace DatabaseGenerationToolExt.Forms
 			gvTables.DataSource = tableData;
 		}
 
-		//private void InitializeDatabaseViews()
-		//{
-		//	using (SqlConnection connection = new SqlConnection(ConnectionString))
-		//	{
-		//		connection.Open();
-		//		SqlCommand command = connection.CreateCommand();
+		private void InitializeDatabaseStoredProcedures()
+		{
+			List<StoredProcedureData> sprocData = new List<StoredProcedureData>();
 
-		//		command.CommandType = CommandType.Text;
-		//		command.CommandText = @"SELECT
-		//									  s.NAME        AS [Schema]
-		//									  , o.type_desc AS [Type]
-		//									  , o.NAME      AS [Name]
-		//									FROM   sys.all_objects o
-		//											 INNER JOIN sys.schemas s
-		//														ON s.schema_id = o.schema_id
-		//									WHERE
-		//									  o.type IN ('V') 
-		//									  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
-		//									ORDER  BY o.NAME 
-		//									";
+			string sql = @"SELECT
+											  s.NAME        AS [Schema]
+											  , o.type_desc AS [Type]
+											  , o.NAME      AS [Name]
+											FROM   sys.all_objects o
+													 INNER JOIN sys.schemas s
+																ON s.schema_id = o.schema_id
+											WHERE
+											  o.type IN ('P') 
+											  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
+											ORDER  BY o.type,o.NAME 
+											";
 
-		//		SqlDataReader reader = command.ExecuteReader();
+			using (SqlConnection connection = new SqlConnection(Global.Setting.ConnectionString))
+			{
+				connection.Open();
+				SqlCommand command = connection.CreateCommand();
 
-		//		TreeNode node = tvDBComponents.Nodes.Add("Views");
+				command.CommandType = CommandType.Text;
+				command.CommandText = sql;
 
-		//		while (reader.Read())
-		//		{
-		//			node.Nodes.Add(reader["Name"].ToString());
-		//		}
+				SqlDataReader reader = command.ExecuteReader();
 
-		//		connection.Close();
-		//	}
-		//}
+				while (reader.Read())
+				{
+					string name = reader["Name"].ToString();
+					StoredProcedureData data = Global.SelectedStoredProcedures.Where(x => x.StoredProcName == name).FirstOrDefault();
 
-		//private void InitializeDatabaseStoredProcedures()
-		//{
-		//	string tables = string.Join("', '", TableNames);
+					if (data == null)
+					{
+						data = new StoredProcedureData();
 
-		//	string sql = @"SELECT
-		//									  s.NAME        AS [Schema]
-		//									  , o.type_desc AS [Type]
-		//									  , o.NAME      AS [Name]
-		//									  , Case
-		//											WHEN o.NAME IN ('{SPROC_NAMES}') THEN 1
-		//											ELSE 0
-		//											END AS Checked
-		//									FROM   sys.all_objects o
-		//											 INNER JOIN sys.schemas s
-		//														ON s.schema_id = o.schema_id
-		//									WHERE
-		//									  o.type IN ('P') 
-		//									  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
-		//									ORDER  BY o.type,o.NAME 
-		//									";
+						data.StoredProcName = name;
+						data.StoredProcSelect = false;
+					}
 
-		//	using (SqlConnection connection = new SqlConnection(ConnectionString))
-		//	{
-		//		connection.Open();
-		//		SqlCommand command = connection.CreateCommand();
+					sprocData.Add(data);
+				}
 
-		//		command.CommandType = CommandType.Text;
-		//		command.CommandText = sql.Replace("{SPROC_NAMES}", tables);
+				connection.Close();
+			}
 
-		//		SqlDataReader reader = command.ExecuteReader();
-
-		//		TreeNode node = tvDBComponents.Nodes.Add("Stored Procedures");
-
-		//		while (reader.Read())
-		//		{
-		//			TreeNode newNode = new TreeNode(reader["Name"].ToString());
-
-		//			if (int.Parse(reader["Checked"].ToString()) == 1)
-		//				newNode.Checked = true;
-
-		//			node.Nodes.Add(newNode);
-		//		}
-
-		//		connection.Close();
-		//	}
-		//}
-
-		//private void InitializeDatabaseFunctions()
-		//{
-		//	using (SqlConnection connection = new SqlConnection(ConnectionString))
-		//	{
-		//		connection.Open();
-		//		SqlCommand command = connection.CreateCommand();
-
-		//		command.CommandType = CommandType.Text;
-		//		command.CommandText = @"SELECT
-		//									  s.NAME        AS [Schema]
-		//									  , o.type_desc AS [Type]
-		//									  , o.NAME      AS [Name]
-		//									FROM   sys.all_objects o
-		//											 INNER JOIN sys.schemas s
-		//														ON s.schema_id = o.schema_id
-		//									WHERE
-		//									  o.type IN ('FN', 'IF', 'TF') 
-		//									  AND s.NAME NOT IN ( 'sys', 'INFORMATION_SCHEMA' )
-		//									ORDER  BY o.type,o.NAME 
-		//									";
-
-		//		SqlDataReader reader = command.ExecuteReader();
-
-		//		TreeNode node = tvDBComponents.Nodes.Add("Functions");
-
-		//		while (reader.Read())
-		//		{
-		//			node.Nodes.Add(reader["Name"].ToString());
-		//		}
-
-		//		connection.Close();
-		//	}
-		//}
-
+			gvStoredProcedures.DataSource = sprocData;
+		}
+		
 		#endregion
 
 		#region Events
@@ -290,7 +238,9 @@ namespace DatabaseGenerationToolExt.Forms
 		private void DatabaseObjectSelector_Load(object sender, EventArgs e)
 		{
 			SetupTableGridViewHeaderCheckbox();
+			SetupStoredProcedureGridViewHeaderCheckbox();
 			UpdateTableSettings();
+			HandleStoredProcSelectChange(true);
 		}
 
 		private void DatabaseObjectSelector_FormClosing(object sender, FormClosingEventArgs e)
@@ -318,14 +268,16 @@ namespace DatabaseGenerationToolExt.Forms
 		private void btnGenerate_Click(object sender, EventArgs e)
 		{
 			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
+			List<StoredProcedureData> sprocData = (List<StoredProcedureData>)gvStoredProcedures.DataSource;
 
-			Global.SelectedTables = tableData.Where(x => x.TableSelect == true).ToList();
+			Global.SelectedTables = tableData.Where(x => x.TableSelect).ToList();
+			Global.SelectedStoredProcedures = sprocData.Where(x => x.StoredProcSelect).ToList();
 
-			Global.Setting.IncludeComments = (CommentsStyle)ddlIncludeComments.SelectedValue;
+			Global.Setting.IncludeComments = (DatabaseGeneration.Models.CommentsStyle)ddlIncludeComments.SelectedValue;
 
 			// Read schema
 
-			SchemaReader reader = new SchemaReader();
+			DatabaseGeneration.SchemaReader reader = new DatabaseGeneration.SchemaReader();
 
 			var tables = reader.LoadTables();
 			var storedProcs = reader.LoadStoredProcs();
@@ -423,6 +375,12 @@ namespace DatabaseGenerationToolExt.Forms
 		#endregion
 
 		#region Events
+
+		private void gvTables_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			gvTables.CommitEdit(DataGridViewDataErrorContexts.Commit);
+		}
+
 		private void gvTables_CellValueChanged(object sender, DataGridViewCellEventArgs e)
 		{
 			if (e.ColumnIndex > -1 && e.RowIndex > -1 && !SkipTableCellValueEvent)
@@ -479,12 +437,7 @@ namespace DatabaseGenerationToolExt.Forms
 			}
 		}
 
-		private void gvTables_CellContentClick(object sender, DataGridViewCellEventArgs e)
-		{
-			gvTables.CommitEdit(DataGridViewDataErrorContexts.Commit);
-		}
-
-		public void checkboxHeader_CheckStateChanged(object sender, EventArgs e)
+		public void TableCheckboxHeader_CheckStateChanged(object sender, EventArgs e)
 		{
 			if (gvTables.IsCurrentCellInEditMode)
 			{
@@ -620,7 +573,97 @@ namespace DatabaseGenerationToolExt.Forms
 		#endregion
 
 		#endregion
-		
+
+		#region Tab - Stored Procedures
+
+		#region Private Methods
+
+		private void HandleStoredProcSelectChange(bool isChecked)
+		{
+			CheckBox cbxHeader = (CheckBox)gvStoredProcedures.Controls.Find("StoredProcSelectHeader", false).First();
+
+			HandleStoredProcSelectHeaderChange(cbxHeader);
+
+			if (cbxHeader.CheckState == CheckState.Checked && !isChecked ||
+					cbxHeader.CheckState == CheckState.Unchecked && isChecked)
+			{
+				cbxHeader.CheckState = CheckState.Indeterminate;
+			}
+		}
+
+		private void HandleStoredProcSelectHeaderChange(CheckBox cbx)
+		{
+			List<StoredProcedureData> sprocData = (List<StoredProcedureData>)gvStoredProcedures.DataSource;
+
+			int checkedCount = sprocData.Where(x => x.StoredProcSelect == true).Count();
+
+			if (checkedCount > 0 && checkedCount < sprocData.Count)
+			{
+				cbx.CheckState = CheckState.Indeterminate;
+			}
+			else if (checkedCount == sprocData.Count)
+			{
+				cbx.CheckState = CheckState.Checked;
+			}
+			else
+			{
+				cbx.CheckState = CheckState.Unchecked;
+			}
+		}
+
+		#endregion
+
+		private void gvStoredProcedures_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			gvStoredProcedures.CommitEdit(DataGridViewDataErrorContexts.Commit);
+		}
+
+		private void gvStoredProcedures_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.ColumnIndex > -1 && e.RowIndex > -1)
+			{
+				DataGridViewCheckBoxCell cbx = (DataGridViewCheckBoxCell)gvStoredProcedures[e.ColumnIndex, e.RowIndex];
+
+				if (cbx.EditingCellValueChanged)
+				{
+					if (e.ColumnIndex == 0)
+					{
+						bool isChecked = (bool)gvStoredProcedures[0, e.RowIndex].FormattedValue;
+
+						HandleStoredProcSelectChange(isChecked);
+
+						gvStoredProcedures.EndEdit();
+					}
+				}
+			}
+		}
+
+		public void StoredProcCheckboxHeader_CheckStateChanged(object sender, EventArgs e)
+		{
+			if (gvStoredProcedures.IsCurrentCellInEditMode)
+			{
+				gvStoredProcedures.EndEdit();
+			}
+
+			CheckBox cbx = (CheckBox)sender;
+
+			if (cbx.Focused)
+			{
+				if (cbx.CheckState == CheckState.Indeterminate)
+				{
+					cbx.CheckState = CheckState.Unchecked;
+				}
+
+				for (int i = 0; i < gvStoredProcedures.Rows.Count; i++)
+				{
+					gvStoredProcedures.Rows[i].Cells[0].Value = cbx.Checked;
+				}
+
+			}
+		}
+
+		#endregion
+
 	}
 
 }

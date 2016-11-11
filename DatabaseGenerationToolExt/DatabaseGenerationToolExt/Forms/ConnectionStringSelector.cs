@@ -1,4 +1,4 @@
-﻿using DatabaseGenerationToolExt.DatabaseObjects;
+﻿using DatabaseGenerationToolExt.DatabaseGeneration.Models;
 using DatabaseGenerationToolExt.Helpers;
 using System;
 using System.Collections.Generic;

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DatabaseGenerationToolExt.DatabaseObjects;
 using Microsoft.VisualStudio.Shell;
 using DatabaseGenerationToolExt.Helpers;
+using DatabaseGenerationToolExt.DatabaseGeneration.Models;
 
 namespace DatabaseGenerationToolExt.DesignPatterns
 {
@@ -75,7 +75,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("using System;");
 				WriteLine("using System.Data.Entity;");
-				WriteLine("using {0};", ModelNamespace);
+
+				if (Tables.Where(x => x.TableData.TableSelect).Any())
+				{
+					WriteLine("using {0};", ModelNamespace);
+				}
 
 				if (IsSupportedFrameworkVersion("4.5"))
 				{
@@ -94,7 +98,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 				{
-					WriteLine("DbSet<{0}> {1}s {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
+					WriteLine("DbSet<{0}> {1} {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
 				}
 
 				WriteLine("");
@@ -171,17 +175,26 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.Data.Entity.Infrastructure;");
 				WriteLine("using System.Data.Common;");
 				WriteLine("using System.Data.SqlClient;");
-				WriteLine("using {0};", ModelNamespace);
 
-				if (Setting.GenerateUnitOfWorkInterface)
+				if (StoredProcedures.Any())
 				{
-					WriteLine("using {0};", UnitOfWorkNamespace);
+					WriteLine("using System.Linq;");
 				}
 
 				if (IsSupportedFrameworkVersion("4.5"))
 				{
 					WriteLine("using System.Threading;");
 					WriteLine("using System.Threading.Tasks;");
+				}
+
+				if (Tables.Where(x => x.TableData.TableSelect).Any())
+				{
+					WriteLine("using {0};", ModelNamespace);
+				}
+
+				if (Setting.GenerateUnitOfWorkInterface)
+				{
+					WriteLine("using {0};", UnitOfWorkNamespace);
 				}
 
 				if (!Setting.UseDataAnnotations)
@@ -195,7 +208,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 				{
-					WriteLine("public DbSet<{0}> {1}s {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
+					WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
 				}
 
 				WriteLine("");
@@ -435,6 +448,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping).OrderBy(x => x.NameHumanCase) select t)
 			{
 				string baseClasses = string.Empty;
+				var computedColumns = tbl.Columns.Where(c => c.IsComputed && !c.Hidden);
 
 				StartNewFile(tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelProjectName, ModelFolderName);
 				if (!tbl.HasPrimaryKey)
@@ -495,6 +509,21 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					CloseBrace();
 				}
 
+				if (computedColumns.Any())
+				{
+					var parameters = computedColumns.OrderBy(x => x.Ordinal).Select(x => $"{x.PropertyType} {x.ParameterName}");
+
+					WriteLine("public {0}({1})", tbl.NameHumanCase, string.Join(", ", parameters));
+					OpenBrace();
+
+					foreach (Column col in computedColumns)
+					{
+						WriteLine("{0} = {1};", col.NameHumanCase, col.ParameterName);
+					}
+
+					CloseBrace();
+				}
+
 				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
 					if ((Setting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
@@ -537,10 +566,19 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteLine("public {0} ToDTO()", tbl.NameHumanCase + "DTO");
 					OpenBrace();
 
-					WriteLine("{0} dto = new {0}();", tbl.NameHumanCase + "DTO");
+					if (computedColumns.Any())
+					{
+						var parameters = computedColumns.OrderBy(x => x.Ordinal).Select(x => x.NameHumanCase);
+						WriteLine("{0} dto = new {0}({1});", tbl.NameHumanCase + "DTO", string.Join(", ", parameters));
+					}
+					else
+					{
+						WriteLine("{0} dto = new {0}();", tbl.NameHumanCase + "DTO");
+					}
+
 					WriteLine("");
 
-					foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal))
+					foreach (Column col in tbl.Columns.Where(x => !x.IsComputed).OrderBy(x => x.Ordinal))
 					{
 						WriteLine("dto.{0} = {0};", col.NameHumanCase);
 					}
@@ -615,6 +653,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.TableData.GenerateModelDto).OrderBy(x => x.NameHumanCase) select t)
 			{
 				string className = tbl.NameHumanCase + "DTO";
+				var computedColumns = tbl.Columns.Where(x => x.IsComputed && !x.Hidden);
 
 				StartNewFile(className + Setting.GeneratedFileExtension, ModelDtoProjectName, ModelDtoFolderName);
 				CreateHeader();
@@ -650,6 +689,21 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					CloseBrace();
 				}
 
+				if (computedColumns.Any())
+				{
+					var parameters = computedColumns.OrderBy(x => x.Ordinal).Select(x => $"{x.PropertyType} {x.ParameterName}");
+
+					WriteLine("public {0}({1})", className, string.Join(", ", parameters));
+					OpenBrace();
+
+					foreach (Column col in computedColumns)
+					{
+						WriteLine("{0} = {1};", col.NameHumanCase, col.ParameterName);
+					}
+
+					CloseBrace();
+				}
+
 				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
 					WriteModelDTOColumn(col);
@@ -675,10 +729,20 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("public {0} ToModel()", tbl.NameHumanCase);
 				OpenBrace();
 
-				WriteLine("{0} model = new {0}();", tbl.NameHumanCase);
+				if (computedColumns.Any())
+				{
+					var parameters = computedColumns.OrderBy(x => x.Ordinal).Select(x => x.NameHumanCase);
+					WriteLine("{0} model = new {0}({1});", tbl.NameHumanCase, string.Join(", ", parameters));
+				}
+				else
+				{
+					WriteLine("{0} model = new {0}();", tbl.NameHumanCase);
+				}
+
+
 				WriteLine("");
 
-				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal))
+				foreach (Column col in tbl.Columns.Where(x => !x.IsComputed).OrderBy(x => x.Ordinal))
 				{
 					WriteLine("model.{0} = {0};", col.NameHumanCase);
 				}
@@ -849,7 +913,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				OpenBrace();
 				WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot insert null value in {0}.Insert\"); }}", className);
 				WriteLine("");
-				WriteLine("Context.{0}s.Add(data);", tbl.NameHumanCase);
+				WriteLine("Context.{0}.Add(data);", tbl.NameHumanCase);
 				WriteLine("Context.SaveChanges();");
 				WriteLine("");
 				WriteLine("return data{0};", convertMethodString);
@@ -871,7 +935,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					{
 						WriteLine("public void DeleteBy{0}({1} {2})", pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 						OpenBrace();
-						WriteLine("var data = Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
+						WriteLine("var data = Context.{0}.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
 						WriteLine("Delete(data);");
 						CloseBrace();
 					}
@@ -881,13 +945,13 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				OpenBrace();
 				WriteLine("if(data == null) {{ throw new ArgumentNullException(\"data\", \"Cannot delete null value in {0}.Delete\"); }}", className);
 				WriteLine("");
-				WriteLine("Context.{0}s.Remove(data);", tbl.NameHumanCase);
+				WriteLine("Context.{0}.Remove(data);", tbl.NameHumanCase);
 				WriteLine("Context.SaveChanges();");
 				CloseBrace();
 
 				WriteLine("public IEnumerable<{0}> GetAll()", returnObjectName);
 				OpenBrace();
-				WriteLine("return Context.{0}s{1}.AsEnumerable();", tbl.NameHumanCase, tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : "");
+				WriteLine("return Context.{0}{1}.AsEnumerable();", tbl.NameHumanCase, tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : "");
 				CloseBrace();
 
 				if (tbl.HasPrimaryKey)
@@ -899,12 +963,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 						if (tbl.TableData.GenerateModelDto)
 						{
-							WriteLine("var data = Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
+							WriteLine("var data = Context.{0}.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
 							WriteLine("return data != null ? data.ToDTO() : null;");
 						}
 						else
 						{
-							WriteLine("return Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
+							WriteLine("return Context.{0}.Where(x => x.{1} == {2}).FirstOrDefault();", tbl.NameHumanCase, pk.NameHumanCase, pk.ParameterName);
 						}
 
 						CloseBrace();
@@ -912,7 +976,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					if (tbl.PrimaryKeys.Count() > 1)
 					{
-						var parameters = tbl.PrimaryKeys.Select(x => $"{x.PropertyType} {x.ParameterName}");
+						var parameters = tbl.PrimaryKeys.OrderBy(x => x.PrimaryKeyOrdinal).Select(x => $"{x.PropertyType} {x.ParameterName}");
 						var whereParameters = tbl.PrimaryKeys.Select(x => $"x.{x.NameHumanCase} == {x.ParameterName}");
 
 						WriteLine("public {0} FindBy{1}({2})", returnObjectName, string.Join(string.Empty, tbl.PrimaryKeys.Select(x => x.NameHumanCase)), string.Join(", ", parameters));
@@ -920,12 +984,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 						if (tbl.TableData.GenerateModelDto)
 						{
-							WriteLine("var data = Context.{0}s.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, string.Join(", ", whereParameters));
+							WriteLine("var data = Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, string.Join("&& ", whereParameters));
 							WriteLine("return data != null ? data.ToDTO() : null;");
 						}
 						else
 						{
-							WriteLine("return Context.{0}s.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, string.Join(", ", whereParameters));
+							WriteLine("return Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, string.Join("&& ", whereParameters));
 						}
 
 						CloseBrace();
@@ -936,7 +1000,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					WriteLine("public IEnumerable<{0}> FindBy{1}({2} {3})", returnObjectName, fk.FKColumn.NameHumanCase, fk.FKColumn.PropertyType, fk.FKColumn.ParameterName);
 					OpenBrace();
-					WriteLine("return Context.{0}s.Where(x => x.{1} == {2}){3};", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.ParameterName, tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : ".AsEnumerable()");
+					WriteLine("return Context.{0}.Where(x => x.{1} == {2}){3};", tbl.NameHumanCase, fk.FKColumn.NameHumanCase, fk.FKColumn.ParameterName, tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : ".AsEnumerable()");
 					CloseBrace();
 				}
 
@@ -944,7 +1008,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					WriteLine("public IEnumerable<{0}> GetBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
 					OpenBrace();
-					WriteLine("return Context.{0}s.Where(x => {1}){2};", tbl.NameHumanCase, index.CreateWhereString(), tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : ".AsEnumerable()");
+					WriteLine("return Context.{0}.Where(x => {1}){2};", tbl.NameHumanCase, index.CreateWhereString(), tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : ".AsEnumerable()");
 					CloseBrace();
 				}
 
@@ -955,12 +1019,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					if (tbl.TableData.GenerateModelDto)
 					{
-						WriteLine("var data = Context.{0}s.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.CreateWhereString());
+						WriteLine("var data = Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.CreateWhereString());
 						WriteLine("return data != null ? data.ToDTO() : null;");
 					}
 					else
 					{
-						WriteLine("return Context.{0}s.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.CreateWhereString());
+						WriteLine("return Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.CreateWhereString());
 					}
 
 					CloseBrace();
@@ -970,7 +1034,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					WriteLine("// Reverse Navigation Methods");
 
-					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.GroupBy(x => x.FKTable.NameHumanCase).Select(x => x.FirstOrDefault()))
 					{
 						returnObjectName = rn.FKTable.TableData.GenerateModelDto ? rn.FKTable.NameHumanCase + "DTO" : rn.FKTable.NameHumanCase;
 
@@ -980,19 +1044,19 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 							OpenBrace();
 							if (tbl.TableData.GenerateModelDto)
 							{
-								WriteLine("var data = Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName);
+								WriteLine("var data = Context.{0}.Where(x => x.{1} == {2}).FirstOrDefault();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName);
 								WriteLine("return data != null ? data.ToDTO() : null;");
 							}
 							else
 							{
-								WriteLine("return Context.{0}s.Where(x => x.{1} == {2}).FirstOrDefault();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName);
+								WriteLine("return Context.{0}.Where(x => x.{1} == {2}).FirstOrDefault();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName);
 							}
 						}
 						else if (rn.Relationship == Relationship.ManyToOne || rn.Relationship == Relationship.ManyToMany)
 						{
 							WriteLine("public IEnumerable<{0}> Get{1}By{2}({3} {4})", returnObjectName, Inflector.MakePlural(rn.FKTable.NameHumanCase), rn.FKColumn.NameHumanCase, rn.PKColumn.PropertyType, rn.PKColumn.ParameterName);
 							OpenBrace();
-							WriteLine("return Context.{0}s.Where(x => x.{1} == {2}){3}.AsEnumerable();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName, rn.FKTable.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : "");
+							WriteLine("return Context.{0}.Where(x => x.{1} == {2}){3}.AsEnumerable();", rn.FKTable.NameHumanCase, rn.FKColumn.NameHumanCase, rn.PKColumn.ParameterName, rn.FKTable.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : "");
 						}
 
 						CloseBrace();
@@ -1052,7 +1116,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					if (tbl.PrimaryKeys.Count() > 1)
 					{
-						var parameters = tbl.PrimaryKeys.Select(x => $"{x.PropertyType} {x.ParameterName}");
+						var parameters = tbl.PrimaryKeys.OrderBy(x => x.PrimaryKeyOrdinal).Select(x => $"{x.PropertyType} {x.ParameterName}");
 
 						WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, tbl.PrimaryKeys.Select(x => x.NameHumanCase)), string.Join(", ", parameters));
 					}
@@ -1077,7 +1141,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					WriteLine("// Reverse Navigation Methods");
 
-					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.GroupBy(x => x.FKTable.NameHumanCase).Select(x => x.FirstOrDefault()))
 					{
 						returnObjectName = rn.FKTable.TableData.GenerateModelDto ? rn.FKTable.NameHumanCase + "DTO" : rn.FKTable.NameHumanCase;
 
@@ -1204,7 +1268,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					if (tbl.PrimaryKeys.Count() > 1)
 					{
-						var parameters = tbl.PrimaryKeys.Select(x => $"{x.PropertyType} {x.ParameterName}");
+						var parameters = tbl.PrimaryKeys.OrderBy(x => x.PrimaryKeyOrdinal).Select(x => $"{x.PropertyType} {x.ParameterName}");
 
 						WriteLine("public {0} FindBy{1}({2})", returnObjectName, string.Join(string.Empty, tbl.PrimaryKeys.Select(x => x.NameHumanCase)), string.Join(", ", parameters));
 						OpenBrace();
@@ -1241,7 +1305,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					WriteLine("// Reverse Navigation Methods");
 
-					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.GroupBy(x => x.FKTable.NameHumanCase).Select(x => x.FirstOrDefault()))
 					{
 						returnObjectName = tbl.TableData.GenerateModelDto ? rn.FKTable.NameHumanCase + "DTO" : rn.FKTable.NameHumanCase;
 
@@ -1333,7 +1397,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					if (tbl.PrimaryKeys.Count() > 1)
 					{
-						var parameters = tbl.PrimaryKeys.Select(x => $"{x.PropertyType} {x.ParameterName}");
+						var parameters = tbl.PrimaryKeys.OrderBy(x => x.PrimaryKeyOrdinal).Select(x => $"{x.PropertyType} {x.ParameterName}");
 
 						WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, tbl.PrimaryKeys.Select(x => x.NameHumanCase)), string.Join(", ", parameters));
 					}
@@ -1358,7 +1422,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					WriteLine("// Reverse Navigation Methods");
 
-					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties)
+					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.GroupBy(x => x.FKTable.NameHumanCase).Select(x => x.FirstOrDefault()))
 					{
 						returnObjectName = tbl.TableData.GenerateModelDto ? rn.FKTable.NameHumanCase + "DTO" : rn.FKTable.NameHumanCase;
 
@@ -1382,55 +1446,51 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		private void CreateStoredProcedures()
 		{
-
-			if (StoredProcedures.Any())
+			foreach (StoredProcedure sp in StoredProcedures.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.Name)))
 			{
-				foreach (StoredProcedure sp in StoredProcedures.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.Name)))
+				string spReturnClassName = StoredProcedureHelper.WriteStoredProcReturnModelName(sp);
+
+				StartNewFile(spReturnClassName + Setting.FileExtension);
+
+				CreateHeader();
+
+				WriteLine("using System.Collections.Generic;");
+				WriteLine("");
+
+				BeginClass(spReturnClassName, false, "");
+
+				var returnModelCount = sp.ReturnModels.Count;
+
+				if (returnModelCount < 2)
 				{
-					string spReturnClassName = StoredProcedureHelper.WriteStoredProcReturnModelName(sp);
-
-					StartNewFile(spReturnClassName + Setting.FileExtension);
-
-					CreateHeader();
-
-					WriteLine("using System.Collections.Generic;");
-					WriteLine("");
-
-					BeginClass(spReturnClassName, false, "");
-
-					var returnModelCount = sp.ReturnModels.Count;
-
-					if (returnModelCount < 2)
+					foreach (var returnColumn in sp.ReturnModels.First())
 					{
-						foreach (var returnColumn in sp.ReturnModels.First())
+						WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
+					}
+				}
+				else
+				{
+					int model = 0;
+					foreach (var returnModel in sp.ReturnModels)
+					{
+						model++;
+						WriteLine("public class ResultSetModel{0}", model);
+						OpenBrace();
+
+						foreach (var returnColumn in returnModel)
 						{
 							WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
 						}
+						CloseBrace();
+
+						WriteLine("public List<ResultSetModel{0}> ResultSet{0};", model);
+
 					}
-					else
-					{
-						int model = 0;
-						foreach (var returnModel in sp.ReturnModels)
-						{
-							model++;
-							WriteLine("public class ResultSetModel{0}", model);
-							OpenBrace();
-
-							foreach (var returnColumn in returnModel)
-							{
-								WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
-							}
-							CloseBrace();
-
-							WriteLine("public List<ResultSetModel{0}> ResultSet{0};", model);
-
-						}
-					}
-					CloseBrace();
 				}
+				CloseBrace();
 			}
-
 		}
+
 	}
 }
 
