@@ -275,7 +275,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				List<XElement> sprocNodes = (from c in xml.Root.Descendants("StoredProcedureData") select c).ToList();
 				serializer = new XmlSerializer(typeof(Forms.Models.StoredProcedureData));
 
-				foreach (XElement item in tableNodes)
+				foreach (XElement item in sprocNodes)
 				{
 					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
 					Global.SelectedStoredProcedures.Add((Forms.Models.StoredProcedureData)serializer.Deserialize(rdr));
@@ -408,7 +408,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					{
 						var outputFile = outputFiles[i];
 
-						if (outputFile.ProjectName == null)
+						if (string.IsNullOrEmpty(outputFile.ProjectName))
 						{
 							outputFile.ProjectName = currentProjectName;
 						}
@@ -425,11 +425,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 							list.Add(outputFile);
 						}
 					}
-				}
 
-				if (list.Count > 0)
-				{
-					SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
+					if (list.Count > 0)
+					{
+						SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
+					}
 				}
 
 				Stopwatch.Stop();

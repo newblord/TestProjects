@@ -240,6 +240,7 @@ namespace DatabaseGenerationToolExt.Forms
 			SetupTableGridViewHeaderCheckbox();
 			SetupStoredProcedureGridViewHeaderCheckbox();
 			UpdateTableSettings();
+			HandleStoredProcSelectChange(true);
 		}
 
 		private void DatabaseObjectSelector_FormClosing(object sender, FormClosingEventArgs e)

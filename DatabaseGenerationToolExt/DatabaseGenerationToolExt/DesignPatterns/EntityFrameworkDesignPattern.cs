@@ -175,17 +175,26 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.Data.Entity.Infrastructure;");
 				WriteLine("using System.Data.Common;");
 				WriteLine("using System.Data.SqlClient;");
-				WriteLine("using {0};", ModelNamespace);
 
-				if (Setting.GenerateUnitOfWorkInterface)
+				if (StoredProcedures.Any())
 				{
-					WriteLine("using {0};", UnitOfWorkNamespace);
+					WriteLine("using System.Linq;");
 				}
 
 				if (IsSupportedFrameworkVersion("4.5"))
 				{
 					WriteLine("using System.Threading;");
 					WriteLine("using System.Threading.Tasks;");
+				}
+
+				if (Tables.Where(x => x.TableData.TableSelect).Any())
+				{
+					WriteLine("using {0};", ModelNamespace);
+				}
+
+				if (Setting.GenerateUnitOfWorkInterface)
+				{
+					WriteLine("using {0};", UnitOfWorkNamespace);
 				}
 
 				if (!Setting.UseDataAnnotations)
@@ -680,7 +689,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					CloseBrace();
 				}
 
-				if(computedColumns.Any())
+				if (computedColumns.Any())
 				{
 					var parameters = computedColumns.OrderBy(x => x.Ordinal).Select(x => $"{x.PropertyType} {x.ParameterName}");
 
@@ -730,7 +739,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteLine("{0} model = new {0}();", tbl.NameHumanCase);
 				}
 
-				
+
 				WriteLine("");
 
 				foreach (Column col in tbl.Columns.Where(x => !x.IsComputed).OrderBy(x => x.Ordinal))
@@ -1437,55 +1446,51 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		private void CreateStoredProcedures()
 		{
-
-			if (StoredProcedures.Any())
+			foreach (StoredProcedure sp in StoredProcedures.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.Name)))
 			{
-				foreach (StoredProcedure sp in StoredProcedures.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.Name)))
+				string spReturnClassName = StoredProcedureHelper.WriteStoredProcReturnModelName(sp);
+
+				StartNewFile(spReturnClassName + Setting.FileExtension);
+
+				CreateHeader();
+
+				WriteLine("using System.Collections.Generic;");
+				WriteLine("");
+
+				BeginClass(spReturnClassName, false, "");
+
+				var returnModelCount = sp.ReturnModels.Count;
+
+				if (returnModelCount < 2)
 				{
-					string spReturnClassName = StoredProcedureHelper.WriteStoredProcReturnModelName(sp);
-
-					StartNewFile(spReturnClassName + Setting.FileExtension);
-
-					CreateHeader();
-
-					WriteLine("using System.Collections.Generic;");
-					WriteLine("");
-
-					BeginClass(spReturnClassName, false, "");
-
-					var returnModelCount = sp.ReturnModels.Count;
-
-					if (returnModelCount < 2)
+					foreach (var returnColumn in sp.ReturnModels.First())
 					{
-						foreach (var returnColumn in sp.ReturnModels.First())
+						WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
+					}
+				}
+				else
+				{
+					int model = 0;
+					foreach (var returnModel in sp.ReturnModels)
+					{
+						model++;
+						WriteLine("public class ResultSetModel{0}", model);
+						OpenBrace();
+
+						foreach (var returnColumn in returnModel)
 						{
 							WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
 						}
+						CloseBrace();
+
+						WriteLine("public List<ResultSetModel{0}> ResultSet{0};", model);
+
 					}
-					else
-					{
-						int model = 0;
-						foreach (var returnModel in sp.ReturnModels)
-						{
-							model++;
-							WriteLine("public class ResultSetModel{0}", model);
-							OpenBrace();
-
-							foreach (var returnColumn in returnModel)
-							{
-								WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
-							}
-							CloseBrace();
-
-							WriteLine("public List<ResultSetModel{0}> ResultSet{0};", model);
-
-						}
-					}
-					CloseBrace();
 				}
+				CloseBrace();
 			}
-
 		}
+
 	}
 }
 
