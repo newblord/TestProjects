@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using DatabaseGenerationToolExt.DatabaseObjects;
+using DatabaseGenerationToolExt.DesignPatterns.Models;
 using System;
 using System.Text;
 using System.Collections.Generic;
@@ -9,6 +9,8 @@ using DatabaseGenerationToolExt.Helpers;
 using EnvDTE;
 using System.Xml.Serialization;
 using System.Xml.Linq;
+using DatabaseGenerationToolExt.DatabaseGeneration.Models;
+using DatabaseGenerationToolExt.DatabaseGeneration.Settings;
 
 namespace DatabaseGenerationToolExt.DesignPatterns
 {
@@ -262,16 +264,23 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				}
 
 				List<XElement> tableNodes = (from c in xml.Root.Descendants("TableData") select c).ToList();
-				serializer = new XmlSerializer(typeof(TableData));
+				serializer = new XmlSerializer(typeof(Forms.Models.TableData));
 
 				foreach (XElement item in tableNodes)
 				{
 					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
-					Global.SelectedTables.Add((TableData)serializer.Deserialize(rdr));
+					Global.SelectedTables.Add((Forms.Models.TableData)serializer.Deserialize(rdr));
 				}
 
-				Global.SelectedStoredProcedures = (from c in xml.Root.Descendants("StoredProcedure")
-															  select c.Value).ToList();
+				List<XElement> sprocNodes = (from c in xml.Root.Descendants("StoredProcedureData") select c).ToList();
+				serializer = new XmlSerializer(typeof(Forms.Models.StoredProcedureData));
+
+				foreach (XElement item in tableNodes)
+				{
+					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+					Global.SelectedStoredProcedures.Add((Forms.Models.StoredProcedureData)serializer.Deserialize(rdr));
+				}
+				
 			}
 		}
 
@@ -477,8 +486,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			WriteLine("<Tables>");
 			PushIndent("\t");
 
-			XmlSerializer serializer = new XmlSerializer(typeof(TableData));
-			foreach (TableData tbl in Tables.Select(x => x.TableData).OrderBy(x => x.TableName).ToList())
+			XmlSerializer serializer = new XmlSerializer(typeof(Forms.Models.TableData));
+			foreach (Forms.Models.TableData tbl in Tables.Select(x => x.TableData).OrderBy(x => x.TableName))
 			{
 				WriteLine("<TableData>");
 				PushIndent("\t");
@@ -501,9 +510,16 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			WriteLine("<StoredProcedures>");
 			PushIndent("\t");
-			foreach (StoredProcedure sproc in StoredProcedures)
+			foreach (Forms.Models.StoredProcedureData sproc in StoredProcedures.Select(x => x.StoredProcData).OrderBy(x => x.StoredProcName))
 			{
-				WriteLine("<StoredProcedure>{0}</StoredProcedure>", sproc.Name);
+				WriteLine("<StoredProcedureData>");
+				PushIndent("\t");
+
+				WriteLine("<StoredProcSelect>{0}</StoredProcSelect>", sproc.StoredProcSelect);
+				WriteLine("<StoredProcName>{0}</StoredProcName>", sproc.StoredProcName);
+
+				PopIndent();
+				WriteLine("</StoredProcedureData>");
 			}
 			PopIndent();
 			WriteLine("</StoredProcedures>");

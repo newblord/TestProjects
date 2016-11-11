@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DatabaseGenerationToolExt.DatabaseObjects
+namespace DatabaseGenerationToolExt.DatabaseGeneration.Settings
 {
 	public class DatabaseGenerationSetting
 	{
@@ -105,7 +105,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		/// <summary>
 		/// Adds comments to the generated code
 		/// </summary>
-		public CommentsStyle IncludeComments { get; set; } = CommentsStyle.AtEndOfField;
+		public Models.CommentsStyle IncludeComments { get; set; } = Models.CommentsStyle.AtEndOfField;
 		/// <summary>
 		/// If SqlServer 2014 appears frozen / take a long time when this file is saved, try setting this to true (you will also need elevated privileges).
 		/// </summary>

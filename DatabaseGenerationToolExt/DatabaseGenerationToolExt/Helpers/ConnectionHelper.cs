@@ -1,4 +1,5 @@
-﻿using EnvDTE;
+﻿using DatabaseGenerationToolExt.DatabaseGeneration.Models;
+using EnvDTE;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -12,9 +13,9 @@ namespace DatabaseGenerationToolExt.Helpers
 	{
 		private static string[] ConfigFilenameSearchOrder = new[] { "app.config", "web.config", "app.config.transform", "web.config.transform" };
 
-		public static List<DatabaseObjects.DatabaseConnection> FindAllConnectionStrings()
+		public static List<DatabaseConnection> FindAllConnectionStrings()
 		{
-			List<DatabaseObjects.DatabaseConnection> connections = new List<DatabaseObjects.DatabaseConnection>();
+			List<DatabaseConnection> connections = new List<DatabaseConnection>();
 
 			var paths = GetConfigPaths();
 
@@ -28,7 +29,7 @@ namespace DatabaseGenerationToolExt.Helpers
 
 				for (int i = 0; i < connectionStrings.Length; i++)
 				{
-					DatabaseObjects.DatabaseConnection con = new DatabaseObjects.DatabaseConnection();
+					DatabaseConnection con = new DatabaseConnection();
 
 					con.ConnectionStringName = connectionStrings[i].Name;
 					con.ConnectionString = connectionStrings[i].ConnectionString;

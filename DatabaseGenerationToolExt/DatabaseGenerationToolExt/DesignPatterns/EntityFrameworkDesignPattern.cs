@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DatabaseGenerationToolExt.DatabaseObjects;
 using Microsoft.VisualStudio.Shell;
 using DatabaseGenerationToolExt.Helpers;
+using DatabaseGenerationToolExt.DatabaseGeneration.Models;
 
 namespace DatabaseGenerationToolExt.DesignPatterns
 {
@@ -75,7 +75,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("using System;");
 				WriteLine("using System.Data.Entity;");
-				WriteLine("using {0};", ModelNamespace);
+
+				if (Tables.Where(x => x.TableData.TableSelect).Any())
+				{
+					WriteLine("using {0};", ModelNamespace);
+				}
 
 				if (IsSupportedFrameworkVersion("4.5"))
 				{

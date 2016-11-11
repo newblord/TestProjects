@@ -54,24 +54,25 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DatabaseObjects\Column.cs" />
-    <Compile Include="DatabaseObjects\DatabaseConnection.cs" />
-    <Compile Include="DatabaseObjects\DatabaseGenerationSetting.cs" />
-    <Compile Include="DatabaseObjects\DatabaseObjectEnums.cs" />
-    <Compile Include="DatabaseObjects\EnumDefinition.cs" />
-    <Compile Include="DatabaseObjects\EnumValue.cs" />
-    <Compile Include="DatabaseObjects\ForeignKey.cs" />
-    <Compile Include="DatabaseObjects\Index.cs" />
+    <Compile Include="DatabaseGeneration\Models\Column.cs" />
+    <Compile Include="DatabaseGeneration\Models\DatabaseConnection.cs" />
+    <Compile Include="DatabaseGeneration\Settings\DatabaseGenerationSetting.cs" />
+    <Compile Include="DatabaseGeneration\Models\DatabaseObjectEnums.cs" />
+    <Compile Include="DatabaseGeneration\Models\EnumDefinition.cs" />
+    <Compile Include="Forms\Models\EnumValue.cs" />
+    <Compile Include="DatabaseGeneration\Models\ForeignKey.cs" />
+    <Compile Include="DatabaseGeneration\Models\Index.cs" />
+    <Compile Include="Forms\Models\StoredProcedureData.cs" />
     <Compile Include="Helpers\Inflector.cs" />
-    <Compile Include="DatabaseObjects\NewFile.cs" />
-    <Compile Include="DatabaseObjects\ReverseNavigation.cs" />
-    <Compile Include="DatabaseObjects\SchemaReader.cs" />
-    <Compile Include="DatabaseObjects\StoredProcedure.cs" />
-    <Compile Include="DatabaseObjects\StoredProcedureParameter.cs" />
-    <Compile Include="DatabaseObjects\Table.cs" />
-    <Compile Include="DatabaseObjects\TableData.cs" />
-    <Compile Include="DatabaseObjects\Tables.cs" />
-    <Compile Include="DatabaseObjects\UniqueIndex.cs" />
+    <Compile Include="DesignPatterns\Models\NewFile.cs" />
+    <Compile Include="DatabaseGeneration\Models\ReverseNavigation.cs" />
+    <Compile Include="DatabaseGeneration\SchemaReader.cs" />
+    <Compile Include="DatabaseGeneration\Models\StoredProcedure.cs" />
+    <Compile Include="DatabaseGeneration\Models\StoredProcedureParameter.cs" />
+    <Compile Include="DatabaseGeneration\Models\Table.cs" />
+    <Compile Include="Forms\Models\TableData.cs" />
+    <Compile Include="DatabaseGeneration\Models\Tables.cs" />
+    <Compile Include="DatabaseGeneration\Models\UniqueIndex.cs" />
     <Compile Include="DesignPatterns\Base\DesignPattern.cs" />
     <Compile Include="DesignPatterns\EntityFrameworkDesignPattern.cs" />
     <Compile Include="Forms\ConnectionStringSelector.cs">

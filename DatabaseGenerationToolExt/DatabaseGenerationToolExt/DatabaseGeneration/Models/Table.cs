@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseGenerationToolExt.DatabaseObjects
+namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 {
 	public class Table
 	{
@@ -24,7 +24,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 		}
 		public bool HasNullableColumns { get; set; }
 		public bool HasPrimaryKey { get; set; }
-		public TableData TableData { get; set; }
+		public Forms.Models.TableData TableData { get; set; }
 
 		public List<Column> Columns { get; set; }
 		public List<ForeignKey> ForeignKeys { get; set; }
@@ -35,6 +35,7 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 
 		public Table()
 		{
+			TableData = new Forms.Models.TableData();
 			Columns = new List<Column>();
 			ForeignKeys = new List<ForeignKey>();
 			Indexes = new List<Index>();
@@ -107,13 +108,13 @@ namespace DatabaseGenerationToolExt.DatabaseObjects
 			}
 
 			if (!makeSingular)
-				tableNameHumanCase = Inflector.MakePlural(tableNameHumanCase);
+				tableNameHumanCase = Helpers.Inflector.MakePlural(tableNameHumanCase);
 
 			if (checkForFkNameClashes && ReverseNavigationUniquePropName.Contains(tableNameHumanCase) && !ReverseNavigationUniquePropNameClashes.Contains(tableNameHumanCase))
 				ReverseNavigationUniquePropNameClashes.Add(tableNameHumanCase); // Name clash
 
 			// Attempt 1
-			string fkName = (useCamelCase ? Inflector.ToTitleCase(foreignKey.FkColumnName) : foreignKey.FkColumnName).Replace(" ", "").Replace("$", "");
+			string fkName = (useCamelCase ? Helpers.Inflector.ToTitleCase(foreignKey.FkColumnName) : foreignKey.FkColumnName).Replace(" ", "").Replace("$", "");
 			string name = ForeignKeyName(tableNameHumanCase, fkName, 1);
 			string col;
 			if (!ReverseNavigationUniquePropNameClashes.Contains(name) && !ReverseNavigationUniquePropName.Contains(name))

@@ -1,10 +1,11 @@
-﻿using System;
+﻿using DatabaseGenerationToolExt.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseGenerationToolExt.DatabaseObjects
+namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 {
 	public class ForeignKey
 	{

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DatabaseGenerationToolExt.DatabaseGeneration.Settings;
+using DatabaseGenerationToolExt.Forms.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,30 +10,30 @@ namespace DatabaseGenerationToolExt.Helpers
 {
 	public static class Global
 	{
-		public static DatabaseObjects.DatabaseGenerationSetting Setting { get; private set; } = new DatabaseObjects.DatabaseGenerationSetting();
+		public static DatabaseGenerationSetting Setting { get; private set; } = new DatabaseGenerationSetting();
 
 		public static Microsoft.VisualStudio.Shell.Package Package { get; private set; }
 
-		public static List<DatabaseObjects.TableData> SelectedTables { get; set; } = new List<DatabaseObjects.TableData>();
+		public static List<TableData> SelectedTables { get; set; } = new List<TableData>();
 
-		public static List<string> SelectedStoredProcedures { get; set; } = new List<string>();
+		public static List<StoredProcedureData> SelectedStoredProcedures { get; set; } = new List<StoredProcedureData>();
 
 		public static void InitializePackage(Microsoft.VisualStudio.Shell.Package package)
 		{
 			Package = package;
 		}
 
-		public static void InitializeSetting(DatabaseObjects.DatabaseGenerationSetting setting)
+		public static void InitializeSetting(DatabaseGenerationSetting setting)
 		{
 			Setting = setting;
 		}
 
 		public static void ResetValues()
 		{
-			Setting = new DatabaseObjects.DatabaseGenerationSetting();
+			Setting = new DatabaseGenerationSetting();
 			Package = null;
-			SelectedTables = new List<DatabaseObjects.TableData>();
-			SelectedStoredProcedures = new List<string>();
+			SelectedTables = new List<TableData>();
+			SelectedStoredProcedures = new List<StoredProcedureData>();
 		}
 	}
 }
