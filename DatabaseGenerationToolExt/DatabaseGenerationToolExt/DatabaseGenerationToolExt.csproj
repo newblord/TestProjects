@@ -56,9 +56,12 @@
   <ItemGroup>
     <Compile Include="DatabaseGeneration\Models\Column.cs" />
     <Compile Include="DatabaseGeneration\Models\DatabaseConnection.cs" />
+    <Compile Include="DatabaseGeneration\Models\Enum.cs" />
+    <Compile Include="DatabaseGeneration\Models\EnumEntry.cs" />
     <Compile Include="DatabaseGeneration\Settings\DatabaseGenerationSetting.cs" />
     <Compile Include="DatabaseGeneration\Models\DatabaseObjectEnums.cs" />
     <Compile Include="DatabaseGeneration\Models\EnumDefinition.cs" />
+    <Compile Include="Forms\Models\EnumData.cs" />
     <Compile Include="Forms\Models\EnumValue.cs" />
     <Compile Include="DatabaseGeneration\Models\ForeignKey.cs" />
     <Compile Include="DatabaseGeneration\Models\Index.cs" />

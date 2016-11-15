@@ -413,7 +413,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			}
 		}
 
-		private static string CleanUp(string str)
+		private string CleanUp(string str)
 		{
 			// Replace punctuation and symbols in variable names as these are not allowed.
 			int len = str.Length;
@@ -442,6 +442,30 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 				str = "C" + str;
 
 			return str;
+		}
+
+		private string GetEnumerationNameFromSpellFunction(string spellFunctionName)
+		{
+			string returnVal = spellFunctionName.ToLower();
+
+			returnVal = returnVal.Replace("fn_spell_", string.Empty).Replace("_", " ");
+
+			returnVal = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(returnVal);
+			returnVal = returnVal.Replace(" ", string.Empty);
+
+			return returnVal;
+		}
+
+		private string ColumnNameToPropertyName(string columnName)
+		{
+			columnName = columnName.Trim().Replace("-", string.Empty).Replace('_', ' ').Replace('/', ' ');
+			columnName = Regex.Replace(columnName, @"[^\w|\s]", string.Empty); // Remove all non-alphanumeric and non-whitespace characters.
+																									 //columnName = Regex.Replace(columnName, "([a-z])([A-Z])", "$1_$2").ToUpper();
+																									 //columnName = Regex.Replace(columnName.ToLower(), @"(?:^|_)([a-z])", match => match.Groups[1].Value.ToUpper());
+			columnName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(columnName);
+			columnName = Regex.Replace(columnName, @"\s", string.Empty);
+
+			return columnName;
 		}
 
 		public Tables LoadTables()
@@ -539,6 +563,95 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			catch (Exception ex)
 			{
 				return new List<StoredProcedure>();
+			}
+		}
+
+		private string[] lineSeparator = new string[] { Environment.NewLine };
+		private string[] paramterDefSeparator = new string[] { " as " };
+
+		public List<Models.Enum> LoadEnums()
+		{
+			if (Global.SelectedEnums.Count == 0)
+				return new List<Models.Enum>();
+
+			try
+			{
+				List<Models.Enum> enums = new List<Models.Enum>();
+
+				foreach (Forms.Models.EnumData selectedEnum in Global.SelectedEnums)
+				{
+					var lines = selectedEnum.FunctionRawText.Split(lineSeparator, StringSplitOptions.RemoveEmptyEntries);
+					bool hasCaseStatment = false;
+					string currentLine = null;
+
+					Models.Enum newEnum = new Models.Enum();
+
+					newEnum.EnumData = selectedEnum;
+					newEnum.Name = GetEnumerationNameFromSpellFunction(selectedEnum.EnumName);
+
+					foreach (var line in lines)
+					{
+						currentLine = line.Trim();
+						if (currentLine.StartsWith("--"))
+						{
+							continue;
+						}
+						else if (currentLine.ToLower().Contains("create"))
+						{
+							// Find the function name.  This assumes that the sp_help procedure returns something like: 'CREATE function dbo.FN_Spell_COLUMN_NAME (@param int)'
+							// The first group captures the text between the dbo. and ( for the , which is the FN_Spell_COLUMN_NAME portion.
+							// The second group captures the type of the first parameter to the function, which is 'int' in the example.
+							var match = System.Text.RegularExpressions.Regex.Match(currentLine, @"^create\s{1}function\s{1}(?:dbo|\[dbo\])?\.?(?:\w*)\s?\(@\w*\s(\w*)(?:,|\)){1}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+							if (match.Success)
+							{
+								if (match.Groups.Count > 1)
+								{
+									newEnum.TypeName = PropertyTypeHelper.GetPropertyType(match.Groups[1].Value,0,0);
+								}
+							}
+						}
+						else if (currentLine.ToLower().Contains("case "))
+						{
+							hasCaseStatment = true;
+						}
+						else if (currentLine.ToLower().Contains("when "))
+						{
+							// Find the function name.  This assumes that the sp_help procedure returns something like: "WHEN 'BB' THEN 'Welcome (No Password Sent)'"
+							// The first group captures the text between the WHEN and THEN, which in the example is the 'BB' portion.
+							// The second group captures the description, which is 'Welcome (No Password Sent)' in the example.
+							var match = System.Text.RegularExpressions.Regex.Match(currentLine, @"when\s+'?(\w+)'?\s+then\s+'?([\w|\s|\(|\)\&]+)'?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+							if (match.Success)
+							{
+								if (match.Groups.Count > 2)
+								{
+									int numericTest = 0;
+
+									EnumEntry entry = new EnumEntry()
+									{
+										Value = match.Groups[1].Value,
+										Code = match.Groups[1].Value,
+										Description = match.Groups[2].Value,
+										Name = ColumnNameToPropertyName(match.Groups[2].Value),
+										ValueIsNumeric = Int32.TryParse(match.Groups[1].Value, out numericTest)
+									};
+									newEnum.Entries.Add(entry);
+								}
+							}
+						}
+						else if (hasCaseStatment && currentLine.ToLower().Contains("end"))
+						{
+							break;
+						}
+					}
+
+					enums.Add(newEnum);
+				}
+
+				return enums;
+			}
+			catch (Exception ex)
+			{
+				return new List<Models.Enum>();
 			}
 		}
 
@@ -854,22 +967,6 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			}
 		}
 
-		public void ProcessIndexes(List<Index> indexList, Tables tables)
-		{
-			foreach (Index index in indexList)
-			{
-				Table table = tables.GetTable(index.TableName, index.SchemaName);
-
-				if (table == null)
-					continue;
-
-				if (!(index.Columns.Count == 1 && index.Columns.First().IsPrimaryKey))
-				{
-					table.Indexes.Add(index);
-				}
-			}
-		}
-
 		public void ProcessForeignKeys(List<ForeignKey> fkList, Tables tables, bool checkForFkNameClashes)
 		{
 			var constraints = fkList.Select(x => x.FkSchema + "." + x.ConstraintName).Distinct();
@@ -935,6 +1032,22 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 
 				var rv = new ReverseNavigation(relationship, pkTableHumanCase, pkCol, fkTable, fkPropName, fkCol.col, constraint, Global.Setting.IncludeComments);
 				pkTable.ReverseNavigationProperties.Add(rv);
+			}
+		}
+
+		public void ProcessIndexes(List<Index> indexList, Tables tables)
+		{
+			foreach (Index index in indexList)
+			{
+				Table table = tables.GetTable(index.TableName, index.SchemaName);
+
+				if (table == null)
+					continue;
+
+				if (!(index.Columns.Count == 1 && index.Columns.First().IsPrimaryKey))
+				{
+					table.Indexes.Add(index);
+				}
 			}
 		}
 

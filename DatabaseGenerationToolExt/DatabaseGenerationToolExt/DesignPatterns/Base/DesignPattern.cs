@@ -17,11 +17,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 	public abstract class DesignPattern
 	{
 
-		public DesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs)
+		public DesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs, List<DatabaseGeneration.Models.Enum> enums)
 		{
 			TargetFrameworkVersion = targetFrameworkVersion;
 			Tables = tables;
 			StoredProcedures = storedProcs;
+			Enums = enums;
 			GenerationEnvironment = new StringBuilder();
 			NewFiles = new List<NewFile>();
 			dte = VisualStudioHelper.GetDTE();
@@ -86,6 +87,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		public Tables Tables { get; set; }
 
 		public List<StoredProcedure> StoredProcedures { get; set; }
+
+		public List<DatabaseGeneration.Models.Enum> Enums { get; set; }
 
 		/// <summary>
 		/// If set to false, existing files are not overwritten
@@ -280,7 +283,15 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
 					Global.SelectedStoredProcedures.Add((Forms.Models.StoredProcedureData)serializer.Deserialize(rdr));
 				}
-				
+
+				List<XElement> enumNodes = (from c in xml.Root.Descendants("EnumData") select c).ToList();
+				serializer = new XmlSerializer(typeof(Forms.Models.EnumData));
+
+				foreach (XElement item in enumNodes)
+				{
+					StringReader rdr = new StringReader(item.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
+					Global.SelectedEnums.Add((Forms.Models.EnumData)serializer.Deserialize(rdr));
+				}
 			}
 		}
 
@@ -523,6 +534,22 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			}
 			PopIndent();
 			WriteLine("</StoredProcedures>");
+
+			WriteLine("<Enums>");
+			PushIndent("\t");
+			foreach (Forms.Models.EnumData e in Enums.Select(x => x.EnumData).OrderBy(x => x.EnumName))
+			{
+				WriteLine("<EnumData>");
+				PushIndent("\t");
+
+				WriteLine("<EnumSelect>{0}</EnumSelect>", e.EnumSelect);
+				WriteLine("<EnumName>{0}</EnumName>", e.EnumName);
+
+				PopIndent();
+				WriteLine("</EnumData>");
+			}
+			PopIndent();
+			WriteLine("</Enums>");
 
 			PopIndent();
 			WriteLine("</Database>");

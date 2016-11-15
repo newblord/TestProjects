@@ -35,8 +35,6 @@
 			this.gvEnums = new System.Windows.Forms.DataGridView();
 			this.tpStoredProcedures = new System.Windows.Forms.TabPage();
 			this.gvStoredProcedures = new System.Windows.Forms.DataGridView();
-			this.StoredProcSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.StoredProcName = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.tpTables = new System.Windows.Forms.TabPage();
 			this.gvTables = new System.Windows.Forms.DataGridView();
 			this.TableSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -84,6 +82,10 @@
 			this.cbxVirtualReverseNavProperty = new System.Windows.Forms.CheckBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.tcDatabaseObjects = new System.Windows.Forms.TabControl();
+			this.EnumSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.EnumName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.StoredProcSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.StoredProcName = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.flowLayoutPanel3.SuspendLayout();
 			this.tpEnums.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.gvEnums)).BeginInit();
@@ -142,11 +144,23 @@
 			// 
 			// gvEnums
 			// 
-			this.gvEnums.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-			this.gvEnums.Location = new System.Drawing.Point(260, 195);
+			this.gvEnums.AllowUserToAddRows = false;
+			this.gvEnums.AllowUserToDeleteRows = false;
+			this.gvEnums.AllowUserToResizeColumns = false;
+			this.gvEnums.AllowUserToResizeRows = false;
+			this.gvEnums.ColumnHeadersHeight = 35;
+			this.gvEnums.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+			this.gvEnums.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.EnumSelect,
+            this.EnumName});
+			this.gvEnums.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.gvEnums.Location = new System.Drawing.Point(3, 3);
 			this.gvEnums.Name = "gvEnums";
-			this.gvEnums.Size = new System.Drawing.Size(240, 150);
+			this.gvEnums.RowHeadersVisible = false;
+			this.gvEnums.Size = new System.Drawing.Size(628, 380);
 			this.gvEnums.TabIndex = 0;
+			this.gvEnums.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvEnums_CellContentClick);
+			this.gvEnums.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvEnums_CellValueChanged);
 			// 
 			// tpStoredProcedures
 			// 
@@ -178,25 +192,6 @@
 			this.gvStoredProcedures.TabIndex = 0;
 			this.gvStoredProcedures.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvStoredProcedures_CellContentClick);
 			this.gvStoredProcedures.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvStoredProcedures_CellValueChanged);
-			// 
-			// StoredProcSelect
-			// 
-			this.StoredProcSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.StoredProcSelect.DataPropertyName = "StoredProcSelect";
-			this.StoredProcSelect.HeaderText = "";
-			this.StoredProcSelect.Name = "StoredProcSelect";
-			this.StoredProcSelect.Width = 20;
-			// 
-			// StoredProcName
-			// 
-			this.StoredProcName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-			this.StoredProcName.DataPropertyName = "StoredProcName";
-			this.StoredProcName.HeaderText = "Name";
-			this.StoredProcName.MinimumWidth = 150;
-			this.StoredProcName.Name = "StoredProcName";
-			this.StoredProcName.ReadOnly = true;
-			this.StoredProcName.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-			this.StoredProcName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
 			// 
 			// tpTables
 			// 
@@ -717,6 +712,42 @@
 			this.tcDatabaseObjects.TabIndex = 0;
 			this.tcDatabaseObjects.Selected += new System.Windows.Forms.TabControlEventHandler(this.tcDatabaseObjects_Selected);
 			// 
+			// EnumSelect
+			// 
+			this.EnumSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.EnumSelect.DataPropertyName = "EnumSelect";
+			this.EnumSelect.HeaderText = "";
+			this.EnumSelect.Name = "EnumSelect";
+			this.EnumSelect.Width = 20;
+			// 
+			// EnumName
+			// 
+			this.EnumName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+			this.EnumName.DataPropertyName = "EnumName";
+			this.EnumName.HeaderText = "Name";
+			this.EnumName.MinimumWidth = 150;
+			this.EnumName.Name = "EnumName";
+			this.EnumName.ReadOnly = true;
+			// 
+			// StoredProcSelect
+			// 
+			this.StoredProcSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.StoredProcSelect.DataPropertyName = "StoredProcSelect";
+			this.StoredProcSelect.HeaderText = "";
+			this.StoredProcSelect.Name = "StoredProcSelect";
+			this.StoredProcSelect.Width = 20;
+			// 
+			// StoredProcName
+			// 
+			this.StoredProcName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+			this.StoredProcName.DataPropertyName = "StoredProcName";
+			this.StoredProcName.HeaderText = "Name";
+			this.StoredProcName.MinimumWidth = 150;
+			this.StoredProcName.Name = "StoredProcName";
+			this.StoredProcName.ReadOnly = true;
+			this.StoredProcName.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			this.StoredProcName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+			// 
 			// DatabaseObjectSelector
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -757,7 +788,6 @@
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
 		private System.Windows.Forms.Button btnCancel;
 		private System.Windows.Forms.TabPage tpEnums;
-		private System.Windows.Forms.DataGridView gvEnums;
 		private System.Windows.Forms.TabPage tpStoredProcedures;
 		private System.Windows.Forms.DataGridView gvStoredProcedures;
 		private System.Windows.Forms.TabPage tpTables;
@@ -807,6 +837,9 @@
 		private System.Windows.Forms.CheckBox cbxVirtualReverseNavProperty;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.TabControl tcDatabaseObjects;
+		private System.Windows.Forms.DataGridView gvEnums;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn EnumSelect;
+		private System.Windows.Forms.DataGridViewTextBoxColumn EnumName;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn StoredProcSelect;
 		private System.Windows.Forms.DataGridViewTextBoxColumn StoredProcName;
 	}

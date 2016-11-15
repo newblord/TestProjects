@@ -81,10 +81,29 @@ namespace DatabaseGenerationToolExt.Forms
 			cbx.BackColor = Color.Transparent;
 			cbx.ThreeState = true;
 
-			HandleTableSelectHeaderChange(cbx);
+			HandleStoredProcSelectHeaderChange(cbx);
 
 			cbx.CheckStateChanged += new EventHandler(StoredProcCheckboxHeader_CheckStateChanged);
 			gvStoredProcedures.Controls.Add(cbx);
+		}
+
+		private void SetupEnumGridViewHeaderCheckbox()
+		{
+			Rectangle rect = gvEnums.GetCellDisplayRectangle(0, -1, true);
+			rect.Size = new Size(20, 40);
+			rect.Y = rect.Height / 4;
+			rect.X = rect.Location.X + (rect.Width / 4);
+			CheckBox cbx = new CheckBox();
+			cbx.Name = "EnumSelectHeader";
+			cbx.Size = new Size(18, 18);
+			cbx.Location = rect.Location;
+			cbx.BackColor = Color.Transparent;
+			cbx.ThreeState = true;
+
+			HandleEnumSelectHeaderChange(cbx);
+
+			cbx.CheckStateChanged += new EventHandler(EnumCheckboxHeader_CheckStateChanged);
+			gvEnums.Controls.Add(cbx);
 		}
 
 		private void PopulateDropDownLists()
@@ -130,7 +149,7 @@ namespace DatabaseGenerationToolExt.Forms
 		{
 			InitializeDatabaseTables();
 			InitializeDatabaseStoredProcedures();
-			//InitializeDatabaseFunctions();
+			InitializeDatabaseSpellFunctions();
 		}
 
 		private void InitializeDatabaseTables()
@@ -230,7 +249,97 @@ namespace DatabaseGenerationToolExt.Forms
 
 			gvStoredProcedures.DataSource = sprocData;
 		}
-		
+
+		private void InitializeDatabaseSpellFunctions()
+		{
+			List<EnumData> enumData = new List<EnumData>();
+
+			string sql = @"DECLARE @functions TABLE
+								  (
+										Name   VARCHAR(500),
+										RawText VARCHAR(max)
+								  )
+								DECLARE @t TABLE
+								  (
+										line VARCHAR(max)
+								  )
+								DECLARE @rawText VARCHAR(max)
+								DECLARE @name VARCHAR(500)
+								DECLARE db_cursor CURSOR FOR
+									SELECT
+										NAME
+									FROM   sys.objects
+									WHERE
+										type = 'FN'
+										AND NAME LIKE '%FN_Spell_%'
+
+								OPEN db_cursor
+
+								FETCH NEXT FROM db_cursor INTO @name
+
+								WHILE @@FETCH_STATUS = 0
+									BEGIN
+										INSERT INTO @t
+										EXEC Sp_helptext
+											@name
+
+										SELECT
+											@rawText = Stuff((SELECT
+																	line AS [text()]
+																FROM   @t
+																FOR XML PATH (''), Type).value('.[1]', 'nvarchar(max)'), 1, 0, '')
+
+										INSERT INTO @functions
+														(Name,RawText)
+										VALUES      (@name,@rawText)
+
+										DELETE FROM @t
+
+										FETCH NEXT FROM db_cursor INTO @name
+									END
+
+								CLOSE db_cursor
+
+								DEALLOCATE db_cursor
+
+								SELECT
+									Name,
+									RawText
+								FROM   @functions";
+
+			using (SqlConnection connection = new SqlConnection(Global.Setting.ConnectionString))
+			{
+				connection.Open();
+				SqlCommand command = connection.CreateCommand();
+
+				command.CommandType = CommandType.Text;
+				command.CommandText = sql;
+
+				SqlDataReader reader = command.ExecuteReader();
+
+
+				while (reader.Read())
+				{
+					EnumData data = Global.SelectedEnums.Where(x => x.EnumName == reader["Name"].ToString()).FirstOrDefault();
+
+					if (data == null)
+					{
+						data = new EnumData();
+
+						data.EnumName = reader["Name"].ToString();
+						data.EnumSelect = false;
+					}
+					data.FunctionRawText = reader["RawText"].ToString();
+
+					enumData.Add(data);
+				}
+
+				connection.Close();
+			}
+
+			gvEnums.DataSource = enumData;
+		}
+
 		#endregion
 
 		#region Events
@@ -239,8 +348,8 @@ namespace DatabaseGenerationToolExt.Forms
 		{
 			SetupTableGridViewHeaderCheckbox();
 			SetupStoredProcedureGridViewHeaderCheckbox();
+			SetupEnumGridViewHeaderCheckbox();
 			UpdateTableSettings();
-			HandleStoredProcSelectChange(true);
 		}
 
 		private void DatabaseObjectSelector_FormClosing(object sender, FormClosingEventArgs e)
@@ -269,9 +378,11 @@ namespace DatabaseGenerationToolExt.Forms
 		{
 			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
 			List<StoredProcedureData> sprocData = (List<StoredProcedureData>)gvStoredProcedures.DataSource;
+			List<EnumData> enumData = (List<EnumData>)gvEnums.DataSource;
 
 			Global.SelectedTables = tableData.Where(x => x.TableSelect).ToList();
 			Global.SelectedStoredProcedures = sprocData.Where(x => x.StoredProcSelect).ToList();
+			Global.SelectedEnums = enumData.Where(x => x.EnumSelect).ToList();
 
 			Global.Setting.IncludeComments = (DatabaseGeneration.Models.CommentsStyle)ddlIncludeComments.SelectedValue;
 
@@ -281,13 +392,11 @@ namespace DatabaseGenerationToolExt.Forms
 
 			var tables = reader.LoadTables();
 			var storedProcs = reader.LoadStoredProcs();
+			var enums = reader.LoadEnums();
 
 			// Generate output
-			if (tables.Count > 0 || storedProcs.Count > 0)
-			{
-				DesignPattern designPattern = new EntityFrameworkDesignPattern("4.61", tables, storedProcs);
-				designPattern.CreateFiles();
-			}
+			DesignPattern designPattern = new EntityFrameworkDesignPattern("4.61", tables, storedProcs, enums);
+			designPattern.CreateFiles();
 
 			this.Close();
 		}
@@ -571,7 +680,6 @@ namespace DatabaseGenerationToolExt.Forms
 		}
 
 		#endregion
-
 		#endregion
 
 		#region Tab - Stored Procedures
@@ -612,6 +720,8 @@ namespace DatabaseGenerationToolExt.Forms
 		}
 
 		#endregion
+
+		#region Events
 
 		private void gvStoredProcedures_CellContentClick(object sender, DataGridViewCellEventArgs e)
 		{
@@ -663,7 +773,100 @@ namespace DatabaseGenerationToolExt.Forms
 		}
 
 		#endregion
+		#endregion
 
+		#region Tab - Enums
+
+		#region Private Methods
+
+		private void HandleEnumSelectChange(bool isChecked)
+		{
+			CheckBox cbxHeader = (CheckBox)gvEnums.Controls.Find("EnumSelectHeader", false).First();
+
+			HandleEnumSelectHeaderChange(cbxHeader);
+
+			if (cbxHeader.CheckState == CheckState.Checked && !isChecked ||
+					cbxHeader.CheckState == CheckState.Unchecked && isChecked)
+			{
+				cbxHeader.CheckState = CheckState.Indeterminate;
+			}
+		}
+
+		private void HandleEnumSelectHeaderChange(CheckBox cbx)
+		{
+			List<EnumData> enumData = (List<EnumData>)gvEnums.DataSource;
+
+			int checkedCount = enumData.Where(x => x.EnumSelect == true).Count();
+
+			if (checkedCount > 0 && checkedCount < enumData.Count)
+			{
+				cbx.CheckState = CheckState.Indeterminate;
+			}
+			else if (checkedCount == enumData.Count)
+			{
+				cbx.CheckState = CheckState.Checked;
+			}
+			else
+			{
+				cbx.CheckState = CheckState.Unchecked;
+			}
+		}
+
+		#endregion
+
+		#region Events
+
+		private void gvEnums_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			gvEnums.CommitEdit(DataGridViewDataErrorContexts.Commit);
+		}
+
+		private void gvEnums_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.ColumnIndex > -1 && e.RowIndex > -1)
+			{
+				DataGridViewCheckBoxCell cbx = (DataGridViewCheckBoxCell)gvEnums[e.ColumnIndex, e.RowIndex];
+
+				if (cbx.EditingCellValueChanged)
+				{
+					if (e.ColumnIndex == 0)
+					{
+						bool isChecked = (bool)gvEnums[0, e.RowIndex].FormattedValue;
+
+						HandleEnumSelectChange(isChecked);
+
+						gvEnums.EndEdit();
+					}
+				}
+			}
+		}
+
+		public void EnumCheckboxHeader_CheckStateChanged(object sender, EventArgs e)
+		{
+			if (gvEnums.IsCurrentCellInEditMode)
+			{
+				gvEnums.EndEdit();
+			}
+
+			CheckBox cbx = (CheckBox)sender;
+
+			if (cbx.Focused)
+			{
+				if (cbx.CheckState == CheckState.Indeterminate)
+				{
+					cbx.CheckState = CheckState.Unchecked;
+				}
+
+				for (int i = 0; i < gvEnums.Rows.Count; i++)
+				{
+					gvEnums.Rows[i].Cells[0].Value = cbx.Checked;
+				}
+
+			}
+		}
+
+		#endregion
+		#endregion
 	}
 
 }

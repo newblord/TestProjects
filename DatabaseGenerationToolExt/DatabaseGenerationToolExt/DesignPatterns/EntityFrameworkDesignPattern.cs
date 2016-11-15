@@ -11,8 +11,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 {
 	public class EntityFrameworkDesignPattern : DesignPattern
 	{
-		public EntityFrameworkDesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs)
-			: base(targetFrameworkVersion, tables, storedProcs)
+		public EntityFrameworkDesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs, List<DatabaseGeneration.Models.Enum> enums)
+			: base(targetFrameworkVersion, tables, storedProcs, enums)
 		{
 		}
 
@@ -58,6 +58,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			CreateServices();
 			CreateModelConfigurations();
 			CreateStoredProcedures();
+			CreateEnums();
 
 			EndFile();
 			ProcessFiles();
@@ -1487,6 +1488,46 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					}
 				}
+				CloseBrace();
+			}
+		}
+
+		private void CreateEnums()
+		{
+			foreach (DatabaseGeneration.Models.Enum @enum in from t in Enums.OrderBy(x => x.Name) select t)
+			{
+				StartNewFile(@enum.Name + Setting.GeneratedFileExtension);
+
+				CreateHeader();
+
+				WriteLine("using System;");
+				WriteLine("using System.Collections.Generic;");
+				WriteLine("");
+
+				BeginNamespace("Enums");
+				WriteLine("public enum {0}", @enum.Name);
+				WriteLine("{");
+				PushIndent("\t");
+
+				int count = 1;
+				foreach (var entry in @enum.Entries)
+				{
+					if (!string.IsNullOrEmpty(entry.Description))
+					{
+						this.WriteLine("[Description(\"{0}\")]", entry.Description);
+					}
+
+					if (!entry.ValueIsNumeric && !string.IsNullOrEmpty(entry.Code))
+					{
+						this.WriteLine("[EnumCode(\"{0}\")]",entry.Code);
+					}
+
+					this.WriteLine("{0} = {1}{2}",entry.Name, entry.ValueIsNumeric ? entry.Value : count.ToString(), count < @enum.Entries.Count ? "," : string.Empty);
+					this.WriteLine("");
+					count++;
+				}
+
+				CloseBrace();
 				CloseBrace();
 			}
 		}

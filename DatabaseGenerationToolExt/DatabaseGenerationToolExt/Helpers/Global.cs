@@ -18,6 +18,8 @@ namespace DatabaseGenerationToolExt.Helpers
 
 		public static List<StoredProcedureData> SelectedStoredProcedures { get; set; } = new List<StoredProcedureData>();
 
+		public static List<EnumData> SelectedEnums { get; set; } = new List<EnumData>();
+
 		public static void InitializePackage(Microsoft.VisualStudio.Shell.Package package)
 		{
 			Package = package;
@@ -34,6 +36,7 @@ namespace DatabaseGenerationToolExt.Helpers
 			Package = null;
 			SelectedTables = new List<TableData>();
 			SelectedStoredProcedures = new List<StoredProcedureData>();
+			SelectedEnums = new List<EnumData>();
 		}
 	}
 }
