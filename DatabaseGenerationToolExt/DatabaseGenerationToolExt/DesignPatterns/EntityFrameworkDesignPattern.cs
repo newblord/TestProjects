@@ -433,7 +433,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				if (tbl.TableData.GenerateModelInterface)
 				{
 					WriteLine("using {0};", ProjectSetting.ModelInterfaceNamespace);
-					baseClasses = string.Format("{0}I{1}", WriteModelBaseClasses(tbl), tbl.NameHumanCase);
+					baseClasses = string.Format("{0}I{1}", tbl.GetModelBaseClasses(), tbl.NameHumanCase);
 				}
 
 				if (tbl.TableData.GenerateModelDto)
@@ -445,9 +445,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				BeginNamespace(ProjectSetting.ModelNamespace);
 
-				WriteLine(WriteModelClassAttributes(tbl));
+				foreach(string da in tbl.DataAnnotations)
+				{
+					WriteLine(da);
+				}
+
 				BeginClass(tbl.NameHumanCase, DatabaseSetting.MakeClassesPartial, baseClasses);
-				WriteLine(WriteModelBaseClassBody(tbl));
 
 				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || DatabaseSetting.MakeClassesPartial)
 				{
@@ -494,7 +497,13 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						WriteLine("/// {0}", col.SummaryComments);
 						WriteLine("///</summary>");
 					}
-					WriteModelColumn(col);
+
+					foreach(string da in col.DataAnnotations)
+					{
+						WriteLine(da);
+					}
+
+					WriteLine(col.Entity);
 				}
 
 				if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
@@ -569,7 +578,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					if (!col.IsComputed)
 					{
-						WriteModelInterfaceColumn(col);
+						WriteLine(col.InterfaceEntity);
 					}
 				}
 
@@ -652,7 +661,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
-					WriteModelDTOColumn(col);
+					WriteLine(col.Entity);
 				}
 
 				if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)

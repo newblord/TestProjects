@@ -49,6 +49,14 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 		public bool Hidden { get; set; }
 		public bool IsForeignKey { get; set; }
 
+		public bool IsComputed
+		{
+			get
+			{
+				return IsStoreGenerated && !IsIdentity;
+			}
+		}
+
 		public string Config { get; set; }
 		public List<string> ConfigForeignKeys { get; set; }
 		public string Entity { get; set; }
@@ -57,10 +65,13 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 
 		public Table ParentTable { get; set; }
 
+		public List<string> DataAnnotations { get; set; }
+
 		public Column()
 		{
 			ConfigForeignKeys = new List<string>();
 			EntityForeignKeys = new List<string>();
+			DataAnnotations = new List<string>();
 		}
 
 		public void ResetNavigationProperties()
@@ -99,14 +110,6 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 			InterfaceEntity = string.Format("{0} {1} {{ get; set; }}{2}", PropertyType, NameHumanCase, inlineComments);
 		}
 
-		public bool IsComputed
-		{
-			get
-			{
-				return IsStoreGenerated && !IsIdentity;
-			}
-		}
-
 		private void SetupConfig()
 		{
 			string databaseGeneratedOption = string.Empty;
@@ -130,10 +133,47 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 												databaseGeneratedOption);
 		}
 
+		private void SetupDataAnnotations()
+		{
+			// Example of adding a [Required] data annotation attribute to all non-null fields
+			//if (!c.IsNullable)
+			//	 WriteLine("[System.ComponentModel.DataAnnotations.Required] " + c.Entity);
+
+			if (Global.DatabaseSetting.UseDataAnnotations)
+			{
+				if (IsIdentity)
+					DataAnnotations.Add("[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
+				if (IsComputed)
+					DataAnnotations.Add("[DatabaseGenerated(DatabaseGeneratedOption.Computed)]");
+				if (IsPrimaryKey && !IsIdentity && !IsStoreGenerated)
+					DataAnnotations.Add("[DatabaseGenerated(DatabaseGeneratedOption.None)]");
+
+				if (IsPrimaryKey)
+					DataAnnotations.Add("[Key]");
+				if (!IsNullable)
+					DataAnnotations.Add("[Required]");
+				if (!IsMaxLength && MaxLength > 0)
+				{
+					DataAnnotations.Add(string.Format("[MaxLength({0})]", MaxLength));
+					if (PropertyType.Equals("string", StringComparison.InvariantCultureIgnoreCase))
+						DataAnnotations.Add(string.Format("[StringLength({0})]", MaxLength));
+				}
+				if (IsMaxLength)
+					DataAnnotations.Add("[MaxLength]");
+
+				DataAnnotations.Add(string.Format("[Column(\"{0}\", TypeName=\"{1}\")]"
+									 , Name
+									 , SqlPropertyType
+								//,IsPrimaryKey ? string.Format(", Order = {0}", PrimaryKeyOrdinal) : ""
+								));
+			}
+		}
+
 		public void SetupEntityAndConfig(CommentsStyle includeComments)
 		{
 			SetupEntity(includeComments);
 			SetupConfig();
+			SetupDataAnnotations();
 		}
 
 		public void CleanUpDefault()

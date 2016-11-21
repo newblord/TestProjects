@@ -33,6 +33,19 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 		public List<string> ReverseNavigationUniquePropName { get; set; }
 		public List<string> ReverseNavigationUniquePropNameClashes { get; set; }
 
+		public List<string> DataAnnotations { get; set; }
+
+		public IEnumerable<Column> PrimaryKeys
+		{
+			get
+			{
+				return Columns.Where(x => x.IsPrimaryKey)
+								.OrderBy(x => x.PrimaryKeyOrdinal)
+								.ThenBy(x => x.Ordinal)
+								.ToList();
+			}
+		}
+
 		public Table()
 		{
 			TableData = new Forms.Models.TableData();
@@ -41,6 +54,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 			Indexes = new List<Index>();
 			ResetNavigationProperties();
 			ReverseNavigationUniquePropNameClashes = new List<string>();
+			DataAnnotations = new List<string>();
 		}
 
 		public void ResetNavigationProperties()
@@ -56,14 +70,16 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 			HasPrimaryKey = Columns.Any(x => x.IsPrimaryKey);
 		}
 
-		public IEnumerable<Column> PrimaryKeys
+		public void SetupConfig()
 		{
-			get
+			// Do nothing by default
+			// Example:
+			// if(ClassName.StartsWith("Order"))
+			//	  DataAnnotations.Add("[SomeAttribute]");
+
+			if (Helpers.Global.DatabaseSetting.UseDataAnnotations)
 			{
-				return Columns.Where(x => x.IsPrimaryKey)
-								.OrderBy(x => x.PrimaryKeyOrdinal)
-								.ThenBy(x => x.Ordinal)
-								.ToList();
+				DataAnnotations.Add($"[Table(\"{Name}\", Schema = \"{Schema}\")]");
 			}
 		}
 
@@ -97,6 +113,13 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 														.Select(group => group.FirstOrDefault())
 														.ToList();
 			return selectMethods;
+		}
+		
+		public string GetModelBaseClasses()
+		{
+			//if (ClassName == "User")
+			//	 return "IdentityUser<int, CustomUserLogin, CustomUserRole, CustomUserClaim>, ";
+			return "";
 		}
 
 		public string GetUniqueColumnName(string tableNameHumanCase, ForeignKey foreignKey, bool useCamelCase, bool checkForFkNameClashes, bool makeSingular, Func<string, string, short, string> ForeignKeyName)

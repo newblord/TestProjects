@@ -416,6 +416,14 @@ namespace DatabaseGenerationToolExt.Forms
 			Global.ResetValues();
 		}
 
+		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
+		{
+			if(e.TabPage.Text == "Enums")
+			{
+
+			}
+		}
+
 		private void btnGenerate_Click(object sender, EventArgs e)
 		{
 			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
@@ -921,6 +929,7 @@ namespace DatabaseGenerationToolExt.Forms
 		#endregion
 
 		#endregion
+
 	}
 
 }

@@ -99,6 +99,7 @@
 			this.txtServiceFolder = new System.Windows.Forms.TextBox();
 			this.txtServiceInterfaceFolder = new System.Windows.Forms.TextBox();
 			this.txtSpecificationFolder = new System.Windows.Forms.TextBox();
+			this.txtConfigurationFolder = new System.Windows.Forms.TextBox();
 			this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
 			this.label24 = new System.Windows.Forms.Label();
 			this.label25 = new System.Windows.Forms.Label();
@@ -109,6 +110,7 @@
 			this.label30 = new System.Windows.Forms.Label();
 			this.label31 = new System.Windows.Forms.Label();
 			this.label32 = new System.Windows.Forms.Label();
+			this.label36 = new System.Windows.Forms.Label();
 			this.gbProjectNames = new System.Windows.Forms.GroupBox();
 			this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
 			this.ddlContextProject = new System.Windows.Forms.ComboBox();
@@ -120,6 +122,7 @@
 			this.ddlServiceProject = new System.Windows.Forms.ComboBox();
 			this.ddlServiceInterfaceProject = new System.Windows.Forms.ComboBox();
 			this.ddlSpecificationProject = new System.Windows.Forms.ComboBox();
+			this.ddlConfigurationProject = new System.Windows.Forms.ComboBox();
 			this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
 			this.label6 = new System.Windows.Forms.Label();
 			this.label15 = new System.Windows.Forms.Label();
@@ -130,6 +133,7 @@
 			this.label9 = new System.Windows.Forms.Label();
 			this.label8 = new System.Windows.Forms.Label();
 			this.label10 = new System.Windows.Forms.Label();
+			this.label35 = new System.Windows.Forms.Label();
 			this.gbNamespaces = new System.Windows.Forms.GroupBox();
 			this.txtConfigurationNamespace = new System.Windows.Forms.TextBox();
 			this.label34 = new System.Windows.Forms.Label();
@@ -151,10 +155,6 @@
 			this.label17 = new System.Windows.Forms.Label();
 			this.txtContextNamespace = new System.Windows.Forms.TextBox();
 			this.label16 = new System.Windows.Forms.Label();
-			this.label35 = new System.Windows.Forms.Label();
-			this.label36 = new System.Windows.Forms.Label();
-			this.ddlConfigurationProject = new System.Windows.Forms.ComboBox();
-			this.txtConfigurationFolder = new System.Windows.Forms.TextBox();
 			this.flowLayoutPanel3.SuspendLayout();
 			this.tpEnums.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.gvEnums)).BeginInit();
@@ -215,7 +215,7 @@
 			this.tpEnums.Location = new System.Drawing.Point(4, 22);
 			this.tpEnums.Name = "tpEnums";
 			this.tpEnums.Padding = new System.Windows.Forms.Padding(3);
-			this.tpEnums.Size = new System.Drawing.Size(621, 396);
+			this.tpEnums.Size = new System.Drawing.Size(643, 429);
 			this.tpEnums.TabIndex = 3;
 			this.tpEnums.Text = "Enums";
 			this.tpEnums.UseVisualStyleBackColor = true;
@@ -235,7 +235,7 @@
 			this.gvEnums.Location = new System.Drawing.Point(3, 3);
 			this.gvEnums.Name = "gvEnums";
 			this.gvEnums.RowHeadersVisible = false;
-			this.gvEnums.Size = new System.Drawing.Size(615, 390);
+			this.gvEnums.Size = new System.Drawing.Size(637, 423);
 			this.gvEnums.TabIndex = 0;
 			this.gvEnums.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvEnums_CellContentClick);
 			this.gvEnums.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvEnums_CellValueChanged);
@@ -263,7 +263,7 @@
 			this.tpStoredProcedures.Location = new System.Drawing.Point(4, 22);
 			this.tpStoredProcedures.Name = "tpStoredProcedures";
 			this.tpStoredProcedures.Padding = new System.Windows.Forms.Padding(3);
-			this.tpStoredProcedures.Size = new System.Drawing.Size(621, 396);
+			this.tpStoredProcedures.Size = new System.Drawing.Size(643, 429);
 			this.tpStoredProcedures.TabIndex = 2;
 			this.tpStoredProcedures.Text = "Stored Procedures";
 			this.tpStoredProcedures.UseVisualStyleBackColor = true;
@@ -283,7 +283,7 @@
 			this.gvStoredProcedures.Location = new System.Drawing.Point(3, 3);
 			this.gvStoredProcedures.Name = "gvStoredProcedures";
 			this.gvStoredProcedures.RowHeadersVisible = false;
-			this.gvStoredProcedures.Size = new System.Drawing.Size(615, 390);
+			this.gvStoredProcedures.Size = new System.Drawing.Size(637, 423);
 			this.gvStoredProcedures.TabIndex = 0;
 			this.gvStoredProcedures.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvStoredProcedures_CellContentClick);
 			this.gvStoredProcedures.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvStoredProcedures_CellValueChanged);
@@ -314,7 +314,7 @@
 			this.tpTables.Location = new System.Drawing.Point(4, 22);
 			this.tpTables.Name = "tpTables";
 			this.tpTables.Padding = new System.Windows.Forms.Padding(3);
-			this.tpTables.Size = new System.Drawing.Size(621, 396);
+			this.tpTables.Size = new System.Drawing.Size(643, 429);
 			this.tpTables.TabIndex = 0;
 			this.tpTables.Text = "Tables";
 			this.tpTables.UseVisualStyleBackColor = true;
@@ -341,7 +341,7 @@
 			this.gvTables.Name = "gvTables";
 			this.gvTables.RowHeadersVisible = false;
 			this.gvTables.ShowEditingIcon = false;
-			this.gvTables.Size = new System.Drawing.Size(615, 308);
+			this.gvTables.Size = new System.Drawing.Size(637, 341);
 			this.gvTables.TabIndex = 2;
 			this.gvTables.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellContentClick);
 			this.gvTables.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.gvTables_CellValueChanged);
@@ -434,7 +434,7 @@
 			this.gbTables.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.gbTables.Location = new System.Drawing.Point(3, 3);
 			this.gbTables.Name = "gbTables";
-			this.gbTables.Size = new System.Drawing.Size(615, 82);
+			this.gbTables.Size = new System.Drawing.Size(637, 82);
 			this.gbTables.TabIndex = 0;
 			this.gbTables.TabStop = false;
 			this.gbTables.Text = "Table Settings";
@@ -825,6 +825,7 @@
 			this.tcDatabaseObjects.SelectedIndex = 0;
 			this.tcDatabaseObjects.Size = new System.Drawing.Size(651, 455);
 			this.tcDatabaseObjects.TabIndex = 0;
+			this.tcDatabaseObjects.Selected += new System.Windows.Forms.TabControlEventHandler(this.tcDatabaseObjects_Selected);
 			// 
 			// tpProjectSettings
 			// 
@@ -945,6 +946,13 @@
 			this.txtSpecificationFolder.Name = "txtSpecificationFolder";
 			this.txtSpecificationFolder.Size = new System.Drawing.Size(169, 20);
 			this.txtSpecificationFolder.TabIndex = 8;
+			// 
+			// txtConfigurationFolder
+			// 
+			this.txtConfigurationFolder.Location = new System.Drawing.Point(3, 237);
+			this.txtConfigurationFolder.Name = "txtConfigurationFolder";
+			this.txtConfigurationFolder.Size = new System.Drawing.Size(169, 20);
+			this.txtConfigurationFolder.TabIndex = 9;
 			// 
 			// flowLayoutPanel6
 			// 
@@ -1075,6 +1083,18 @@
 			this.label32.Text = "Specification:";
 			this.label32.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
+			// label36
+			// 
+			this.label36.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label36.Location = new System.Drawing.Point(8, 233);
+			this.label36.Margin = new System.Windows.Forms.Padding(3, 3, 3, 2);
+			this.label36.Name = "label36";
+			this.label36.Padding = new System.Windows.Forms.Padding(0, 3, 0, 2);
+			this.label36.Size = new System.Drawing.Size(118, 20);
+			this.label36.TabIndex = 10;
+			this.label36.Text = "Configuration:";
+			this.label36.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
 			// gbProjectNames
 			// 
 			this.gbProjectNames.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -1186,6 +1206,15 @@
 			this.ddlSpecificationProject.Name = "ddlSpecificationProject";
 			this.ddlSpecificationProject.Size = new System.Drawing.Size(151, 21);
 			this.ddlSpecificationProject.TabIndex = 8;
+			// 
+			// ddlConfigurationProject
+			// 
+			this.ddlConfigurationProject.FormattingEnabled = true;
+			this.ddlConfigurationProject.Location = new System.Drawing.Point(3, 237);
+			this.ddlConfigurationProject.Margin = new System.Windows.Forms.Padding(3, 3, 3, 2);
+			this.ddlConfigurationProject.Name = "ddlConfigurationProject";
+			this.ddlConfigurationProject.Size = new System.Drawing.Size(151, 21);
+			this.ddlConfigurationProject.TabIndex = 9;
 			// 
 			// flowLayoutPanel4
 			// 
@@ -1315,6 +1344,18 @@
 			this.label10.TabIndex = 3;
 			this.label10.Text = "Specification:";
 			this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// label35
+			// 
+			this.label35.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label35.Location = new System.Drawing.Point(8, 233);
+			this.label35.Margin = new System.Windows.Forms.Padding(3, 3, 3, 2);
+			this.label35.Name = "label35";
+			this.label35.Padding = new System.Windows.Forms.Padding(0, 3, 0, 2);
+			this.label35.Size = new System.Drawing.Size(118, 20);
+			this.label35.TabIndex = 9;
+			this.label35.Text = "Configuration:";
+			this.label35.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// gbNamespaces
 			// 
@@ -1505,46 +1546,6 @@
 			this.label16.TabIndex = 0;
 			this.label16.Text = "Context:";
 			this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// label35
-			// 
-			this.label35.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label35.Location = new System.Drawing.Point(8, 233);
-			this.label35.Margin = new System.Windows.Forms.Padding(3, 3, 3, 2);
-			this.label35.Name = "label35";
-			this.label35.Padding = new System.Windows.Forms.Padding(0, 3, 0, 2);
-			this.label35.Size = new System.Drawing.Size(118, 20);
-			this.label35.TabIndex = 9;
-			this.label35.Text = "Configuration:";
-			this.label35.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// label36
-			// 
-			this.label36.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label36.Location = new System.Drawing.Point(8, 233);
-			this.label36.Margin = new System.Windows.Forms.Padding(3, 3, 3, 2);
-			this.label36.Name = "label36";
-			this.label36.Padding = new System.Windows.Forms.Padding(0, 3, 0, 2);
-			this.label36.Size = new System.Drawing.Size(118, 20);
-			this.label36.TabIndex = 10;
-			this.label36.Text = "Configuration:";
-			this.label36.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// ddlConfigurationProject
-			// 
-			this.ddlConfigurationProject.FormattingEnabled = true;
-			this.ddlConfigurationProject.Location = new System.Drawing.Point(3, 237);
-			this.ddlConfigurationProject.Margin = new System.Windows.Forms.Padding(3, 3, 3, 2);
-			this.ddlConfigurationProject.Name = "ddlConfigurationProject";
-			this.ddlConfigurationProject.Size = new System.Drawing.Size(151, 21);
-			this.ddlConfigurationProject.TabIndex = 9;
-			// 
-			// txtConfigurationFolder
-			// 
-			this.txtConfigurationFolder.Location = new System.Drawing.Point(3, 237);
-			this.txtConfigurationFolder.Name = "txtConfigurationFolder";
-			this.txtConfigurationFolder.Size = new System.Drawing.Size(169, 20);
-			this.txtConfigurationFolder.TabIndex = 9;
 			// 
 			// DatabaseObjectSelector
 			// 

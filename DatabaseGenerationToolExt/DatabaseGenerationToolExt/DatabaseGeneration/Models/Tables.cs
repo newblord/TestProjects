@@ -15,10 +15,11 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 				String.Compare(x.Schema, schema, StringComparison.OrdinalIgnoreCase) == 0);
 		}
 
-		public void SetPrimaryKeys()
+		public void SetupConfig()
 		{
 			foreach (var tbl in this)
 			{
+				tbl.SetupConfig();
 				tbl.SetPrimaryKeys();
 			}
 		}

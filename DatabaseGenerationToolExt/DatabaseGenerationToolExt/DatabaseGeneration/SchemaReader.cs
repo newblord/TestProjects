@@ -482,7 +482,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 					Cmd.Connection = conn;
 
 					var tables = ReadTables();
-					tables.SetPrimaryKeys();
+					tables.SetupConfig();
 
 					var indexList = ReadIndexes(tables);
 					ProcessIndexes(indexList, tables);
