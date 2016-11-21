@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace DatabaseGenerationToolExt.Forms.Models
 {
-	public class EnumValue
+	public class ComboBoxValue
 	{
 		public string Name { get; set; }
-		public int Value { get; set; }
+		public object Value { get; set; }
 	}
 }

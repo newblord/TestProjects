@@ -43,44 +43,19 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		#region Public Properties
 
-		public string ConfigurationFolderName { get; set; } = "Configurations";
-		public string ConfigurationProjectName { get; set; }
-		public string ContextFolderName { get; set; } = "Context";
-		public string ContextProjectName { get; set; }
-		public string ModelFolderName { get; set; } = "Models";
-		public string ModelProjectName { get; set; }
-		public string ModelInterfaceFolderName { get; set; } = "ModelInterfaces";
-		public string ModelInterfaceProjectName { get; set; }
-		public string ModelDtoFolderName { get; set; } = "ModelDTOs";
-		public string ModelDtoProjectName { get; set; }
-		public string RepositoryFolderName { get; set; } = "Repositories";
-		public string RepositoryProjectName { get; set; }
-		public string RepositoryInterfaceFolderName { get; set; } = "RepositoryInterfaces";
-		public string RepositoryInterfaceProjectName { get; set; }
-		public string SpecificationFolderName { get; set; } = "Specifications";
-		public string SpecificationProjectName { get; set; }
-		public string ServiceFolderName { get; set; } = "Services";
-		public string ServiceProjectName { get; set; }
-		public string ServiceInterfaceFolderName { get; set; } = "ServiceInterfaces";
-		public string ServiceInterfaceProjectName { get; set; }
-
-		public string ContextNamespace { get; set; } = "Context";
-		public string ModelInterfaceNamespace { get; set; } = "Models.Interface";
-		public string ModelDtoNamespace { get; set; } = "Models.DTO";
-		public string ModelNamespace { get; set; } = "Models";
-		public string ModelConfigurationNamespace { get; set; } = "Models.Configuration";
-		public string RepositoryInterfaceNamespace { get; set; } = "Repositories.Interface";
-		public string RepositoryNamespace { get; set; } = "Repositories";
-		public string SpecificationNamespace { get; set; } = "Specification";
-		public string ServiceInterfaceNamespace { get; set; } = "Services.Interface";
-		public string ServiceNamespace { get; set; } = "Services";
-		public string UnitOfWorkNamespace { get; set; } = "Context.UnitOfWork";
-
-		public DatabaseGenerationSetting Setting
+		protected DatabaseGenerationSetting DatabaseSetting
 		{
 			get
 			{
-				return Global.Setting;
+				return Global.DatabaseSetting;
+			}
+		}
+
+		protected ProjectSetting ProjectSetting
+		{
+			get
+			{
+				return Global.ProjectSetting;
 			}
 		}
 
@@ -89,46 +64,6 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		public List<StoredProcedure> StoredProcedures { get; set; }
 
 		public List<DatabaseGeneration.Models.Enum> Enums { get; set; }
-
-		/// <summary>
-		/// If set to false, existing files are not overwritten
-		/// </summary>
-		/// <returns></returns>
-		public bool CanOverrideExistingFile { get; set; }
-
-		/// <summary>
-		/// Defines Encoding format for generated output file. (Default UTF8)
-		/// </summary>
-		/// <returns></returns>
-		public System.Text.Encoding Encoding { get; set; }
-
-		/// <summary>
-		/// To include extra namespaces, include them here. i.e. "Microsoft.AspNet.Identity.EntityFramework"
-		/// </summary>
-		public virtual string[] AdditionalNamespaces { get; set; } = new[] { "" };
-
-		/// <summary>
-		/// To include extra db context interface items, include them here. Also set MakeClassesPartial=true, and implement the partial DbContext class functions.
-		/// </summary>
-		public virtual string[] AdditionalContextInterfaceItems { get; set; } = new[]
-		{
-				""  //  example: "void SetAutoDetectChangesEnabled(bool flag);"
-	    };
-
-		/// <summary>
-		/// If you need to serialize your entities with the JsonSerializer from Newtonsoft, this would serialize
-		/// all properties including the Reverse Navigation and Foreign Keys. The simplest way to exclude them is
-		/// to use the data annotation [JsonIgnore] on reverse navigation and foreign keys.
-		/// </summary>
-		public virtual string[] AdditionalReverseNavigationsDataAnnotations { get; set; } = new string[]
-		{
-			// "JsonIgnore"
-		};
-
-		public virtual string[] AdditionalForeignKeysDataAnnotations { get; set; } = new string[]
-		{
-			// "JsonIgnore"
-		};
 
 		#endregion
 
@@ -154,7 +89,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			// if(t.ClassName.StartsWith("Order"))
 			//	  WriteLine("	 [SomeAttribute]");
 
-			if (Setting.UseDataAnnotations)
+			if (DatabaseSetting.UseDataAnnotations)
 			{
 				return $"[Table(\"{t.Name}\", Schema = \"{t.Schema}\")]";
 			}
@@ -184,7 +119,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			//if (!c.IsNullable)
 			//	 WriteLine("[System.ComponentModel.DataAnnotations.Required] " + c.Entity);
 
-			if (Setting.UseDataAnnotations)
+			if (DatabaseSetting.UseDataAnnotations)
 			{
 				if (c.IsIdentity)
 					WriteLine("[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
@@ -231,7 +166,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		public static void ProcessDatabaseXML()
 		{
-			string fileName = Global.Setting.XmlAndLogFilePrefix + "Settings.xml";
+			string fileName = Global.DatabaseSetting.XmlAndLogFilePrefix + "Settings.xml";
 
 			string filePath = string.Empty;
 			var selectedItems = VisualStudioHelper.GetDTE().SelectedItems.Cast<SelectedItem>();
@@ -263,7 +198,17 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					StringReader rdr = new StringReader(settingNode.ToString().Replace(">True<", ">true<").Replace(">False<", ">false<"));
 					DatabaseGenerationSetting setting = (DatabaseGenerationSetting)serializer.Deserialize(rdr);
-					Global.InitializeSetting(setting);
+					Global.DatabaseSetting = setting;
+				}
+
+				XElement projectSettingNode = xml.Root.Descendants("ProjectSetting").FirstOrDefault();
+				serializer = new XmlSerializer(typeof(ProjectSetting));
+
+				if (projectSettingNode != null)
+				{
+					StringReader rdr = new StringReader(projectSettingNode.ToString());
+					ProjectSetting setting = (ProjectSetting)serializer.Deserialize(rdr);
+					Global.ProjectSetting = setting;
 				}
 
 				List<XElement> tableNodes = (from c in xml.Root.Descendants("TableData") select c).ToList();
@@ -412,7 +357,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						}
 					}
 
-					var outputPath = VisualStudioHelper.GetOutputPath(groupedFiles[x].ProjectName ?? currentProjectName, groupedFiles[x].FolderName, defaultPath);
+					var projectName = string.IsNullOrEmpty(groupedFiles[x].ProjectName) ? currentProjectName : groupedFiles[x].ProjectName;
+					var outputPath = VisualStudioHelper.GetOutputPath(projectName, groupedFiles[x].FolderName, defaultPath);
 					var outputFiles = groupedFiles[x].OutputFiles;
 
 					for (int i = 0; i < outputFiles.Length; i++)
@@ -421,7 +367,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 						if (string.IsNullOrEmpty(outputFile.ProjectName))
 						{
-							outputFile.ProjectName = currentProjectName;
+							outputFile.ProjectName = projectName;
 						}
 
 						outputFile.FilePath = Path.Combine(outputPath, outputFile.FileName);
@@ -449,14 +395,14 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				list = new List<NewFile>();
 
-				list.Add(CreateDatabaseSettingXmlFile(defaultPath, currentProjectName));
+				list.Add(CreateDatabaseXmlFile(defaultPath, currentProjectName));
 				list.Add(CreateLogFile(defaultPath, currentProjectName));
 
 				SyncProjectsAction.EndInvoke(SyncProjectsAction.BeginInvoke(list, null, null));
 			}
 		}
 
-		private NewFile CreateDatabaseSettingXmlFile(string defaultPath, string projectName)
+		private NewFile CreateDatabaseXmlFile(string defaultPath, string projectName)
 		{
 			GenerationEnvironment = new StringBuilder();
 			Indents = new List<string>();
@@ -468,31 +414,70 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			WriteLine("<DatabaseGenerationSetting>");
 			PushIndent("\t");
 
-			WriteLine("<ProviderName>{0}</ProviderName>", Setting.ProviderName);
-			WriteLine("<ConnectionStringName>{0}</ConnectionStringName>", Setting.ConnectionStringName);
-			WriteLine("<DatabaseContextName>{0}</DatabaseContextName>", Setting.DatabaseContextName);
-			WriteLine("<DatabaseContextInterfaceName>{0}</DatabaseContextInterfaceName>", Setting.DatabaseContextInterfaceName);
-			WriteLine("<ContextInterfaceBaseClass>{0}</ContextInterfaceBaseClass>", Setting.ContextInterfaceBaseClass);
-			WriteLine("<ContextBaseClass>{0}</ContextBaseClass>", Setting.ContextBaseClass);
-			WriteLine("<MakeClassesPartial>{0}</MakeClassesPartial>", Setting.MakeClassesPartial);
-			WriteLine("<MakeInterfacesPartial>{0}</MakeInterfacesPartial>", Setting.MakeInterfacesPartial);
-			WriteLine("<MakeContextInterfacePartial>{0}</MakeContextInterfacePartial>", Setting.MakeContextInterfacePartial);
-			WriteLine("<UseDataAnnotations>{0}</UseDataAnnotations>", Setting.UseDataAnnotations);
-			WriteLine("<GenerateContextClass>{0}</GenerateContextClass>", Setting.GenerateContextClass);
-			WriteLine("<GenerateUnitOfWorkInterface>{0}</GenerateUnitOfWorkInterface>", Setting.GenerateUnitOfWorkInterface);
-			WriteLine("<VirtualReverseNavigationProperties>{0}</VirtualReverseNavigationProperties>", Setting.VirtualReverseNavigationProperties);
-			WriteLine("<UseCamelCase>{0}</UseCamelCase>", Setting.UseCamelCase);
-			WriteLine("<DisableGeographyTypes>{0}</DisableGeographyTypes>", Setting.DisableGeographyTypes);
-			WriteLine("<NullableShortHand>{0}</NullableShortHand>", Setting.NullableShortHand);
-			WriteLine("<FileExtension>{0}</FileExtension>", Setting.FileExtension);
-			WriteLine("<GeneratedFileExtension>{0}</GeneratedFileExtension>", Setting.GeneratedFileExtension);
-			WriteLine("<PrependSchemaName>{0}</PrependSchemaName>", Setting.PrependSchemaName);
-			WriteLine("<ConfigurationClassName>{0}</ConfigurationClassName>", Setting.ConfigurationClassName);
-			WriteLine("<IncludeComments>{0}</IncludeComments>", Setting.IncludeComments);
-			WriteLine("<IncludeQueryTraceOn9481Flag>{0}</IncludeQueryTraceOn9481Flag>", Setting.IncludeQueryTraceOn9481Flag);
+			WriteLine("<ProviderName>{0}</ProviderName>", DatabaseSetting.ProviderName);
+			WriteLine("<ConnectionStringName>{0}</ConnectionStringName>", DatabaseSetting.ConnectionStringName);
+			WriteLine("<DatabaseContextName>{0}</DatabaseContextName>", DatabaseSetting.DatabaseContextName);
+			WriteLine("<DatabaseContextInterfaceName>{0}</DatabaseContextInterfaceName>", DatabaseSetting.DatabaseContextInterfaceName);
+			WriteLine("<ContextInterfaceBaseClass>{0}</ContextInterfaceBaseClass>", DatabaseSetting.ContextInterfaceBaseClass);
+			WriteLine("<ContextBaseClass>{0}</ContextBaseClass>", DatabaseSetting.ContextBaseClass);
+			WriteLine("<MakeClassesPartial>{0}</MakeClassesPartial>", DatabaseSetting.MakeClassesPartial);
+			WriteLine("<MakeInterfacesPartial>{0}</MakeInterfacesPartial>", DatabaseSetting.MakeInterfacesPartial);
+			WriteLine("<MakeContextInterfacePartial>{0}</MakeContextInterfacePartial>", DatabaseSetting.MakeContextInterfacePartial);
+			WriteLine("<UseDataAnnotations>{0}</UseDataAnnotations>", DatabaseSetting.UseDataAnnotations);
+			WriteLine("<GenerateContextClass>{0}</GenerateContextClass>", DatabaseSetting.GenerateContextClass);
+			WriteLine("<GenerateUnitOfWorkInterface>{0}</GenerateUnitOfWorkInterface>", DatabaseSetting.GenerateUnitOfWorkInterface);
+			WriteLine("<VirtualReverseNavigationProperties>{0}</VirtualReverseNavigationProperties>", DatabaseSetting.VirtualReverseNavigationProperties);
+			WriteLine("<UseCamelCase>{0}</UseCamelCase>", DatabaseSetting.UseCamelCase);
+			WriteLine("<DisableGeographyTypes>{0}</DisableGeographyTypes>", DatabaseSetting.DisableGeographyTypes);
+			WriteLine("<NullableShortHand>{0}</NullableShortHand>", DatabaseSetting.NullableShortHand);
+			WriteLine("<FileExtension>{0}</FileExtension>", DatabaseSetting.FileExtension);
+			WriteLine("<GeneratedFileExtension>{0}</GeneratedFileExtension>", DatabaseSetting.GeneratedFileExtension);
+			WriteLine("<PrependSchemaName>{0}</PrependSchemaName>", DatabaseSetting.PrependSchemaName);
+			WriteLine("<ConfigurationClassName>{0}</ConfigurationClassName>", DatabaseSetting.ConfigurationClassName);
+			WriteLine("<IncludeComments>{0}</IncludeComments>", DatabaseSetting.IncludeComments);
+			WriteLine("<IncludeQueryTraceOn9481Flag>{0}</IncludeQueryTraceOn9481Flag>", DatabaseSetting.IncludeQueryTraceOn9481Flag);
 
 			PopIndent();
 			WriteLine("</DatabaseGenerationSetting>");
+
+			WriteLine("<ProjectSetting>");
+			PushIndent("\t");
+
+			WriteLine("<ConfigurationFolderName>{0}</ConfigurationFolderName>", ProjectSetting.ConfigurationFolderName);
+			WriteLine("<ConfigurationProjectName>{0}</ConfigurationProjectName>", ProjectSetting.ConfigurationProjectName);
+			WriteLine("<ContextFolderName>{0}</ContextFolderName>", ProjectSetting.ContextFolderName);
+			WriteLine("<ContextProjectName>{0}</ContextProjectName>", ProjectSetting.ContextProjectName);
+			WriteLine("<ModelFolderName>{0}</ModelFolderName>", ProjectSetting.ModelFolderName);
+			WriteLine("<ModelProjectName>{0}</ModelProjectName>", ProjectSetting.ModelProjectName);
+			WriteLine("<ModelInterfaceFolderName>{0}</ModelInterfaceFolderName>", ProjectSetting.ModelInterfaceFolderName);
+			WriteLine("<ModelInterfaceProjectName>{0}</ModelInterfaceProjectName>", ProjectSetting.ModelInterfaceProjectName);
+			WriteLine("<ModelDtoFolderName>{0}</ModelDtoFolderName>", ProjectSetting.ModelDtoFolderName);
+			WriteLine("<ModelDtoProjectName>{0}</ModelDtoProjectName>", ProjectSetting.ModelDtoProjectName);
+			WriteLine("<RepositoryFolderName>{0}</RepositoryFolderName>", ProjectSetting.RepositoryFolderName);
+			WriteLine("<RepositoryProjectName>{0}</RepositoryProjectName>", ProjectSetting.RepositoryProjectName);
+			WriteLine("<RepositoryInterfaceFolderName>{0}</RepositoryInterfaceFolderName>", ProjectSetting.RepositoryInterfaceFolderName);
+			WriteLine("<RepositoryInterfaceProjectName>{0}</RepositoryInterfaceProjectName>", ProjectSetting.RepositoryInterfaceProjectName);
+			WriteLine("<SpecificationFolderName>{0}</SpecificationFolderName>", ProjectSetting.SpecificationFolderName);
+			WriteLine("<SpecificationProjectName>{0}</SpecificationProjectName>", ProjectSetting.SpecificationProjectName);
+			WriteLine("<ServiceFolderName>{0}</ServiceFolderName>", ProjectSetting.ServiceFolderName);
+			WriteLine("<ServiceProjectName>{0}</ServiceProjectName>", ProjectSetting.ServiceProjectName);
+			WriteLine("<ServiceInterfaceFolderName>{0}</ServiceInterfaceFolderName>", ProjectSetting.ServiceInterfaceFolderName);
+			WriteLine("<ServiceInterfaceProjectName>{0}</ServiceInterfaceProjectName>", ProjectSetting.ServiceInterfaceProjectName);
+
+			WriteLine("<ContextNamespace>{0}</ContextNamespace>", ProjectSetting.ContextNamespace);
+			WriteLine("<ModelInterfaceNamespace>{0}</ModelInterfaceNamespace>", ProjectSetting.ModelInterfaceNamespace);
+			WriteLine("<ModelDtoNamespace>{0}</ModelDtoNamespace>", ProjectSetting.ModelDtoNamespace);
+			WriteLine("<ModelNamespace>{0}</ModelNamespace>", ProjectSetting.ModelNamespace);
+			WriteLine("<ModelConfigurationNamespace>{0}</ModelConfigurationNamespace>", ProjectSetting.ConfigurationNamespace);
+			WriteLine("<RepositoryInterfaceNamespace>{0}</RepositoryInterfaceNamespace>", ProjectSetting.RepositoryInterfaceNamespace);
+			WriteLine("<RepositoryNamespace>{0}</RepositoryNamespace>", ProjectSetting.RepositoryNamespace);
+			WriteLine("<SpecificationNamespace>{0}</SpecificationNamespace>", ProjectSetting.SpecificationNamespace);
+			WriteLine("<ServiceInterfaceNamespace>{0}</ServiceInterfaceNamespace>", ProjectSetting.ServiceInterfaceNamespace);
+			WriteLine("<ServiceNamespace>{0}</ServiceNamespace>", ProjectSetting.ServiceNamespace);
+			WriteLine("<UnitOfWorkNamespace>{0}</UnitOfWorkNamespace>", ProjectSetting.UnitOfWorkNamespace);
+
+			PopIndent();
+			WriteLine("</ProjectSetting>");
 
 			WriteLine("<Tables>");
 			PushIndent("\t");
@@ -558,7 +543,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			NewFile file = new NewFile();
 
-			file.FileName = Setting.XmlAndLogFilePrefix + "Settings.xml";
+			file.FileName = DatabaseSetting.XmlAndLogFilePrefix + "Settings.xml";
 			file.ProjectName = projectName;
 			file.FolderName = string.Empty;
 			file.FilePath = Path.Combine(outputPath, file.FileName); ;
@@ -587,7 +572,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			NewFile file = new NewFile();
 
-			file.FileName = Setting.XmlAndLogFilePrefix + "Log.cs";
+			file.FileName = DatabaseSetting.XmlAndLogFilePrefix + "Log.cs";
 			file.ProjectName = projectName;
 			file.FolderName = string.Empty;
 			file.FilePath = Path.Combine(outputPath, file.FileName); ;

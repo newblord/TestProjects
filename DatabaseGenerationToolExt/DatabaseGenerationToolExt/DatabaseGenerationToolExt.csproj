@@ -61,11 +61,12 @@
     <Compile Include="DatabaseGeneration\Settings\DatabaseGenerationSetting.cs" />
     <Compile Include="DatabaseGeneration\Models\DatabaseObjectEnums.cs" />
     <Compile Include="DatabaseGeneration\Models\EnumDefinition.cs" />
+    <Compile Include="DatabaseGeneration\Settings\ProjectSetting.cs" />
     <Compile Include="Forms\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Forms\Models\EnumData.cs" />
-    <Compile Include="Forms\Models\EnumValue.cs" />
+    <Compile Include="Forms\Models\ComboBoxValue.cs" />
     <Compile Include="DatabaseGeneration\Models\ForeignKey.cs" />
     <Compile Include="DatabaseGeneration\Models\Index.cs" />
     <Compile Include="Forms\Models\StoredProcedureData.cs" />

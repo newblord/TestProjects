@@ -25,7 +25,7 @@ namespace DatabaseGenerationToolExt.Forms
 
 			if (connections.Count > 0)
 			{
-				DatabaseConnection value = connections.Where(x => x.ConnectionStringName == Global.Setting.ConnectionStringName).FirstOrDefault();
+				DatabaseConnection value = connections.Where(x => x.ConnectionStringName == Global.DatabaseSetting.ConnectionStringName).FirstOrDefault();
 
 				connections.Insert(0, new DatabaseConnection());
 

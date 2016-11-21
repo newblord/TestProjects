@@ -10,7 +10,9 @@ namespace DatabaseGenerationToolExt.Helpers
 {
 	public static class Global
 	{
-		public static DatabaseGenerationSetting Setting { get; private set; } = new DatabaseGenerationSetting();
+		public static DatabaseGenerationSetting DatabaseSetting { get; set; } = new DatabaseGenerationSetting();
+
+		public static ProjectSetting ProjectSetting { get; set; } = new ProjectSetting();
 
 		public static Microsoft.VisualStudio.Shell.Package Package { get; private set; }
 
@@ -25,14 +27,10 @@ namespace DatabaseGenerationToolExt.Helpers
 			Package = package;
 		}
 
-		public static void InitializeSetting(DatabaseGenerationSetting setting)
-		{
-			Setting = setting;
-		}
-
 		public static void ResetValues()
 		{
-			Setting = new DatabaseGenerationSetting();
+			DatabaseSetting = new DatabaseGenerationSetting();
+			ProjectSetting = new ProjectSetting();
 			Package = null;
 			SelectedTables = new List<TableData>();
 			SelectedStoredProcedures = new List<StoredProcedureData>();

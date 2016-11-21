@@ -93,7 +93,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 			}
 
 			if (IsNullable)
-				PropertyType = String.Format(Global.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", PropertyType);
+				PropertyType = String.Format(Global.DatabaseSetting.NullableShortHand ? "{0}?" : "Nullable<{0}>", PropertyType);
 
 			Entity = string.Format("public {0} {1} {{ get; {2}set; }}{3}", PropertyType, NameHumanCase, IsComputed ? "private " : string.Empty, inlineComments);
 			InterfaceEntity = string.Format("{0} {1} {{ get; set; }}{2}", PropertyType, NameHumanCase, inlineComments);
