@@ -21,7 +21,7 @@ namespace DatabaseGenerationToolExt.Helpers
 		{
 			if (!IsNullable(col))
 				return propertyType;
-			return String.Format(Global.Setting.NullableShortHand ? "{0}?" : "Nullable<{0}>", propertyType);
+			return String.Format(Global.DatabaseSetting.NullableShortHand ? "{0}?" : "Nullable<{0}>", propertyType);
 		}
 
 		public static string WriteStoredProcFunctionName(StoredProcedure sp)

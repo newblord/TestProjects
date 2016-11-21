@@ -11,43 +11,10 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 {
 	public class EntityFrameworkDesignPattern : DesignPattern
 	{
-		public EntityFrameworkDesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs)
-			: base(targetFrameworkVersion, tables, storedProcs)
+		public EntityFrameworkDesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs, List<DatabaseGeneration.Models.Enum> enums)
+			: base(targetFrameworkVersion, tables, storedProcs, enums)
 		{
 		}
-
-		//public new string ConfigurationFolderName { get; set; } = "Configurations";
-		//public new string ConfigurationProjectName { get; set; }
-		//public new string ContextFolderName { get; set; } = "Context";
-		//public new string ContextProjectName { get; set; }
-		//public new string ModelFolderName { get; set; } = "Models";
-		//public new string ModelProjectName { get; set; }
-		//public new string ModelInterfaceFolderName { get; set; } = "ModelInterfaces";
-		//public new string ModelInterfaceProjectName { get; set; }
-		//public new string ModelDtoFolderName { get; set; } = "ModelDTOs";
-		//public new string ModelDtoProjectName { get; set; }
-		//public new string RepositoryFolderName { get; set; } = "Repositories";
-		//public new string RepositoryProjectName { get; set; }
-		//public new string RepositoryInterfaceFolderName { get; set; } = "RepositoryInterfaces";
-		//public new string RepositoryInterfaceProjectName { get; set; }
-		//public new string SpecificationFolderName { get; set; } = "Specifications";
-		//public new string SpecificationProjectName { get; set; }
-		//public new string ServiceFolderName { get; set; } = "Services";
-		//public new string ServiceProjectName { get; set; }
-		//public new string ServiceInterfaceFolderName { get; set; } = "ServiceInterfaces";
-		//public new string ServiceInterfaceProjectName { get; set; }
-
-		//public new string ContextNamespace { get; set; } = "Context";
-		//public new string ModelInterfaceNamespace { get; set; } = "Models.Interface";
-		//public new string ModelDtoNamespace { get; set; } = "Models.DTO";
-		//public new string ModelNamespace { get; set; } = "Models";
-		//public new string ModelConfigurationNamespace { get; set; } = "Models.Configuration";
-		//public new string RepositoryInterfaceNamespace { get; set; } = "Repositories.Interface";
-		//public new string RepositoryNamespace { get; set; } = "Repositories";
-		//public new string SpecificationNamespace { get; set; } = "Specification";
-		//public new string ServiceInterfaceNamespace { get; set; } = "Services.Interface";
-		//public new string ServiceNamespace { get; set; } = "Services";
-		//public new string UnitOfWorkNamespace { get; set; } = "Context.UnitOfWork";
 
 		public override void CreateFiles()
 		{
@@ -58,6 +25,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			CreateServices();
 			CreateModelConfigurations();
 			CreateStoredProcedures();
+			CreateEnums();
 
 			EndFile();
 			ProcessFiles();
@@ -67,9 +35,9 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		{
 			#region Unit of work
 
-			if (Setting.GenerateUnitOfWorkInterface)
+			if (DatabaseSetting.GenerateUnitOfWorkInterface)
 			{
-				StartNewFile(Setting.DatabaseContextInterfaceName + Setting.FileExtension, ContextProjectName, ContextFolderName);
+				StartNewFile(DatabaseSetting.DatabaseContextInterfaceName + DatabaseSetting.FileExtension, ProjectSetting.ContextProjectName, ProjectSetting.ContextFolderName);
 
 				CreateHeader();
 
@@ -78,7 +46,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (Tables.Where(x => x.TableData.TableSelect).Any())
 				{
-					WriteLine("using {0};", ModelNamespace);
+					WriteLine("using {0};", ProjectSetting.ModelNamespace);
 				}
 
 				if (IsSupportedFrameworkVersion("4.5"))
@@ -93,22 +61,16 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				}
 				WriteLine("");
 
-				BeginNamespace(UnitOfWorkNamespace);
-				BeginInterface(Setting.DatabaseContextInterfaceName, Setting.MakeContextInterfacePartial, Setting.ContextInterfaceBaseClass);
+				BeginNamespace(ProjectSetting.UnitOfWorkNamespace);
+				BeginInterface(DatabaseSetting.DatabaseContextInterfaceName, DatabaseSetting.MakeContextInterfacePartial, DatabaseSetting.ContextInterfaceBaseClass);
 
 				foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 				{
-					WriteLine("DbSet<{0}> {1} {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
+					WriteLine("DbSet<{0}> {1} {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), DatabaseSetting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
 				}
 
 				WriteLine("");
 
-				foreach (string s in AdditionalContextInterfaceItems.Where(x => !string.IsNullOrEmpty(x)))
-				{
-					WriteLine(s);
-				}
-
-				WriteLine("");
 				WriteLine("int SaveChanges();");
 
 				if (IsSupportedFrameworkVersion("4.5"))
@@ -157,17 +119,17 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			#region Database context
 
-			if (Setting.GenerateContextClass)
+			if (DatabaseSetting.GenerateContextClass)
 			{
 				List<string> baseClasses = new List<string>();
 
-				if (!string.IsNullOrEmpty(Setting.ContextBaseClass))
-					baseClasses.Add(Setting.ContextBaseClass);
+				if (!string.IsNullOrEmpty(DatabaseSetting.ContextBaseClass))
+					baseClasses.Add(DatabaseSetting.ContextBaseClass);
 
-				if (Setting.GenerateUnitOfWorkInterface)
-					baseClasses.Add(Setting.DatabaseContextInterfaceName);
+				if (DatabaseSetting.GenerateUnitOfWorkInterface)
+					baseClasses.Add(DatabaseSetting.DatabaseContextInterfaceName);
 
-				StartNewFile(Setting.DatabaseContextName + "Context" + Setting.FileExtension, ContextProjectName, ContextFolderName);
+				StartNewFile(DatabaseSetting.DatabaseContextName + "Context" + DatabaseSetting.FileExtension, ProjectSetting.ContextProjectName, ProjectSetting.ContextFolderName);
 				CreateHeader();
 
 				WriteLine("using System;");
@@ -189,40 +151,40 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (Tables.Where(x => x.TableData.TableSelect).Any())
 				{
-					WriteLine("using {0};", ModelNamespace);
+					WriteLine("using {0};", ProjectSetting.ModelNamespace);
 				}
 
-				if (Setting.GenerateUnitOfWorkInterface)
+				if (DatabaseSetting.GenerateUnitOfWorkInterface)
 				{
-					WriteLine("using {0};", UnitOfWorkNamespace);
+					WriteLine("using {0};", ProjectSetting.UnitOfWorkNamespace);
 				}
 
-				if (!Setting.UseDataAnnotations)
+				if (!DatabaseSetting.UseDataAnnotations)
 				{
-					WriteLine("using {0};", ModelConfigurationNamespace);
+					WriteLine("using {0};", ProjectSetting.ConfigurationNamespace);
 				}
 				WriteLine("");
 
-				BeginNamespace(ContextNamespace);
-				BeginClass(Setting.DatabaseContextName, Setting.MakeClassesPartial, string.Join(", ", baseClasses));
+				BeginNamespace(ProjectSetting.ContextNamespace);
+				BeginClass(DatabaseSetting.DatabaseContextName, DatabaseSetting.MakeClassesPartial, string.Join(", ", baseClasses));
 
 				foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 				{
-					WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), Setting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
+					WriteLine("public DbSet<{0}> {1} {{ get; set; }}{2}", tbl.NameHumanCase, Inflector.MakeSingular(tbl.NameHumanCase), DatabaseSetting.IncludeComments != CommentsStyle.None ? " // " + tbl.Name : "");
 				}
 
 				WriteLine("");
-				WriteLine("static {0}()", Setting.DatabaseContextName);
+				WriteLine("static {0}()", DatabaseSetting.DatabaseContextName);
 				OpenBrace();
-				WriteLine("Database.SetInitializer<{0}>(null);", Setting.DatabaseContextName);
+				WriteLine("Database.SetInitializer<{0}>(null);", DatabaseSetting.DatabaseContextName);
 				CloseBrace();
 
-				WriteLine("public {0}()", Setting.DatabaseContextName);
-				WriteLine("\t: base({0})", Setting.DefaultConstructorArgument);
+				WriteLine("public {0}()", DatabaseSetting.DatabaseContextName);
+				WriteLine("\t: base({0})", DatabaseSetting.DefaultConstructorArgument);
 				OpenBrace();
 				CloseBrace();
 
-				WriteLine("public {0}(string connectionString)", Setting.DatabaseContextName);
+				WriteLine("public {0}(string connectionString)", DatabaseSetting.DatabaseContextName);
 				WriteLine("\t: base(connectionString)");
 				OpenBrace();
 				CloseBrace();
@@ -264,11 +226,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				OpenBrace();
 				WriteLine("base.OnModelCreating(modelBuilder);");
 
-				if (!Setting.UseDataAnnotations)
+				if (!DatabaseSetting.UseDataAnnotations)
 				{
 					foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 					{
-						WriteLine("modelBuilder.Configurations.Add(new {0}());", tbl.NameHumanCase + Setting.ConfigurationClassName);
+						WriteLine("modelBuilder.Configurations.Add(new {0}());", tbl.NameHumanCase + DatabaseSetting.ConfigurationClassName);
 					}
 				}
 
@@ -277,11 +239,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("public static DbModelBuilder CreateModel(DbModelBuilder modelBuilder, string schema)");
 				OpenBrace();
 
-				if (!Setting.UseDataAnnotations)
+				if (!DatabaseSetting.UseDataAnnotations)
 				{
 					foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase) select t)
 					{
-						WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + Setting.ConfigurationClassName);
+						WriteLine("modelBuilder.Configurations.Add(new {0}(schema));", tbl.NameHumanCase + DatabaseSetting.ConfigurationClassName);
 					}
 				}
 
@@ -450,7 +412,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				string baseClasses = string.Empty;
 				var computedColumns = tbl.Columns.Where(c => c.IsComputed && !c.Hidden);
 
-				StartNewFile(tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelProjectName, ModelFolderName);
+				StartNewFile(tbl.NameHumanCase + DatabaseSetting.GeneratedFileExtension, ProjectSetting.ModelProjectName, ProjectSetting.ModelFolderName);
 				if (!tbl.HasPrimaryKey)
 				{
 					WriteLine("// The table '{0}' is not usable by entity framework because it", tbl.Name);
@@ -462,7 +424,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
 
-				if (Setting.UseDataAnnotations)
+				if (DatabaseSetting.UseDataAnnotations)
 				{
 					WriteLine("using System.ComponentModel.DataAnnotations;");
 					WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
@@ -470,24 +432,24 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.TableData.GenerateModelInterface)
 				{
-					WriteLine("using {0};", ModelInterfaceNamespace);
+					WriteLine("using {0};", ProjectSetting.ModelInterfaceNamespace);
 					baseClasses = string.Format("{0}I{1}", WriteModelBaseClasses(tbl), tbl.NameHumanCase);
 				}
 
 				if (tbl.TableData.GenerateModelDto)
 				{
-					WriteLine("using {0};", ModelDtoNamespace);
+					WriteLine("using {0};", ProjectSetting.ModelDtoNamespace);
 				}
 
 				WriteLine("");
 
-				BeginNamespace(ModelNamespace);
+				BeginNamespace(ProjectSetting.ModelNamespace);
 
 				WriteLine(WriteModelClassAttributes(tbl));
-				BeginClass(tbl.NameHumanCase, Setting.MakeClassesPartial, baseClasses);
+				BeginClass(tbl.NameHumanCase, DatabaseSetting.MakeClassesPartial, baseClasses);
 				WriteLine(WriteModelBaseClassBody(tbl));
 
-				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial)
+				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || DatabaseSetting.MakeClassesPartial)
 				{
 					WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2214:DoNotCallOverridableMethodsInConstructors\")]");
 					WriteLine("public {0}()", tbl.NameHumanCase);
@@ -498,7 +460,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						WriteLine("{0} = {1};", col.NameHumanCase, col.Default);
 					}
 
-					if (tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
+					if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
 					{
 						foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.Where(x => x.HasConstructorString).OrderBy(x => x.FKPropertyName))
 						{
@@ -526,7 +488,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
-					if ((Setting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
+					if ((DatabaseSetting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
 					{
 						WriteLine("///<summary>");
 						WriteLine("/// {0}", col.SummaryComments);
@@ -535,14 +497,10 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteModelColumn(col);
 				}
 
-				if (tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
+				if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
 				{
 					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x.FKPropertyName))
 					{
-						foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations)
-						{
-							WriteLine("[{0}]", rnpda);
-						}
 						WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2227:CollectionPropertiesShouldBeReadOnly\")]");
 						WriteLine("{0}", rn.PropertyString);
 					}
@@ -553,10 +511,6 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					foreach (var entityFk in tbl.Columns.SelectMany(x => x.EntityForeignKeys).OrderBy(o => o))
 					{
-						foreach (var fkda in AdditionalForeignKeysDataAnnotations)
-						{
-							WriteLine("[{0}]", fkda);
-						}
 						WriteLine("{0}", entityFk);
 					}
 				}
@@ -599,17 +553,17 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 			foreach (Table tbl in from t in Tables.Where(t => !t.IsMapping && t.TableData.GenerateModelInterface).OrderBy(x => x.NameHumanCase) select t)
 			{
-				StartNewFile("I" + tbl.NameHumanCase + Setting.GeneratedFileExtension, ModelInterfaceProjectName, ModelInterfaceFolderName);
+				StartNewFile("I" + tbl.NameHumanCase + DatabaseSetting.GeneratedFileExtension, ProjectSetting.ModelInterfaceProjectName, ProjectSetting.ModelInterfaceFolderName);
 
 				CreateHeader();
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", ModelNamespace);
+				WriteLine("using {0};", ProjectSetting.ModelNamespace);
 				WriteLine("");
 
-				BeginNamespace(ModelInterfaceNamespace);
-				BeginInterface("I" + tbl.NameHumanCase, Setting.MakeInterfacesPartial, "");
+				BeginNamespace(ProjectSetting.ModelInterfaceNamespace);
+				BeginInterface("I" + tbl.NameHumanCase, DatabaseSetting.MakeInterfacesPartial, "");
 
 				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
@@ -619,14 +573,10 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					}
 				}
 
-				if (tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
+				if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
 				{
 					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x.FKPropertyName))
 					{
-						foreach (var rnpda in AdditionalReverseNavigationsDataAnnotations)
-						{
-							WriteLine("  [{0}]", rnpda);
-						}
 						WriteLine("{0}", rn.PropertyString.Replace("public virtual", ""));
 					}
 				}
@@ -635,10 +585,6 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				{
 					foreach (var entityFk in tbl.Columns.SelectMany(x => x.EntityForeignKeys).OrderBy(o => o))
 					{
-						foreach (var fkda in AdditionalForeignKeysDataAnnotations)
-						{
-							WriteLine("[{0}]", fkda);
-						}
 						WriteLine("{0}", entityFk.Replace("public virtual", ""));
 					}
 				}
@@ -655,20 +601,20 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				string className = tbl.NameHumanCase + "DTO";
 				var computedColumns = tbl.Columns.Where(x => x.IsComputed && !x.Hidden);
 
-				StartNewFile(className + Setting.GeneratedFileExtension, ModelDtoProjectName, ModelDtoFolderName);
+				StartNewFile(className + DatabaseSetting.GeneratedFileExtension, ProjectSetting.ModelDtoProjectName, ProjectSetting.ModelDtoFolderName);
 				CreateHeader();
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", ModelNamespace);
+				WriteLine("using {0};", ProjectSetting.ModelNamespace);
 
 				WriteLine("");
 
-				BeginNamespace(ModelDtoNamespace);
+				BeginNamespace(ProjectSetting.ModelDtoNamespace);
 
-				BeginClass(className, Setting.MakeClassesPartial, "");
+				BeginClass(className, DatabaseSetting.MakeClassesPartial, "");
 
-				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || Setting.MakeClassesPartial)
+				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || DatabaseSetting.MakeClassesPartial)
 				{
 					WriteLine("public {0}()", className);
 					OpenBrace();
@@ -678,7 +624,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						WriteLine("{0} = {1};", col.NameHumanCase, col.Default);
 					}
 
-					if (tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
+					if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
 					{
 						foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.Where(x => x.HasConstructorString).OrderBy(x => x.FKPropertyName))
 						{
@@ -709,7 +655,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteModelDTOColumn(col);
 				}
 
-				if (tbl.ReverseNavigationProperties.Count() > 0 && Setting.VirtualReverseNavigationProperties)
+				if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
 				{
 					foreach (ReverseNavigation rn in tbl.ReverseNavigationProperties.OrderBy(x => x.FKPropertyName))
 					{
@@ -763,28 +709,28 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		{
 			#region Model Configurations
 
-			if (!Setting.UseDataAnnotations)
+			if (!DatabaseSetting.UseDataAnnotations)
 			{
 				foreach (Table tbl in Tables.Where(t => !t.IsMapping && t.HasPrimaryKey).OrderBy(x => x.NameHumanCase))
 				{
-					StartNewFile(tbl.NameHumanCase + Setting.ConfigurationClassName + Setting.FileExtension, ConfigurationProjectName, ConfigurationFolderName);
+					StartNewFile(tbl.NameHumanCase + DatabaseSetting.ConfigurationClassName + DatabaseSetting.FileExtension, ProjectSetting.ConfigurationProjectName, ProjectSetting.ConfigurationFolderName);
 
 					CreateHeader();
 
 					WriteLine("using System.Data.Entity.ModelConfiguration;");
 					WriteLine("using System.ComponentModel.DataAnnotations.Schema;");
-					WriteLine("using {0};", ModelNamespace);
+					WriteLine("using {0};", ProjectSetting.ModelNamespace);
 					WriteLine("");
 
-					BeginNamespace(ModelConfigurationNamespace);
-					BeginClass(tbl.NameHumanCase + Setting.ConfigurationClassName, Setting.MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
+					BeginNamespace(ProjectSetting.ConfigurationNamespace);
+					BeginClass(tbl.NameHumanCase + DatabaseSetting.ConfigurationClassName, DatabaseSetting.MakeClassesPartial, string.Format("EntityTypeConfiguration<{0}>", tbl.NameHumanCase));
 
-					WriteLine("public {0}()", tbl.NameHumanCase + Setting.ConfigurationClassName);
+					WriteLine("public {0}()", tbl.NameHumanCase + DatabaseSetting.ConfigurationClassName);
 					WriteLine(": this( \"{0}\" )", string.IsNullOrEmpty(tbl.Schema) ? "" : tbl.Schema);
 					OpenBrace();
 					CloseBrace();
 
-					WriteLine("public {0}(string schema)", tbl.NameHumanCase + Setting.ConfigurationClassName);
+					WriteLine("public {0}(string schema)", tbl.NameHumanCase + DatabaseSetting.ConfigurationClassName);
 					OpenBrace();
 					if (!string.IsNullOrEmpty(tbl.Schema))
 					{
@@ -826,18 +772,18 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			{
 				string className = tbl.NameHumanCase + "Specification";
 
-				StartNewFile(className + Setting.FileExtension, SpecificationProjectName, SpecificationFolderName);
+				StartNewFile(className + DatabaseSetting.FileExtension, ProjectSetting.SpecificationProjectName, ProjectSetting.SpecificationFolderName);
 
 				CreateHeader();
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", ModelNamespace);
+				WriteLine("using {0};", ProjectSetting.ModelNamespace);
 				WriteLine("using Tiger.Validation;");
 				WriteLine("");
 
-				BeginNamespace(SpecificationNamespace);
-				BeginClass(className, Setting.MakeClassesPartial, $"ModelSpecBase<{tbl.NameHumanCase}>");
+				BeginNamespace(ProjectSetting.SpecificationNamespace);
+				BeginClass(className, DatabaseSetting.MakeClassesPartial, $"ModelSpecBase<{tbl.NameHumanCase}>");
 
 				WriteLine("public ValidationMethod CurrentValidationMethod { get; private set; }");
 
@@ -876,7 +822,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				string returnObjectName = tbl.TableData.GenerateModelDto ? tbl.NameHumanCase + "DTO" : tbl.NameHumanCase;
 				string convertMethodString = tbl.TableData.GenerateModelDto ? ".ToDTO()" : "";
 
-				StartNewFile(className + Setting.GeneratedFileExtension, RepositoryProjectName, RepositoryFolderName);
+				StartNewFile(className + DatabaseSetting.GeneratedFileExtension, ProjectSetting.RepositoryProjectName, ProjectSetting.RepositoryFolderName);
 
 				CreateHeader();
 
@@ -884,29 +830,29 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.Collections.Generic;");
 				WriteLine("using System.Data.Entity;");
 				WriteLine("using System.Linq;");
-				WriteLine("using {0};", ContextNamespace);
-				WriteLine("using {0};", ModelNamespace);
+				WriteLine("using {0};", ProjectSetting.ContextNamespace);
+				WriteLine("using {0};", ProjectSetting.ModelNamespace);
 
 				if (tbl.TableData.GenerateModelDto)
 				{
-					WriteLine($"using {ModelDtoNamespace};");
+					WriteLine($"using {ProjectSetting.ModelDtoNamespace};");
 				}
 
 				if (tbl.TableData.GenerateRepositoryInterface)
 				{
-					WriteLine("using {0};", RepositoryInterfaceNamespace);
+					WriteLine("using {0};", ProjectSetting.RepositoryInterfaceNamespace);
 				}
 
 				WriteLine("");
 
-				BeginNamespace(RepositoryNamespace);
-				BeginClass(className, Setting.MakeClassesPartial, tbl.TableData.GenerateRepositoryInterface ? "I" + tbl.NameHumanCase + "Repository" : "");
+				BeginNamespace(ProjectSetting.RepositoryNamespace);
+				BeginClass(className, DatabaseSetting.MakeClassesPartial, tbl.TableData.GenerateRepositoryInterface ? "I" + tbl.NameHumanCase + "Repository" : "");
 
-				WriteLine("private readonly {0} Context;", Setting.DatabaseContextName);
+				WriteLine("private readonly {0} Context;", DatabaseSetting.DatabaseContextName);
 
 				WriteLine("public {0}()", className);
 				OpenBrace();
-				WriteLine("Context = new {0}();", Setting.DatabaseContextName);
+				WriteLine("Context = new {0}();", DatabaseSetting.DatabaseContextName);
 				CloseBrace();
 
 				WriteLine("public {0} Insert({1} data)", returnObjectName, tbl.NameHumanCase);
@@ -1030,7 +976,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					CloseBrace();
 				}
 
-				if (!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
+				if (!DatabaseSetting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
 				{
 					WriteLine("// Reverse Navigation Methods");
 
@@ -1075,23 +1021,23 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			{
 				string returnObjectName = tbl.TableData.GenerateModelDto ? tbl.NameHumanCase + "DTO" : tbl.NameHumanCase;
 
-				StartNewFile("I" + tbl.NameHumanCase + "Repository" + Setting.GeneratedFileExtension, RepositoryInterfaceProjectName, RepositoryInterfaceFolderName);
+				StartNewFile("I" + tbl.NameHumanCase + "Repository" + DatabaseSetting.GeneratedFileExtension, ProjectSetting.RepositoryInterfaceProjectName, ProjectSetting.RepositoryInterfaceFolderName);
 
 				CreateHeader();
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", ModelNamespace);
+				WriteLine("using {0};", ProjectSetting.ModelNamespace);
 
 				if (tbl.TableData.GenerateModelDto)
 				{
-					WriteLine($"using {ModelDtoNamespace};");
+					WriteLine($"using {ProjectSetting.ModelDtoNamespace};");
 				}
 
 				WriteLine("");
 
-				BeginNamespace(RepositoryInterfaceNamespace);
-				BeginInterface("I" + tbl.NameHumanCase + "Repository", Setting.MakeInterfacesPartial, "");
+				BeginNamespace(ProjectSetting.RepositoryInterfaceNamespace);
+				BeginInterface("I" + tbl.NameHumanCase + "Repository", DatabaseSetting.MakeInterfacesPartial, "");
 
 				WriteLine("{0} Insert({1} data);", returnObjectName, tbl.NameHumanCase);
 				WriteLine("{0} Update({1} data);", returnObjectName, tbl.NameHumanCase);
@@ -1137,7 +1083,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
 				}
 
-				if (!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
+				if (!DatabaseSetting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
 				{
 					WriteLine("// Reverse Navigation Methods");
 
@@ -1175,47 +1121,47 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				string returnObjectName = tbl.TableData.GenerateModelDto ? tbl.NameHumanCase + "DTO" : tbl.NameHumanCase;
 				string convertMethodString = tbl.TableData.GenerateModelDto ? ".ToModel()" : "";
 
-				StartNewFile(className + Setting.GeneratedFileExtension, ServiceProjectName, ServiceFolderName);
+				StartNewFile(className + DatabaseSetting.GeneratedFileExtension, ProjectSetting.ServiceProjectName, ProjectSetting.ServiceFolderName);
 
 				CreateHeader();
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
 				WriteLine("using System.Linq;");
-				WriteLine("using {0};", ContextNamespace);
-				WriteLine("using {0};", ModelNamespace);
+				WriteLine("using {0};", ProjectSetting.ContextNamespace);
+				WriteLine("using {0};", ProjectSetting.ModelNamespace);
 
 				if (tbl.TableData.GenerateModelDto)
 				{
-					WriteLine($"using {ModelDtoNamespace};");
+					WriteLine($"using {ProjectSetting.ModelDtoNamespace};");
 				}
 
 				if (tbl.TableData.GenerateServiceInterface)
 				{
-					WriteLine("using {0};", ServiceInterfaceNamespace);
+					WriteLine("using {0};", ProjectSetting.ServiceInterfaceNamespace);
 				}
 
 				if (tbl.TableData.GenerateRepository)
 				{
-					WriteLine($"using {RepositoryNamespace};");
+					WriteLine($"using {ProjectSetting.RepositoryNamespace};");
 				}
 
 				if (tbl.TableData.GenerateSpecification)
 				{
-					WriteLine($"using {SpecificationNamespace};");
+					WriteLine($"using {ProjectSetting.SpecificationNamespace};");
 				}
 
 				WriteLine("");
 
-				BeginNamespace(ServiceNamespace);
-				BeginClass(className, Setting.MakeClassesPartial, tbl.TableData.GenerateServiceInterface ? "I" + className : "");
+				BeginNamespace(ProjectSetting.ServiceNamespace);
+				BeginClass(className, DatabaseSetting.MakeClassesPartial, tbl.TableData.GenerateServiceInterface ? "I" + className : "");
 
-				WriteLine("private readonly {0} Context;", Setting.DatabaseContextName);
+				WriteLine("private readonly {0} Context;", DatabaseSetting.DatabaseContextName);
 				WriteLine("private {0} {1};", repositoryName, repositoryVariableName);
 
 				WriteLine("public {0}()", className);
 				OpenBrace();
-				WriteLine("Context = new {0}();", Setting.DatabaseContextName);
+				WriteLine("Context = new {0}();", DatabaseSetting.DatabaseContextName);
 				WriteLine("{0} = new {1}();", repositoryVariableName, repositoryName);
 				CloseBrace();
 
@@ -1301,7 +1247,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					CloseBrace();
 				}
 
-				if (!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
+				if (!DatabaseSetting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
 				{
 					WriteLine("// Reverse Navigation Methods");
 
@@ -1356,23 +1302,23 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			{
 				string returnObjectName = tbl.TableData.GenerateModelDto ? tbl.NameHumanCase + "DTO" : tbl.NameHumanCase;
 
-				StartNewFile("I" + tbl.NameHumanCase + "Service" + Setting.GeneratedFileExtension, ServiceInterfaceProjectName, ServiceInterfaceFolderName);
+				StartNewFile("I" + tbl.NameHumanCase + "Service" + DatabaseSetting.GeneratedFileExtension, ProjectSetting.ServiceInterfaceProjectName, ProjectSetting.ServiceInterfaceFolderName);
 
 				CreateHeader();
 
 				WriteLine("using System;");
 				WriteLine("using System.Collections.Generic;");
-				WriteLine("using {0};", ModelNamespace);
+				WriteLine("using {0};", ProjectSetting.ModelNamespace);
 
 				if (tbl.TableData.GenerateModelDto)
 				{
-					WriteLine($"using {ModelDtoNamespace};");
+					WriteLine($"using {ProjectSetting.ModelDtoNamespace};");
 				}
 
 				WriteLine("");
 
-				BeginNamespace(ServiceInterfaceNamespace);
-				BeginInterface("I" + tbl.NameHumanCase + "Service", Setting.MakeInterfacesPartial, "");
+				BeginNamespace(ProjectSetting.ServiceInterfaceNamespace);
+				BeginInterface("I" + tbl.NameHumanCase + "Service", DatabaseSetting.MakeInterfacesPartial, "");
 
 				WriteLine("{0} Insert({0} data);", returnObjectName);
 				WriteLine("{0} Update({0} data);", returnObjectName);
@@ -1418,7 +1364,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
 				}
 
-				if (!Setting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
+				if (!DatabaseSetting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
 				{
 					WriteLine("// Reverse Navigation Methods");
 
@@ -1450,7 +1396,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 			{
 				string spReturnClassName = StoredProcedureHelper.WriteStoredProcReturnModelName(sp);
 
-				StartNewFile(spReturnClassName + Setting.FileExtension);
+				StartNewFile(spReturnClassName + DatabaseSetting.FileExtension);
 
 				CreateHeader();
 
@@ -1487,6 +1433,46 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					}
 				}
+				CloseBrace();
+			}
+		}
+
+		private void CreateEnums()
+		{
+			foreach (DatabaseGeneration.Models.Enum @enum in from t in Enums.OrderBy(x => x.Name) select t)
+			{
+				StartNewFile(@enum.Name + DatabaseSetting.GeneratedFileExtension);
+
+				CreateHeader();
+
+				WriteLine("using System;");
+				WriteLine("using System.Collections.Generic;");
+				WriteLine("");
+
+				BeginNamespace("Enums");
+				WriteLine("public enum {0}", @enum.Name);
+				WriteLine("{");
+				PushIndent("\t");
+
+				int count = 1;
+				foreach (var entry in @enum.Entries)
+				{
+					if (!string.IsNullOrEmpty(entry.Description))
+					{
+						this.WriteLine("[Description(\"{0}\")]", entry.Description);
+					}
+
+					if (!entry.ValueIsNumeric && !string.IsNullOrEmpty(entry.Code))
+					{
+						this.WriteLine("[EnumCode(\"{0}\")]",entry.Code);
+					}
+
+					this.WriteLine("{0} = {1}{2}",entry.Name, entry.ValueIsNumeric ? entry.Value : count.ToString(), count < @enum.Entries.Count ? "," : string.Empty);
+					this.WriteLine("");
+					count++;
+				}
+
+				CloseBrace();
 				CloseBrace();
 			}
 		}

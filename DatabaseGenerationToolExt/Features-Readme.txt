@@ -1,4 +1,4 @@
-﻿The following are the features that need to be implemented for Unit of Work Project:
+﻿The following are the features that need to be implemented for Database Generation Tool:
 
 	1)	  Clean TT Files
 		   - Done

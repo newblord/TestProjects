@@ -220,13 +220,13 @@ namespace DatabaseGenerationToolExt.Helpers
 					sysType = "byte[]";
 					break;
 				case "geography":
-					if (Global.Setting.DisableGeographyTypes)
+					if (Global.DatabaseSetting.DisableGeographyTypes)
 						sysType = "";
 					else
 						sysType = "System.Data.Entity.Spatial.DbGeography";
 					break;
 				case "geometry":
-					if (Global.Setting.DisableGeographyTypes)
+					if (Global.DatabaseSetting.DisableGeographyTypes)
 						sysType = "";
 					else
 						sysType = "System.Data.Entity.Spatial.DbGeometry";

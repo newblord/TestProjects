@@ -106,8 +106,10 @@ namespace DatabaseGenerationToolExt.Helpers
 		public static string GetOutputPath(string projectName, string folderName, string defaultPath)
 		{
 			DTE dte = GetDTE();
+			bool isProjectSpecified = !String.IsNullOrEmpty(projectName);
+			bool isFolderSpecified = !String.IsNullOrEmpty(folderName);
 
-			if (String.IsNullOrEmpty(projectName) == true && String.IsNullOrEmpty(folderName) == true)
+			if (!isProjectSpecified && !isFolderSpecified)
 			{
 				return defaultPath;
 			}
@@ -115,7 +117,7 @@ namespace DatabaseGenerationToolExt.Helpers
 			Project prj = null;
 			ProjectItem item = null;
 
-			if (String.IsNullOrEmpty(projectName) == false)
+			if (isProjectSpecified)
 			{
 				prj = FindProject(projectName);
 			}
@@ -124,11 +126,11 @@ namespace DatabaseGenerationToolExt.Helpers
 			{
 				return Path.GetDirectoryName(prj.FullName);
 			}
-			else if (prj != null && String.IsNullOrEmpty(folderName) == false)
+			else if (prj != null && isFolderSpecified)
 			{
 				item = GetAllProjectItems(prj.ProjectItems).Where(i => i.Name == folderName).First();
 			}
-			else if (String.IsNullOrEmpty(folderName) == false)
+			else if (isFolderSpecified)
 			{
 				item = GetAllProjectItems(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
 						  .Where(i => i.Name == folderName).FirstOrDefault();
@@ -145,7 +147,6 @@ namespace DatabaseGenerationToolExt.Helpers
 		public static ProjectItem FindProjectItem(string projectName, string folderName)
 		{
 			DTE dte = GetDTE();
-
 			bool isProjectSpecified = !String.IsNullOrEmpty(projectName);
 			bool isFolderSpecified = !String.IsNullOrEmpty(folderName);
 

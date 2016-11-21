@@ -30,9 +30,9 @@ namespace DatabaseGenerationToolExt.Forms
 				{
 					Logger.ResetLogs();
 
-					Global.Setting.ConnectionStringName = conForm.SelectedConnection.ConnectionStringName;
-					Global.Setting.ConnectionString = conForm.SelectedConnection.ConnectionString;
-					Global.Setting.ProviderName = conForm.SelectedConnection.ProviderName;
+					Global.DatabaseSetting.ConnectionStringName = conForm.SelectedConnection.ConnectionStringName;
+					Global.DatabaseSetting.ConnectionString = conForm.SelectedConnection.ConnectionString;
+					Global.DatabaseSetting.ProviderName = conForm.SelectedConnection.ProviderName;
 
 					PopulateDropDownLists();
 					InitializeDatabaseObjects();
@@ -81,56 +81,134 @@ namespace DatabaseGenerationToolExt.Forms
 			cbx.BackColor = Color.Transparent;
 			cbx.ThreeState = true;
 
-			HandleTableSelectHeaderChange(cbx);
+			HandleStoredProcSelectHeaderChange(cbx);
 
 			cbx.CheckStateChanged += new EventHandler(StoredProcCheckboxHeader_CheckStateChanged);
 			gvStoredProcedures.Controls.Add(cbx);
 		}
 
+		private void SetupEnumGridViewHeaderCheckbox()
+		{
+			Rectangle rect = gvEnums.GetCellDisplayRectangle(0, -1, true);
+			rect.Size = new Size(20, 40);
+			rect.Y = rect.Height / 4;
+			rect.X = rect.Location.X + (rect.Width / 4);
+			CheckBox cbx = new CheckBox();
+			cbx.Name = "EnumSelectHeader";
+			cbx.Size = new Size(18, 18);
+			cbx.Location = rect.Location;
+			cbx.BackColor = Color.Transparent;
+			cbx.ThreeState = true;
+
+			HandleEnumSelectHeaderChange(cbx);
+
+			cbx.CheckStateChanged += new EventHandler(EnumCheckboxHeader_CheckStateChanged);
+			gvEnums.Controls.Add(cbx);
+		}
+
 		private void PopulateDropDownLists()
 		{
-			List<EnumValue> values = new List<EnumValue>();
+			List<ComboBoxValue> values = new List<ComboBoxValue>();
 
-			values.Add(new EnumValue { Name = "None", Value = 0 });
-			values.Add(new EnumValue { Name = "In Summary Block", Value = 1 });
-			values.Add(new EnumValue { Name = "End of Field", Value = 2 });
+			values.Add(new ComboBoxValue { Name = "None", Value = 0 });
+			values.Add(new ComboBoxValue { Name = "In Summary Block", Value = 1 });
+			values.Add(new ComboBoxValue { Name = "End of Field", Value = 2 });
 			ddlIncludeComments.DataSource = values;
 			ddlIncludeComments.DisplayMember = "Name";
 			ddlIncludeComments.ValueMember = "Value";
+
+			List<ComboBoxValue> projects = VisualStudioHelper.GetAllProjects().Select(x => new ComboBoxValue { Name = x.Name, Value = x.Name }).ToList();
+			projects.Insert(0, new ComboBoxValue() { Name = string.Empty, Value = string.Empty });
+
+			BindProjectList(ddlContextProject, projects);
+			BindProjectList(ddlModelProject, projects);
+			BindProjectList(ddlModelDtoProject, projects);
+			BindProjectList(ddlModelInterfaceProject, projects);
+			BindProjectList(ddlRepositoryProject, projects);
+			BindProjectList(ddlRepositoryInterfaceProject, projects);
+			BindProjectList(ddlServiceProject, projects);
+			BindProjectList(ddlServiceInterfaceProject, projects);
+			BindProjectList(ddlSpecificationProject, projects);
+			BindProjectList(ddlConfigurationProject, projects);
 		}
 
 		private void LoadSettings()
 		{
-			DatabaseGeneration.Settings.DatabaseGenerationSetting setting = Global.Setting;
+			DatabaseGeneration.Settings.DatabaseGenerationSetting databaseSetting = Global.DatabaseSetting;
+			DatabaseGeneration.Settings.ProjectSetting projectSetting = Global.ProjectSetting;
 
-			if (setting != null)
+			if (databaseSetting != null)
 			{
-				txtDbContextName.DataBindings.Add("Text", setting, "DatabaseContextName");
-				txtContextInterfaceBaseClass.DataBindings.Add("Text", setting, "ContextInterfaceBaseClass");
-				txtContextBaseClass.DataBindings.Add("Text", setting, "ContextBaseClass");
-				txtConfigurationClassName.DataBindings.Add("Text", setting, "ConfigurationClassName");
-				ddlIncludeComments.SelectedValue = (int)setting.IncludeComments;
+				txtDbContextName.DataBindings.Add("Text", databaseSetting, "DatabaseContextName");
+				txtContextInterfaceBaseClass.DataBindings.Add("Text", databaseSetting, "ContextInterfaceBaseClass");
+				txtContextBaseClass.DataBindings.Add("Text", databaseSetting, "ContextBaseClass");
+				txtConfigurationClassName.DataBindings.Add("Text", databaseSetting, "ConfigurationClassName");
+				ddlIncludeComments.SelectedValue = (int)databaseSetting.IncludeComments;
 
-				cbxPartialClasses.DataBindings.Add("Checked", setting, "MakeClassesPartial");
-				cbxPartialInterfaces.DataBindings.Add("Checked", setting, "MakeInterfacesPartial");
-				cbxPartialContextInterface.DataBindings.Add("Checked", setting, "MakeContextInterfacePartial");
-				cbxUseDataAnnotations.DataBindings.Add("Checked", setting, "UseDataAnnotations");
-				cbxGenerateContextClass.DataBindings.Add("Checked", setting, "GenerateContextClass");
-				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", setting, "GenerateUnitOfWorkInterface");
-				cbxVirtualReverseNavProperty.DataBindings.Add("Checked", setting, "VirtualReverseNavigationProperties");
-				cbxUseCamelCase.DataBindings.Add("Checked", setting, "UseCamelCase");
-				cbxDisableGeographyTypes.DataBindings.Add("Checked", setting, "DisableGeographyTypes");
-				cbxNullableShortHand.DataBindings.Add("Checked", setting, "NullableShortHand");
-				cbxPrependSchema.DataBindings.Add("Checked", setting, "PrependSchemaName");
-				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", setting, "IncludeQueryTraceOn9481Flag");
+				cbxPartialClasses.DataBindings.Add("Checked", databaseSetting, "MakeClassesPartial");
+				cbxPartialInterfaces.DataBindings.Add("Checked", databaseSetting, "MakeInterfacesPartial");
+				cbxPartialContextInterface.DataBindings.Add("Checked", databaseSetting, "MakeContextInterfacePartial");
+				cbxUseDataAnnotations.DataBindings.Add("Checked", databaseSetting, "UseDataAnnotations");
+				cbxGenerateContextClass.DataBindings.Add("Checked", databaseSetting, "GenerateContextClass");
+				cbxGenerateUnitOfWorkInterface.DataBindings.Add("Checked", databaseSetting, "GenerateUnitOfWorkInterface");
+				cbxVirtualReverseNavProperty.DataBindings.Add("Checked", databaseSetting, "VirtualReverseNavigationProperties");
+				cbxUseCamelCase.DataBindings.Add("Checked", databaseSetting, "UseCamelCase");
+				cbxDisableGeographyTypes.DataBindings.Add("Checked", databaseSetting, "DisableGeographyTypes");
+				cbxNullableShortHand.DataBindings.Add("Checked", databaseSetting, "NullableShortHand");
+				cbxPrependSchema.DataBindings.Add("Checked", databaseSetting, "PrependSchemaName");
+				cbxIncludeQueryTraceOn.DataBindings.Add("Checked", databaseSetting, "IncludeQueryTraceOn9481Flag");
 			}
+
+			if(projectSetting != null)
+			{
+				ddlContextProject.SelectedValue = projectSetting.ContextProjectName;
+				ddlModelProject.SelectedValue = projectSetting.ModelProjectName;
+				ddlModelDtoProject.SelectedValue = projectSetting.ModelDtoProjectName;
+				ddlModelInterfaceProject.SelectedValue = projectSetting.ModelInterfaceProjectName;
+				ddlRepositoryProject.SelectedValue = projectSetting.RepositoryProjectName;
+				ddlRepositoryInterfaceProject.SelectedValue = projectSetting.RepositoryInterfaceProjectName;
+				ddlServiceProject.SelectedValue = projectSetting.ServiceProjectName;
+				ddlServiceInterfaceProject.SelectedValue = projectSetting.ServiceInterfaceProjectName;
+				ddlSpecificationProject.SelectedValue = projectSetting.SpecificationProjectName;
+				ddlConfigurationProject.SelectedValue = projectSetting.ConfigurationProjectName;
+
+				txtContextFolder.DataBindings.Add("Text", projectSetting, "ContextFolderName");
+				txtModelFolder.DataBindings.Add("Text", projectSetting, "ModelFolderName");
+				txtModelDtoFolder.DataBindings.Add("Text", projectSetting, "ModelDtoFolderName");
+				txtModelInterfaceFolder.DataBindings.Add("Text", projectSetting, "ModelInterfaceFolderName");
+				txtRepositoryFolder.DataBindings.Add("Text", projectSetting, "RepositoryFolderName");
+				txtRepositoryInterfaceFolder.DataBindings.Add("Text", projectSetting, "RepositoryInterfaceFolderName");
+				txtServiceFolder.DataBindings.Add("Text", projectSetting, "ServiceFolderName");
+				txtServiceInterfaceFolder.DataBindings.Add("Text", projectSetting, "ServiceInterfaceFolderName");
+				txtSpecificationFolder.DataBindings.Add("Text", projectSetting, "SpecificationFolderName");
+				txtConfigurationFolder.DataBindings.Add("Text", projectSetting, "ConfigurationFolderName");
+
+				txtContextNamespace.DataBindings.Add("Text", projectSetting, "ContextNamespace");
+				txtModelNamespace.DataBindings.Add("Text", projectSetting, "ModelNamespace");
+				txtModelDtoNamespace.DataBindings.Add("Text", projectSetting, "ModelDtoNamespace");
+				txtModelInterfaceNamespace.DataBindings.Add("Text", projectSetting, "ModelInterfaceNamespace");
+				txtRepositoryNamespace.DataBindings.Add("Text", projectSetting, "RepositoryNamespace");
+				txtRepositoryInterfaceNamespace.DataBindings.Add("Text", projectSetting, "RepositoryInterfaceNamespace");
+				txtServiceNamespace.DataBindings.Add("Text", projectSetting, "ServiceNamespace");
+				txtServiceInterfaceNamespace.DataBindings.Add("Text", projectSetting, "ServiceInterfaceNamespace");
+				txtSpecificationNamespace.DataBindings.Add("Text", projectSetting, "SpecificationNamespace");
+				txtConfigurationNamespace.DataBindings.Add("Text", projectSetting, "ConfigurationNamespace");
+			}
+		}
+
+		private void BindProjectList(ComboBox cb, List<ComboBoxValue> list)
+		{
+			cb.BindingContext = new BindingContext();
+			cb.DataSource = list;
+			cb.DisplayMember = "Name";
+			cb.ValueMember = "Value";
 		}
 
 		private void InitializeDatabaseObjects()
 		{
 			InitializeDatabaseTables();
 			InitializeDatabaseStoredProcedures();
-			//InitializeDatabaseFunctions();
+			InitializeDatabaseSpellFunctions();
 		}
 
 		private void InitializeDatabaseTables()
@@ -150,7 +228,7 @@ namespace DatabaseGenerationToolExt.Forms
 							ORDER  BY s.NAME,o.NAME 
 							";
 
-			using (SqlConnection connection = new SqlConnection(Global.Setting.ConnectionString))
+			using (SqlConnection connection = new SqlConnection(Global.DatabaseSetting.ConnectionString))
 			{
 				connection.Open();
 				SqlCommand command = connection.CreateCommand();
@@ -199,7 +277,7 @@ namespace DatabaseGenerationToolExt.Forms
 											ORDER  BY o.type,o.NAME 
 											";
 
-			using (SqlConnection connection = new SqlConnection(Global.Setting.ConnectionString))
+			using (SqlConnection connection = new SqlConnection(Global.DatabaseSetting.ConnectionString))
 			{
 				connection.Open();
 				SqlCommand command = connection.CreateCommand();
@@ -230,7 +308,97 @@ namespace DatabaseGenerationToolExt.Forms
 
 			gvStoredProcedures.DataSource = sprocData;
 		}
-		
+
+		private void InitializeDatabaseSpellFunctions()
+		{
+			List<EnumData> enumData = new List<EnumData>();
+
+			string sql = @"DECLARE @functions TABLE
+								  (
+										Name   VARCHAR(500),
+										RawText VARCHAR(max)
+								  )
+								DECLARE @t TABLE
+								  (
+										line VARCHAR(max)
+								  )
+								DECLARE @rawText VARCHAR(max)
+								DECLARE @name VARCHAR(500)
+								DECLARE db_cursor CURSOR FOR
+									SELECT
+										NAME
+									FROM   sys.objects
+									WHERE
+										type = 'FN'
+										AND NAME LIKE '%FN_Spell_%'
+
+								OPEN db_cursor
+
+								FETCH NEXT FROM db_cursor INTO @name
+
+								WHILE @@FETCH_STATUS = 0
+									BEGIN
+										INSERT INTO @t
+										EXEC Sp_helptext
+											@name
+
+										SELECT
+											@rawText = Stuff((SELECT
+																	line AS [text()]
+																FROM   @t
+																FOR XML PATH (''), Type).value('.[1]', 'nvarchar(max)'), 1, 0, '')
+
+										INSERT INTO @functions
+														(Name,RawText)
+										VALUES      (@name,@rawText)
+
+										DELETE FROM @t
+
+										FETCH NEXT FROM db_cursor INTO @name
+									END
+
+								CLOSE db_cursor
+
+								DEALLOCATE db_cursor
+
+								SELECT
+									Name,
+									RawText
+								FROM   @functions";
+
+			using (SqlConnection connection = new SqlConnection(Global.DatabaseSetting.ConnectionString))
+			{
+				connection.Open();
+				SqlCommand command = connection.CreateCommand();
+
+				command.CommandType = CommandType.Text;
+				command.CommandText = sql;
+
+				SqlDataReader reader = command.ExecuteReader();
+
+
+				while (reader.Read())
+				{
+					EnumData data = Global.SelectedEnums.Where(x => x.EnumName == reader["Name"].ToString()).FirstOrDefault();
+
+					if (data == null)
+					{
+						data = new EnumData();
+
+						data.EnumName = reader["Name"].ToString();
+						data.EnumSelect = false;
+					}
+					data.FunctionRawText = reader["RawText"].ToString();
+
+					enumData.Add(data);
+				}
+
+				connection.Close();
+			}
+
+			gvEnums.DataSource = enumData;
+		}
+
 		#endregion
 
 		#region Events
@@ -239,8 +407,8 @@ namespace DatabaseGenerationToolExt.Forms
 		{
 			SetupTableGridViewHeaderCheckbox();
 			SetupStoredProcedureGridViewHeaderCheckbox();
+			SetupEnumGridViewHeaderCheckbox();
 			UpdateTableSettings();
-			HandleStoredProcSelectChange(true);
 		}
 
 		private void DatabaseObjectSelector_FormClosing(object sender, FormClosingEventArgs e)
@@ -248,32 +416,28 @@ namespace DatabaseGenerationToolExt.Forms
 			Global.ResetValues();
 		}
 
-		private void tcDatabaseObjects_Selected(object sender, TabControlEventArgs e)
-		{
-			TabPage tp = e.TabPage;
-
-			//int totalWidth = 0;
-
-			//if (tp.Text == "Views")
-			//{
-			//	foreach (DataGridViewColumn c in gvViews.Columns)
-			//	{
-			//		totalWidth += c.Width;
-			//	}
-
-			//	this.Width = totalWidth;
-			//}
-		}
-
 		private void btnGenerate_Click(object sender, EventArgs e)
 		{
 			List<TableData> tableData = (List<TableData>)gvTables.DataSource;
 			List<StoredProcedureData> sprocData = (List<StoredProcedureData>)gvStoredProcedures.DataSource;
+			List<EnumData> enumData = (List<EnumData>)gvEnums.DataSource;
 
 			Global.SelectedTables = tableData.Where(x => x.TableSelect).ToList();
 			Global.SelectedStoredProcedures = sprocData.Where(x => x.StoredProcSelect).ToList();
+			Global.SelectedEnums = enumData.Where(x => x.EnumSelect).ToList();
 
-			Global.Setting.IncludeComments = (DatabaseGeneration.Models.CommentsStyle)ddlIncludeComments.SelectedValue;
+			Global.DatabaseSetting.IncludeComments = (DatabaseGeneration.Models.CommentsStyle)ddlIncludeComments.SelectedValue;
+
+			Global.ProjectSetting.ContextProjectName = ddlContextProject.SelectedValue.ToString();
+			Global.ProjectSetting.ModelProjectName = ddlModelProject.SelectedValue.ToString();
+			Global.ProjectSetting.ModelDtoProjectName = ddlModelDtoProject.SelectedValue.ToString();
+			Global.ProjectSetting.ModelInterfaceProjectName = ddlModelInterfaceProject.SelectedValue.ToString();
+			Global.ProjectSetting.RepositoryProjectName = ddlRepositoryProject.SelectedValue.ToString();
+			Global.ProjectSetting.RepositoryInterfaceProjectName = ddlRepositoryInterfaceProject.SelectedValue.ToString();
+			Global.ProjectSetting.ServiceProjectName = ddlServiceProject.SelectedValue.ToString();
+			Global.ProjectSetting.ServiceInterfaceProjectName = ddlServiceInterfaceProject.SelectedValue.ToString();
+			Global.ProjectSetting.SpecificationProjectName = ddlSpecificationProject.SelectedValue.ToString();
+			Global.ProjectSetting.ConfigurationProjectName = ddlConfigurationProject.SelectedValue.ToString();
 
 			// Read schema
 
@@ -281,13 +445,11 @@ namespace DatabaseGenerationToolExt.Forms
 
 			var tables = reader.LoadTables();
 			var storedProcs = reader.LoadStoredProcs();
+			var enums = reader.LoadEnums();
 
 			// Generate output
-			if (tables.Count > 0 || storedProcs.Count > 0)
-			{
-				DesignPattern designPattern = new EntityFrameworkDesignPattern("4.61", tables, storedProcs);
-				designPattern.CreateFiles();
-			}
+			DesignPattern designPattern = new EntityFrameworkDesignPattern("4.61", tables, storedProcs, enums);
+			designPattern.CreateFiles();
 
 			this.Close();
 		}
@@ -571,7 +733,6 @@ namespace DatabaseGenerationToolExt.Forms
 		}
 
 		#endregion
-
 		#endregion
 
 		#region Tab - Stored Procedures
@@ -612,6 +773,8 @@ namespace DatabaseGenerationToolExt.Forms
 		}
 
 		#endregion
+
+		#region Events
 
 		private void gvStoredProcedures_CellContentClick(object sender, DataGridViewCellEventArgs e)
 		{
@@ -663,7 +826,101 @@ namespace DatabaseGenerationToolExt.Forms
 		}
 
 		#endregion
+		#endregion
 
+		#region Tab - Enums
+
+		#region Private Methods
+
+		private void HandleEnumSelectChange(bool isChecked)
+		{
+			CheckBox cbxHeader = (CheckBox)gvEnums.Controls.Find("EnumSelectHeader", false).First();
+
+			HandleEnumSelectHeaderChange(cbxHeader);
+
+			if (cbxHeader.CheckState == CheckState.Checked && !isChecked ||
+					cbxHeader.CheckState == CheckState.Unchecked && isChecked)
+			{
+				cbxHeader.CheckState = CheckState.Indeterminate;
+			}
+		}
+
+		private void HandleEnumSelectHeaderChange(CheckBox cbx)
+		{
+			List<EnumData> enumData = (List<EnumData>)gvEnums.DataSource;
+
+			int checkedCount = enumData.Where(x => x.EnumSelect == true).Count();
+
+			if (checkedCount > 0 && checkedCount < enumData.Count)
+			{
+				cbx.CheckState = CheckState.Indeterminate;
+			}
+			else if (checkedCount == enumData.Count)
+			{
+				cbx.CheckState = CheckState.Checked;
+			}
+			else
+			{
+				cbx.CheckState = CheckState.Unchecked;
+			}
+		}
+
+		#endregion
+
+		#region Events
+
+		private void gvEnums_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			gvEnums.CommitEdit(DataGridViewDataErrorContexts.Commit);
+		}
+
+		private void gvEnums_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.ColumnIndex > -1 && e.RowIndex > -1)
+			{
+				DataGridViewCheckBoxCell cbx = (DataGridViewCheckBoxCell)gvEnums[e.ColumnIndex, e.RowIndex];
+
+				if (cbx.EditingCellValueChanged)
+				{
+					if (e.ColumnIndex == 0)
+					{
+						bool isChecked = (bool)gvEnums[0, e.RowIndex].FormattedValue;
+
+						HandleEnumSelectChange(isChecked);
+
+						gvEnums.EndEdit();
+					}
+				}
+			}
+		}
+
+		public void EnumCheckboxHeader_CheckStateChanged(object sender, EventArgs e)
+		{
+			if (gvEnums.IsCurrentCellInEditMode)
+			{
+				gvEnums.EndEdit();
+			}
+
+			CheckBox cbx = (CheckBox)sender;
+
+			if (cbx.Focused)
+			{
+				if (cbx.CheckState == CheckState.Indeterminate)
+				{
+					cbx.CheckState = CheckState.Unchecked;
+				}
+
+				for (int i = 0; i < gvEnums.Rows.Count; i++)
+				{
+					gvEnums.Rows[i].Cells[0].Value = cbx.Checked;
+				}
+
+			}
+		}
+
+		#endregion
+
+		#endregion
 	}
 
 }
