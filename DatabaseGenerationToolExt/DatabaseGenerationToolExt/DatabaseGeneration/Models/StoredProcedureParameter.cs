@@ -6,17 +6,9 @@ using System.Threading.Tasks;
 
 namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 {
-	public class StoredProcedureParameter
+	public class StoredProcedureParameter : Base.Column
 	{
-		public int Ordinal { get; set; }
 		public StoredProcedureParameterMode Mode { get; set; }
-		public string Name { get; set; }
-		public string NameHumanCase { get; set; }
-		public string SqlDbType { get; set; }
-		public string PropertyType { get; set; }
-		public string UserDefinedTypeName { get; set; }
-		public int DateTimePrecision { get; set; }
-		public int MaxLength { get; set; }
 		public int Precision { get; set; }
 		public int Scale { get; set; }
 	}

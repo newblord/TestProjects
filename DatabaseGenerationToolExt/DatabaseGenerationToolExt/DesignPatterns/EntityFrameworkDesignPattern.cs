@@ -11,8 +11,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 {
 	public class EntityFrameworkDesignPattern : DesignPattern
 	{
-		public EntityFrameworkDesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs, List<DatabaseGeneration.Models.Enum> enums)
-			: base(targetFrameworkVersion, tables, storedProcs, enums)
+		public EntityFrameworkDesignPattern(Tables tables, List<StoredProcedure> storedProcs, List<DatabaseGeneration.Models.Enum> enums)
+			: base(tables, storedProcs, enums)
 		{
 		}
 
@@ -43,16 +43,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("using System;");
 				WriteLine("using System.Data.Entity;");
+				WriteLine("using System.Data.Entity.Core.Objects;");
 
 				if (Tables.Where(x => x.TableData.TableSelect).Any())
 				{
 					WriteLine("using {0};", ProjectSetting.ModelNamespace);
-				}
-
-				if (IsSupportedFrameworkVersion("4.5"))
-				{
-					WriteLine("using System.Threading;");
-					WriteLine("using System.Threading.Tasks;");
 				}
 
 				if (StoredProcedures.Any())
@@ -73,40 +68,13 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("int SaveChanges();");
 
-				if (IsSupportedFrameworkVersion("4.5"))
-				{
-					WriteLine("Task<int> SaveChangesAsync();");
-					WriteLine("Task<int> SaveChangesAsync(CancellationToken cancellationToken);");
-				}
-
 				if (StoredProcedures.Any())
 				{
 					WriteLine("");
 					WriteLine("// Stored Procedures");
 					foreach (StoredProcedure sp in StoredProcedures)
 					{
-						int returnModelsCount = sp.ReturnModels.Count;
-						if (returnModelsCount == 1)
-						{
-							WriteLine("{0} {1}({2});", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, false));
-							WriteLine("{0} {1}({2});", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, true));
-						}
-						else
-						{
-							WriteLine("{0} {1}({2});", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, false));
-						}
-
-						if (IsSupportedFrameworkVersion("4.5"))
-						{
-							if (StoredProcedureHelper.StoredProcHasOutParams(sp) || sp.ReturnModels.Count == 0)
-							{
-								WriteLine("// {0}Async cannot be created due to having out parameters, or is relying on the procedure result ({1})", StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcReturnType(sp));
-							}
-							else
-							{
-								WriteLine("Task<{0}> {1}Async({2});", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, false));
-							}
-						}
+						WriteLine("{0} {1}({2});", sp.ReturnType, sp.NameHumanCase, sp.GetParameterString());
 					}
 
 				}
@@ -137,16 +105,11 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				WriteLine("using System.Data.Entity.Infrastructure;");
 				WriteLine("using System.Data.Common;");
 				WriteLine("using System.Data.SqlClient;");
+				WriteLine("using System.Data.Entity.Core.Objects;");
 
 				if (StoredProcedures.Any())
 				{
 					WriteLine("using System.Linq;");
-				}
-
-				if (IsSupportedFrameworkVersion("4.5"))
-				{
-					WriteLine("using System.Threading;");
-					WriteLine("using System.Threading.Tasks;");
 				}
 
 				if (Tables.Where(x => x.TableData.TableSelect).Any())
@@ -189,28 +152,6 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				OpenBrace();
 				CloseBrace();
 
-				/*
-				WriteLine("public {0}(string connectionString, DbCompiledModel model)", Setting.DatabaseContextName);
-				WriteLine("\t: base(connectionString, model)");
-				OpenMethodBrace();
-				CloseMethodBrace();
-
-				WriteLine("public {0}(DbConnection existingConnection, bool contextOwnsConnection)", Setting.DatabaseContextName);
-				WriteLine("\t: base(existingConnection, contextOwnsConnection)");
-				OpenMethodBrace();
-				CloseMethodBrace();
-
-				WriteLine("public {0}(DbConnection existingConnection, DbCompiledModel model, bool contextOwnsConnection)", Setting.DatabaseContextName);
-				WriteLine("\t: base(existingConnection, model, contextOwnsConnection)");
-				OpenMethodBrace();
-				CloseMethodBrace();
-
-				WriteLine("protected override void Dispose(bool disposing)");
-				OpenMethodBrace();
-				WriteLine("base.Dispose(disposing);");
-				CloseMethodBrace();
-				*/
-
 				WriteLine("public bool IsSqlParameterNull(SqlParameter param)");
 				OpenBrace();
 				WriteLine("var sqlValue = param.SqlValue;");
@@ -252,149 +193,131 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (StoredProcedures.Any())
 				{
-					foreach (StoredProcedure sp in StoredProcedures)
+					foreach (StoredProcedure sp in StoredProcedures.OrderBy(x => x.NameHumanCase).AsEnumerable())
 					{
-						string spReturnClassName = StoredProcedureHelper.WriteStoredProcReturnModelName(sp);
-						string spExecName = StoredProcedureHelper.WriteStoredProcFunctionName(sp);
+						string spReturnClassName = sp.ReturnModelName;
+						string spExecName = sp.NameHumanCase;
 						int returnModelsCount = sp.ReturnModels.Count;
 						if (returnModelsCount > 0)
 						{
-							if (returnModelsCount == 1)
-							{
-								WriteLine("public {0} {1}({2})", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, false));
-								OpenBrace();
-								WriteLine("int procResult;");
-								WriteLine("return {0}({1});", spExecName, StoredProcedureHelper.WriteStoredProcFunctionOverloadCall(sp));
-								CloseBrace();
-
-								WriteLine("public {0} {1}({2})", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, true));
-							}
-							else
-							{
-								WriteLine("public {0} {1}({2})", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, false));
-							}
-							OpenBrace();
-							WriteLine(StoredProcedureHelper.WriteStoredProcFunctionDeclareSqlParameter(sp, true));
-
-							if (returnModelsCount == 1)
-							{
-								var exec = string.Format("EXEC @procResult = [{0}].[{1}] {2}", sp.Schema, sp.Name, StoredProcedureHelper.WriteStoredProcFunctionSqlAtParams(sp));
-								WriteLine("var procResultData = Database.SqlQuery<{0}>(\"{1}\", {2}).ToList();", spReturnClassName, exec, StoredProcedureHelper.WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
-								WriteLine("{0}", StoredProcedureHelper.WriteStoredProcFunctionSetSqlParameters(sp, false));
-								WriteLine("procResult = (int) procResultParam.Value;");
-							}
-							else
-							{
-								var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name);
-								WriteLine("{0}", StoredProcedureHelper.WriteStoredProcFunctionSetSqlParameters(sp, false));
-								WriteLine("var procResultData = new {0}();", spReturnClassName);
-								WriteLine("var cmd = Database.Connection.CreateCommand();");
-								WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
-								WriteLine("cmd.CommandText = \"{0}\";", exec);
-
-								foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
-								{
-									WriteLine("cmd.Parameters.Add({0});", StoredProcedureHelper.WriteStoredProcSqlParameterName(p));
-								}
-
-								WriteLine("try");
-								OpenBrace();
-								WriteLine("Database.Connection.Open();");
-								WriteLine("var reader = cmd.ExecuteReader();");
-								WriteLine("var objectContext = ((IObjectContextAdapter) this).ObjectContext;");
-
-								int n = 0;
-								var returnModelCount = sp.ReturnModels.Count;
-								foreach (var returnModel in sp.ReturnModels)
-								{
-									n++;
-									WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();", n, spReturnClassName);
-									if (n < returnModelCount)
-									{
-										WriteLine("reader.NextResult();");
-
-									}
-								}
-								CloseBrace();
-								WriteLine("finally");
-								OpenBrace();
-								WriteLine("Database.Connection.Close();");
-								CloseBrace();
-							}
-							WriteLine("return procResultData;");
-							CloseBrace();
-
+							WriteLine("public {0} {1}({2})", sp.ReturnType, spExecName, sp.GetParameterString());
 						}
 						else
 						{
-							WriteLine("public int {0}({1})", spExecName, StoredProcedureHelper.WriteStoredProcFunctionParams(sp, true));
-							OpenBrace();
-							WriteLine("{0} ", StoredProcedureHelper.WriteStoredProcFunctionDeclareSqlParameter(sp, true));
-							WriteLine("Database.ExecuteSqlCommand(\"EXEC @procResult = [{0}].[{1}] {2}\", {3});", sp.Schema, sp.Name, StoredProcedureHelper.WriteStoredProcFunctionSqlAtParams(sp), StoredProcedureHelper.WriteStoredProcFunctionSqlParameterAnonymousArray(sp, true));
-							WriteLine("{0} ", StoredProcedureHelper.WriteStoredProcFunctionSetSqlParameters(sp, false));
-							WriteLine("return (int) procResultParam.Value;");
-							CloseBrace();
-
+							WriteLine("public int {0}({1})", spExecName, sp.GetParameterString());
 						}
 
-						// Async
-						if (IsSupportedFrameworkVersion("4.5") && !StoredProcedureHelper.StoredProcHasOutParams(sp) && returnModelsCount > 0)
+						OpenBrace();
+
+						foreach (StoredProcedureParameter p in sp.Parameters)
 						{
-							WriteLine("public async Task<{0}> {1}Async({2})", StoredProcedureHelper.WriteStoredProcReturnType(sp), StoredProcedureHelper.WriteStoredProcFunctionName(sp), StoredProcedureHelper.WriteStoredProcFunctionParams(sp, false));
-							OpenBrace();
-							WriteLine("{0}", StoredProcedureHelper.WriteStoredProcFunctionDeclareSqlParameter(sp, false));
-							if (returnModelsCount == 1)
+							bool isNullable = !PropertyTypeHelper.NotNullable.Contains(p.PropertyType.ToLower());
+							var getValueOrDefault = isNullable ? ".GetValueOrDefault()" : string.Empty;
+
+							if (returnModelsCount <= 1)
 							{
-								var parameters = StoredProcedureHelper.WriteStoredProcFunctionSqlParameterAnonymousArray(sp, false);
-								if (!string.IsNullOrWhiteSpace(parameters))
-									parameters = ", " + parameters;
-								var exec = string.Format("EXEC [{0}].[{1}] {2}", sp.Schema, sp.Name, StoredProcedureHelper.WriteStoredProcFunctionSqlAtParams(sp));
-								WriteLine("var procResultData = await Database.SqlQuery<{0}>(\"{1}\"{2}).ToListAsync();", spReturnClassName, exec, parameters);
-								WriteLine("{0}", StoredProcedureHelper.WriteStoredProcFunctionSetSqlParameters(sp, false));
+								if (isNullable)
+								{
+									WriteLine($"var {p.ParameterName}Param = {p.ParameterName}.HasValue ?");
+								}
+								else
+								{
+									WriteLine($"var {p.ParameterName}Param = {p.ParameterName} != null ?");
+								}
+
+								WriteLine($"new ObjectParameter(\"{p.ParameterName}\", {p.ParameterName}) :");
+								WriteLine($"new ObjectParameter(\"{p.ParameterName}\", typeof({p.PropertyType}));");
+								WriteLine("");
 							}
 							else
 							{
-								var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name);
-								WriteLine("{0}", StoredProcedureHelper.WriteStoredProcFunctionSetSqlParameters(sp, false));
-								WriteLine("var procResultData = new {0}();", spReturnClassName);
-								WriteLine("var cmd = Database.Connection.CreateCommand();");
-								WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
-								WriteLine("cmd.CommandText = \"{0}\";", exec);
-								foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
-								{
-									WriteLine("cmd.Parameters.Add({0});", StoredProcedureHelper.WriteStoredProcSqlParameterName(p));
-								}
+								WriteLine("var {0} = new System.Data.SqlClient.SqlParameter {{ ParameterName = \"{1}\", SqlDbType = System.Data.SqlDbType.{2}, Direction = System.Data.ParameterDirection.{3}{4}{5}{6} }};",
+												 p.NameHumanCase + "Param",
+												 p.Name,
+												 p.SqlPropertyType,
+												 p.Mode == StoredProcedureParameterMode.In ? "Input" : "Output",
+												 p.Mode == StoredProcedureParameterMode.In ? ", Value = " + p.NameHumanCase + getValueOrDefault : string.Empty,
+												 p.MaxLength != 0 ? ", Size = " + p.MaxLength : string.Empty,
+												 (p.Precision > 0 || p.Scale > 0) ? ", Precision = " + p.Precision + ", Scale = " + p.Scale : string.Empty);
 
-								WriteLine("try");
-								OpenBrace();
-								WriteLine("Database.Connection.Open();");
-								WriteLine("var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);");
-								WriteLine("var objectContext = ((IObjectContextAdapter) this).ObjectContext;");
-
-								int n = 0;
-								var returnModelCount = sp.ReturnModels.Count;
-								foreach (var returnModel in sp.ReturnModels)
+								if (p.Mode == StoredProcedureParameterMode.In)
 								{
-									n++;
-									WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();", n, spReturnClassName);
-									if (n < returnModelCount)
+									if (isNullable)
 									{
-										WriteLine("await reader.NextResultAsync().ConfigureAwait(false);");
+										WriteLine("if (!{0}.HasValue)", p.NameHumanCase);
+										WriteLine("{0}Param.Value = System.DBNull.Value;", p.NameHumanCase);
+										WriteLine("");
+									}
+									else
+									{
+										WriteLine("if ({0}Param.Value == null)", p.NameHumanCase);
+										WriteLine("{0}Param.Value = System.DBNull.Value;", p.NameHumanCase);
+										WriteLine("");
 									}
 								}
+							}
+						}
 
-								CloseBrace();
-								WriteLine("finally");
-								OpenBrace();
-								WriteLine("Database.Connection.Close();");
-								CloseBrace();
+						if (returnModelsCount == 0)
+						{
+							WriteLine("return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction(\"{0}\"{1}{2});", sp.Name, sp.Parameters.Any() ? ", " : string.Empty, string.Join(", ", sp.Parameters.Select(x => x.ParameterName + "Param")));
+						}
+						else if (returnModelsCount == 1)
+						{
+							WriteLine("return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<{0}>(\"{1}\"{2}{3});", sp.ReturnModelName, sp.Name, sp.Parameters.Any() ? ", " : string.Empty, string.Join(", ", sp.Parameters.Select(x => x.ParameterName + "Param")));
+						}
+						else
+						{
+							var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name);
+
+							foreach (var p in sp.Parameters.Where(x => x.Mode != StoredProcedureParameterMode.In).OrderBy(x => x.Ordinal))
+							{
+								string Default = string.Format("default({0})", p.PropertyType);
+								bool notNullable = PropertyTypeHelper.NotNullable.Contains(p.PropertyType.ToLower());
+
+								WriteLine("if (IsSqlParameterNull({0}Param))", p.NameHumanCase);
+								WriteLine("{0} = {1};", p.NameHumanCase, notNullable ? Default : "null");
+								WriteLine("else");
+								WriteLine("{0} = ({1}) {2}Param.Value;", p.NameHumanCase, p.PropertyType, p.NameHumanCase);
 							}
 
-							WriteLine("return procResultData;");
-							CloseBrace();
-						}
-					}
+							WriteLine("var procResultData = new {0}();", spReturnClassName);
+							WriteLine("var cmd = Database.Connection.CreateCommand();");
+							WriteLine("cmd.CommandType = System.Data.CommandType.StoredProcedure;");
+							WriteLine("cmd.CommandText = \"{0}\";", exec);
 
+							foreach (var p in sp.Parameters.OrderBy(x => x.Ordinal))
+							{
+								WriteLine("cmd.Parameters.Add({0});", p.NameHumanCase + "Param");
+							}
+
+							WriteLine("try");
+							OpenBrace();
+							WriteLine("Database.Connection.Open();");
+							WriteLine("var reader = cmd.ExecuteReader();");
+							WriteLine("var objectContext = ((IObjectContextAdapter) this).ObjectContext;");
+
+							int n = 0;
+							var returnModelCount = sp.ReturnModels.Count;
+							foreach (var returnModel in sp.ReturnModels)
+							{
+								n++;
+								WriteLine("procResultData.ResultSet{0} = objectContext.Translate<{1}.ResultSetModel{0}>(reader).ToList();", n, spReturnClassName);
+								if (n < returnModelCount)
+								{
+									WriteLine("reader.NextResult();");
+
+								}
+							}
+							CloseBrace();
+							WriteLine("finally");
+							OpenBrace();
+							WriteLine("Database.Connection.Close();");
+							CloseBrace();
+							WriteLine("return procResultData;");
+						}
+						CloseBrace();
+					}
 				}
 				CloseBrace();
 				CloseBrace();
@@ -445,22 +368,22 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				BeginNamespace(ProjectSetting.ModelNamespace);
 
-				foreach(string da in tbl.DataAnnotations)
+				foreach (string da in tbl.DataAnnotations)
 				{
 					WriteLine(da);
 				}
 
 				BeginClass(tbl.NameHumanCase, DatabaseSetting.MakeClassesPartial, baseClasses);
 
-				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || DatabaseSetting.MakeClassesPartial)
+				if (tbl.Columns.Where(c => c.DefaultValue != string.Empty && !c.Hidden).Count() > 0 || DatabaseSetting.MakeClassesPartial)
 				{
 					WriteLine("[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Usage\", \"CA2214:DoNotCallOverridableMethodsInConstructors\")]");
 					WriteLine("public {0}()", tbl.NameHumanCase);
 					OpenBrace();
 
-					foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
+					foreach (TableColumn col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.DefaultValue != string.Empty && !c.Hidden))
 					{
-						WriteLine("{0} = {1};", col.NameHumanCase, col.Default);
+						WriteLine("{0} = {1};", col.NameHumanCase, col.DefaultValue);
 					}
 
 					if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
@@ -481,7 +404,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteLine("public {0}({1})", tbl.NameHumanCase, string.Join(", ", parameters));
 					OpenBrace();
 
-					foreach (Column col in computedColumns)
+					foreach (TableColumn col in computedColumns)
 					{
 						WriteLine("{0} = {1};", col.NameHumanCase, col.ParameterName);
 					}
@@ -489,7 +412,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					CloseBrace();
 				}
 
-				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
+				foreach (TableColumn col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
 					if ((DatabaseSetting.IncludeComments == CommentsStyle.InSummaryBlock) && !string.IsNullOrEmpty(col.SummaryComments))
 					{
@@ -498,7 +421,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						WriteLine("///</summary>");
 					}
 
-					foreach(string da in col.DataAnnotations)
+					foreach (string da in col.DataAnnotations)
 					{
 						WriteLine(da);
 					}
@@ -541,7 +464,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					WriteLine("");
 
-					foreach (Column col in tbl.Columns.Where(x => !x.IsComputed).OrderBy(x => x.Ordinal))
+					foreach (TableColumn col in tbl.Columns.Where(x => !x.IsComputed).OrderBy(x => x.Ordinal))
 					{
 						WriteLine("dto.{0} = {0};", col.NameHumanCase);
 					}
@@ -574,7 +497,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 				BeginNamespace(ProjectSetting.ModelInterfaceNamespace);
 				BeginInterface("I" + tbl.NameHumanCase, DatabaseSetting.MakeInterfacesPartial, "");
 
-				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
+				foreach (TableColumn col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
 					if (!col.IsComputed)
 					{
@@ -623,14 +546,14 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				BeginClass(className, DatabaseSetting.MakeClassesPartial, "");
 
-				if (tbl.Columns.Where(c => c.Default != string.Empty && !c.Hidden).Count() > 0 || DatabaseSetting.MakeClassesPartial)
+				if (tbl.Columns.Where(c => c.DefaultValue != string.Empty && !c.Hidden).Count() > 0 || DatabaseSetting.MakeClassesPartial)
 				{
 					WriteLine("public {0}()", className);
 					OpenBrace();
 
-					foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.Default != string.Empty && !c.Hidden))
+					foreach (TableColumn col in tbl.Columns.OrderBy(x => x.Ordinal).Where(c => c.DefaultValue != string.Empty && !c.Hidden))
 					{
-						WriteLine("{0} = {1};", col.NameHumanCase, col.Default);
+						WriteLine("{0} = {1};", col.NameHumanCase, col.DefaultValue);
 					}
 
 					if (tbl.ReverseNavigationProperties.Count() > 0 && DatabaseSetting.VirtualReverseNavigationProperties)
@@ -651,7 +574,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					WriteLine("public {0}({1})", className, string.Join(", ", parameters));
 					OpenBrace();
 
-					foreach (Column col in computedColumns)
+					foreach (TableColumn col in computedColumns)
 					{
 						WriteLine("{0} = {1};", col.NameHumanCase, col.ParameterName);
 					}
@@ -659,7 +582,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					CloseBrace();
 				}
 
-				foreach (Column col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
+				foreach (TableColumn col in tbl.Columns.OrderBy(x => x.Ordinal).Where(x => !x.Hidden))
 				{
 					WriteLine(col.Entity);
 				}
@@ -697,7 +620,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				WriteLine("");
 
-				foreach (Column col in tbl.Columns.Where(x => !x.IsComputed).OrderBy(x => x.Ordinal))
+				foreach (TableColumn col in tbl.Columns.Where(x => !x.IsComputed).OrderBy(x => x.Ordinal))
 				{
 					WriteLine("model.{0} = {0};", col.NameHumanCase);
 				}
@@ -751,7 +674,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 					}
 					WriteLine("HasKey({0});", tbl.PrimaryKeyNameHumanCase());
 
-					foreach (Column col in tbl.Columns.Where(x => !x.Hidden).OrderBy(x => x.Ordinal))
+					foreach (TableColumn col in tbl.Columns.Where(x => !x.Hidden).OrderBy(x => x.Ordinal))
 					{
 						WriteLine("{0}", col.Config);
 					}
@@ -886,7 +809,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("public void DeleteBy{0}({1} {2})", pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 						OpenBrace();
@@ -911,7 +834,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("public {0} FindBy{1}({2} {3})", returnObjectName, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 						OpenBrace();
@@ -961,25 +884,25 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("public IEnumerable<{0}> GetBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("public IEnumerable<{0}> GetBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 					OpenBrace();
-					WriteLine("return Context.{0}.Where(x => {1}){2};", tbl.NameHumanCase, index.CreateWhereString(), tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : ".AsEnumerable()");
+					WriteLine("return Context.{0}.Where(x => {1}){2};", tbl.NameHumanCase, index.GetWhereString(), tbl.TableData.GenerateModelDto ? ".Select(x => x.ToDTO())" : ".AsEnumerable()");
 					CloseBrace();
 				}
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("public {0} FindBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("public {0} FindBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 					OpenBrace();
 
 					if (tbl.TableData.GenerateModelDto)
 					{
-						WriteLine("var data = Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.CreateWhereString());
+						WriteLine("var data = Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.GetWhereString());
 						WriteLine("return data != null ? data.ToDTO() : null;");
 					}
 					else
 					{
-						WriteLine("return Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.CreateWhereString());
+						WriteLine("return Context.{0}.Where(x => {1}).FirstOrDefault();", tbl.NameHumanCase, index.GetWhereString());
 					}
 
 					CloseBrace();
@@ -1053,7 +976,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("void DeleteBy{0}({1} {2});", pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 					}
@@ -1064,7 +987,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("{0} FindBy{1}({2} {3});", returnObjectName, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 					}
@@ -1084,12 +1007,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("IEnumerable<{0}> GetBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("IEnumerable<{0}> GetBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 				}
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 				}
 
 				if (!DatabaseSetting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
@@ -1190,7 +1113,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("public void DeleteBy{0}({1} {2})", pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 						OpenBrace();
@@ -1213,7 +1136,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("public {0} FindBy{1}({2} {3})", returnObjectName, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 						OpenBrace();
@@ -1242,7 +1165,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("public IEnumerable<{0}> GetBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("public IEnumerable<{0}> GetBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 					OpenBrace();
 					WriteLine("return {0}.GetBy{1}({2});", repositoryVariableName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), string.Join(", ", index.Columns.Select(s => s.ParameterName)));
 					CloseBrace();
@@ -1250,7 +1173,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("public {0} FindBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("public {0} FindBy{1}({2})", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 					OpenBrace();
 					WriteLine("return {0}.FindBy{1}({2});", repositoryVariableName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), string.Join(", ", index.Columns.Select(s => s.ParameterName)));
 					CloseBrace();
@@ -1334,7 +1257,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("void DeleteBy{0}({1} {2});", pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 					}
@@ -1345,7 +1268,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				if (tbl.HasPrimaryKey)
 				{
-					foreach (Column pk in tbl.PrimaryKeys)
+					foreach (TableColumn pk in tbl.PrimaryKeys)
 					{
 						WriteLine("{0} FindBy{1}({2} {3});", returnObjectName, pk.NameHumanCase, pk.PropertyType, pk.ParameterName);
 					}
@@ -1365,12 +1288,12 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == false).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("IEnumerable<{0}> GetBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("IEnumerable<{0}> GetBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 				}
 
 				foreach (Index index in tbl.Indexes.Where(x => x.IsPrimaryKey == false && x.IsUnique == true).GroupBy(g => g.ColumnString).Select(s => s.First()))
 				{
-					WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.CreateParameterString());
+					WriteLine("{0} FindBy{1}({2});", returnObjectName, string.Join(string.Empty, index.Columns.Select(s => s.NameHumanCase)), index.GetParameterString());
 				}
 
 				if (!DatabaseSetting.VirtualReverseNavigationProperties && tbl.ReverseNavigationProperties.Any())
@@ -1401,26 +1324,24 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 		private void CreateStoredProcedures()
 		{
-			foreach (StoredProcedure sp in StoredProcedures.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any()) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.NameHumanCase) && !StoredProcedureHelper.StoredProcedureReturnTypes.ContainsKey(x.Name)))
+			foreach (StoredProcedure sp in StoredProcedures.Where(x => x.ReturnModels.Count > 0 && x.ReturnModels.Any(returnColumns => returnColumns.Any())))
 			{
-				string spReturnClassName = StoredProcedureHelper.WriteStoredProcReturnModelName(sp);
-
-				StartNewFile(spReturnClassName + DatabaseSetting.FileExtension);
+				StartNewFile(sp.ReturnModelName + DatabaseSetting.FileExtension);
 
 				CreateHeader();
 
 				WriteLine("using System.Collections.Generic;");
 				WriteLine("");
 
-				BeginClass(spReturnClassName, false, "");
+				BeginClass(sp.ReturnModelName, false, "");
 
 				var returnModelCount = sp.ReturnModels.Count;
 
 				if (returnModelCount < 2)
 				{
-					foreach (var returnColumn in sp.ReturnModels.First())
+					foreach (var col in sp.ReturnModels.First())
 					{
-						WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
+						WriteLine($"public {col.PropertyType} {col.NameHumanCase} {{ get; set; }}");
 					}
 				}
 				else
@@ -1432,9 +1353,9 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 						WriteLine("public class ResultSetModel{0}", model);
 						OpenBrace();
 
-						foreach (var returnColumn in returnModel)
+						foreach (var col in returnModel)
 						{
-							WriteLine("{0}", StoredProcedureHelper.WriteStoredProcReturnColumn(returnColumn));
+							WriteLine($"public {col.PropertyType} {col.NameHumanCase} {{ get; set; }}");
 						}
 						CloseBrace();
 
@@ -1473,10 +1394,10 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 
 					if (!entry.ValueIsNumeric && !string.IsNullOrEmpty(entry.Code))
 					{
-						this.WriteLine("[EnumCode(\"{0}\")]",entry.Code);
+						this.WriteLine("[EnumCode(\"{0}\")]", entry.Code);
 					}
 
-					this.WriteLine("{0} = {1}{2}",entry.Name, entry.ValueIsNumeric ? entry.Value : count.ToString(), count < @enum.Entries.Count ? "," : string.Empty);
+					this.WriteLine("{0} = {1}{2}", entry.Name, entry.ValueIsNumeric ? entry.Value : count.ToString(), count < @enum.Entries.Count ? "," : string.Empty);
 					this.WriteLine("");
 					count++;
 				}

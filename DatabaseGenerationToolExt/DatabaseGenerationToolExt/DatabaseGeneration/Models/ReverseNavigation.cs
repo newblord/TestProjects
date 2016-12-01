@@ -10,10 +10,10 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 	{
 		public Relationship Relationship { get; }
 		public string PKPropertyName { get; }
-		public Column PKColumn { get; }
+		public TableColumn PKColumn { get; }
 		public Table FKTable { get; }
 		public string FKPropertyName { get; }
-		public Column FKColumn { get; }
+		public TableColumn FKColumn { get; }
 		public string Constriant { get; }
 		public CommentsStyle IncludeComments { get; }
 		public string PropertyString { get; }
@@ -26,7 +26,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 			}
 		}
 
-		public ReverseNavigation(Relationship relationship, string pkPropertyName, Column pkColumn, Table fkTable, string fkPropertyName, Column fkColumn, string constraint, CommentsStyle includeComments)
+		public ReverseNavigation(Relationship relationship, string pkPropertyName, TableColumn pkColumn, Table fkTable, string fkPropertyName, TableColumn fkColumn, string constraint, CommentsStyle includeComments)
 		{
 			Relationship = relationship;
 			PKPropertyName = pkPropertyName;

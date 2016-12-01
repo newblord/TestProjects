@@ -456,7 +456,7 @@ namespace DatabaseGenerationToolExt.Forms
 			var enums = reader.LoadEnums();
 
 			// Generate output
-			DesignPattern designPattern = new EntityFrameworkDesignPattern("4.61", tables, storedProcs, enums);
+			DesignPattern designPattern = new EntityFrameworkDesignPattern(tables, storedProcs, enums);
 			designPattern.CreateFiles();
 
 			this.Close();

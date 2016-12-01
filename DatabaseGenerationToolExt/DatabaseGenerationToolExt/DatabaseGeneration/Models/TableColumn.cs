@@ -7,38 +7,18 @@ using System.Threading.Tasks;
 
 namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 {
-	public class Column
+	public class TableColumn : Base.Column
 	{
-		public string Name { get; set; } // Raw name of the column as obtained from the database
-		public string NameHumanCase { get; set; } // Name adjusted for C# output
-		public string ParameterName { get; set; } // Name with first letter as lowercase, based of NameHumanCase
-
 		public int DateTimePrecision { get; set; }
-		public string Default { get; set; }
-		public int MaxLength { get; set; }
+		public string DefaultValue { get; set; }
 		public int Precision { get; set; }
-		public string SqlPropertyType { get; set; }
-		public string PropertyType { get; set; }
 		public int Scale { get; set; }
-		public int Ordinal { get; set; }
 		public int PrimaryKeyOrdinal { get; set; }
 		public string ExtendedProperty { get; set; }
 		public string SummaryComments { get; set; }
 
 		public bool IsIdentity { get; set; }
 
-		private bool _isNullable;
-		public bool IsNullable
-		{
-			get
-			{
-				return _isNullable && !PropertyTypeHelper.NotNullable.Contains(PropertyType.ToLower());
-			}
-			set
-			{
-				_isNullable = value;
-			}
-		}
 		public bool IsPrimaryKey { get; set; }
 		public bool IsStoreGenerated { get; set; }
 		public bool IsRowVersion { get; set; }
@@ -67,7 +47,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 
 		public List<string> DataAnnotations { get; set; }
 
-		public Column()
+		public TableColumn()
 		{
 			ConfigForeignKeys = new List<string>();
 			EntityForeignKeys = new List<string>();
@@ -78,6 +58,14 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 		{
 			ConfigForeignKeys = new List<string>();
 			EntityForeignKeys = new List<string>();
+		}
+
+		public void SetupEntityAndConfig(CommentsStyle includeComments)
+		{
+			SetupEntity(includeComments);
+			SetupConfig();
+			SetupDataAnnotations();
+			CleanUpDefault();
 		}
 
 		private void SetupEntity(CommentsStyle includeComments)
@@ -103,8 +91,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 				SummaryComments = comments;
 			}
 
-			if (IsNullable)
-				PropertyType = String.Format(Global.DatabaseSetting.NullableShortHand ? "{0}?" : "Nullable<{0}>", PropertyType);
+			WrapPropertyTypeIfNullable();
 
 			Entity = string.Format("public {0} {1} {{ get; {2}set; }}{3}", PropertyType, NameHumanCase, IsComputed ? "private " : string.Empty, inlineComments);
 			InterfaceEntity = string.Format("{0} {1} {{ get; set; }}{2}", PropertyType, NameHumanCase, inlineComments);
@@ -160,61 +147,57 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 				}
 				if (IsMaxLength)
 					DataAnnotations.Add("[MaxLength]");
+				if (IsRowVersion)
+					DataAnnotations.Add("[Timestamp]");
 
-				DataAnnotations.Add(string.Format("[Column(\"{0}\", TypeName=\"{1}\")]"
+				DataAnnotations.Add(string.Format("[Column(\"{0}\", Order = \"{1}\" TypeName=\"{2}\")]"
 									 , Name
+									 , Ordinal
 									 , SqlPropertyType
 								//,IsPrimaryKey ? string.Format(", Order = {0}", PrimaryKeyOrdinal) : ""
 								));
 			}
 		}
 
-		public void SetupEntityAndConfig(CommentsStyle includeComments)
+		private void CleanUpDefault()
 		{
-			SetupEntity(includeComments);
-			SetupConfig();
-			SetupDataAnnotations();
-		}
-
-		public void CleanUpDefault()
-		{
-			if (string.IsNullOrWhiteSpace(Default))
+			if (string.IsNullOrWhiteSpace(DefaultValue))
 			{
-				Default = string.Empty;
+				DefaultValue = string.Empty;
 				return;
 			}
 
 			// Remove outer brackets
-			while (Default.First() == '(' && Default.Last() == ')' && Default.Length > 2)
+			while (DefaultValue.First() == '(' && DefaultValue.Last() == ')' && DefaultValue.Length > 2)
 			{
-				Default = Default.Substring(1, Default.Length - 2);
+				DefaultValue = DefaultValue.Substring(1, DefaultValue.Length - 2);
 			}
 
 			// Remove unicode prefix
-			if (IsUnicode && Default.StartsWith("N") && !Default.Equals("NULL", StringComparison.InvariantCultureIgnoreCase))
-				Default = Default.Substring(1, Default.Length - 1);
+			if (IsUnicode && DefaultValue.StartsWith("N") && !DefaultValue.Equals("NULL", StringComparison.InvariantCultureIgnoreCase))
+				DefaultValue = DefaultValue.Substring(1, DefaultValue.Length - 1);
 
-			if (Default.First() == '\'' && Default.Last() == '\'' && Default.Length >= 2)
-				Default = string.Format("\"{0}\"", Default.Substring(1, Default.Length - 2));
+			if (DefaultValue.First() == '\'' && DefaultValue.Last() == '\'' && DefaultValue.Length >= 2)
+				DefaultValue = string.Format("\"{0}\"", DefaultValue.Substring(1, DefaultValue.Length - 2));
 
-			string lower = Default.ToLower();
+			string lower = DefaultValue.ToLower();
 			string lowerPropertyType = PropertyType.ToLower();
 
 			// Cleanup default
 			switch (lowerPropertyType)
 			{
 				case "bool":
-					Default = (Default == "0" || lower == "\"false\"" || lower == "false") ? "false" : "true";
+					DefaultValue = (DefaultValue == "0" || lower == "\"false\"" || lower == "false") ? "false" : "true";
 					break;
 
 				case "string":
 				case "datetime":
 				case "timespan":
 				case "datetimeoffset":
-					if (Default.First() != '"')
-						Default = string.Format("\"{0}\"", Default);
-					if (Default.Contains('\\') || Default.Contains('\r') || Default.Contains('\n'))
-						Default = "@" + Default;
+					if (DefaultValue.First() != '"')
+						DefaultValue = string.Format("\"{0}\"", DefaultValue);
+					if (DefaultValue.Contains('\\') || DefaultValue.Contains('\r') || DefaultValue.Contains('\n'))
+						DefaultValue = "@" + DefaultValue;
 					break;
 
 				case "long":
@@ -225,27 +208,27 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 				case "decimal":
 				case "byte":
 				case "guid":
-					if (Default.First() == '\"' && Default.Last() == '\"' && Default.Length > 2)
-						Default = Default.Substring(1, Default.Length - 2);
+					if (DefaultValue.First() == '\"' && DefaultValue.Last() == '\"' && DefaultValue.Length > 2)
+						DefaultValue = DefaultValue.Substring(1, DefaultValue.Length - 2);
 					break;
 
 				case "byte[]":
 				case "System.Data.Entity.Spatial.DbGeography":
 				case "System.Data.Entity.Spatial.DbGeometry":
-					Default = string.Empty;
+					DefaultValue = string.Empty;
 					break;
 			}
 
 			// Ignore defaults we cannot interpret (we would need SQL to C# compiler)
 			if (lower.StartsWith("create default"))
 			{
-				Default = string.Empty;
+				DefaultValue = string.Empty;
 				return;
 			}
 
-			if (string.IsNullOrWhiteSpace(Default))
+			if (string.IsNullOrWhiteSpace(DefaultValue))
 			{
-				Default = string.Empty;
+				DefaultValue = string.Empty;
 				return;
 			}
 
@@ -254,94 +237,94 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 			{
 				case "long":
 					long l;
-					if (!long.TryParse(Default, out l))
-						Default = string.Empty;
+					if (!long.TryParse(DefaultValue, out l))
+						DefaultValue = string.Empty;
 					break;
 
 				case "short":
 					short s;
-					if (!short.TryParse(Default, out s))
-						Default = string.Empty;
+					if (!short.TryParse(DefaultValue, out s))
+						DefaultValue = string.Empty;
 					break;
 
 				case "int":
 					int i;
-					if (!int.TryParse(Default, out i))
-						Default = string.Empty;
+					if (!int.TryParse(DefaultValue, out i))
+						DefaultValue = string.Empty;
 					break;
 
 				case "datetime":
 					DateTime dt;
-					if (!DateTime.TryParse(Default, out dt))
-						Default = lower.Contains("getdate()") ? "DateTime.Now" : lower.Contains("getutcdate()") ? "DateTime.UtcNow" : string.Empty;
+					if (!DateTime.TryParse(DefaultValue, out dt))
+						DefaultValue = lower.Contains("getdate()") ? "DateTime.Now" : lower.Contains("getutcdate()") ? "DateTime.UtcNow" : string.Empty;
 					else
-						Default = string.Format("DateTime.Parse({0})", Default);
+						DefaultValue = string.Format("DateTime.Parse({0})", DefaultValue);
 					break;
 
 				case "datetimeoffset":
 					DateTimeOffset dto;
-					if (!DateTimeOffset.TryParse(Default, out dto))
-						Default = lower.Contains("sysdatetimeoffset") ? "DateTimeOffset.Now" : lower.Contains("sysutcdatetime") ? "DateTimeOffset.UtcNow" : string.Empty;
+					if (!DateTimeOffset.TryParse(DefaultValue, out dto))
+						DefaultValue = lower.Contains("sysdatetimeoffset") ? "DateTimeOffset.Now" : lower.Contains("sysutcdatetime") ? "DateTimeOffset.UtcNow" : string.Empty;
 					else
-						Default = string.Format("DateTimeOffset.Parse({0})", Default);
+						DefaultValue = string.Format("DateTimeOffset.Parse({0})", DefaultValue);
 					break;
 
 				case "timespan":
 					TimeSpan ts;
-					if (!TimeSpan.TryParse(Default, out ts))
-						Default = string.Empty;
+					if (!TimeSpan.TryParse(DefaultValue, out ts))
+						DefaultValue = string.Empty;
 					else
-						Default = string.Format("TimeSpan.Parse({0})", Default);
+						DefaultValue = string.Format("TimeSpan.Parse({0})", DefaultValue);
 					break;
 
 				case "double":
 					double d;
-					if (!double.TryParse(Default, out d))
-						Default = string.Empty;
+					if (!double.TryParse(DefaultValue, out d))
+						DefaultValue = string.Empty;
 					break;
 
 				case "float":
 					float f;
-					if (!float.TryParse(Default, out f))
-						Default = string.Empty;
+					if (!float.TryParse(DefaultValue, out f))
+						DefaultValue = string.Empty;
 					break;
 
 				case "decimal":
 					decimal dec;
-					if (!decimal.TryParse(Default, out dec))
-						Default = string.Empty;
+					if (!decimal.TryParse(DefaultValue, out dec))
+						DefaultValue = string.Empty;
 					else
-						Default += "m";
+						DefaultValue += "m";
 					break;
 
 				case "byte":
 					byte b;
-					if (!byte.TryParse(Default, out b))
-						Default = string.Empty;
+					if (!byte.TryParse(DefaultValue, out b))
+						DefaultValue = string.Empty;
 					break;
 
 				case "bool":
 					bool x;
-					if (!bool.TryParse(Default, out x))
-						Default = string.Empty;
+					if (!bool.TryParse(DefaultValue, out x))
+						DefaultValue = string.Empty;
 					break;
 
 				case "string":
 					if (lower.Contains("newid()") || lower.Contains("newsequentialid()"))
-						Default = "Guid.NewGuid().ToString()";
+						DefaultValue = "Guid.NewGuid().ToString()";
 					if (lower.StartsWith("space("))
-						Default = "\"\"";
+						DefaultValue = "\"\"";
 					if (lower == "null")
-						Default = string.Empty;
+						DefaultValue = string.Empty;
 					break;
 
 				case "guid":
 					if (lower.Contains("newid()") || lower.Contains("newsequentialid()"))
-						Default = "Guid.NewGuid()";
+						DefaultValue = "Guid.NewGuid()";
 					else if (lower.Contains("null"))
-						Default = "null";
+						DefaultValue = "null";
 					else
-						Default = string.Format("Guid.Parse(\"{0}\")", Default);
+						DefaultValue = string.Format("Guid.Parse(\"{0}\")", DefaultValue);
 					break;
 			}
 		}

@@ -14,34 +14,35 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 	public class SchemaReader
 	{
 		private const string TableSQL = @"
-			SELECT  c.TABLE_SCHEMA AS SchemaName,
-			c.TABLE_NAME AS TableName,
-			t.TABLE_TYPE AS TableType,
-			c.ORDINAL_POSITION AS Ordinal,
-			c.COLUMN_NAME AS ColumnName,
-			CAST(CASE WHEN IS_NULLABLE = 'YES' THEN 1
-						ELSE 0
-					END AS BIT) AS IsNullable,
-			DATA_TYPE AS TypeName,
-			ISNULL(CHARACTER_MAXIMUM_LENGTH, 0) AS [MaxLength],
-			CAST(ISNULL(NUMERIC_PRECISION, 0) AS INT) AS [Precision],
-			ISNULL(COLUMN_DEFAULT, '') AS [Default],
-			CAST(ISNULL(DATETIME_PRECISION, 0) AS INT) AS DateTimePrecision,
-			ISNULL(NUMERIC_SCALE, 0) AS Scale,
-			CAST(COLUMNPROPERTY(OBJECT_ID(QUOTENAME(c.TABLE_SCHEMA) + '.' + QUOTENAME(c.TABLE_NAME)), c.COLUMN_NAME, 'IsIdentity') AS BIT) AS IsIdentity,
-			CAST(CASE WHEN COLUMNPROPERTY(OBJECT_ID(QUOTENAME(c.TABLE_SCHEMA) + '.' + QUOTENAME(c.TABLE_NAME)), c.COLUMN_NAME, 'IsIdentity') = 1 THEN 1
-						WHEN COLUMNPROPERTY(OBJECT_ID(QUOTENAME(c.TABLE_SCHEMA) + '.' + QUOTENAME(c.TABLE_NAME)), c.COLUMN_NAME, 'IsComputed') = 1 THEN 1
-						WHEN DATA_TYPE = 'TIMESTAMP' THEN 1
-						WHEN DATA_TYPE = 'UNIQUEIDENTIFIER' AND LOWER(ISNULL(COLUMN_DEFAULT, '')) LIKE '%newsequentialid%' THEN 1
-						ELSE 0
-					END AS BIT) AS IsStoreGenerated,
-			CAST(CASE WHEN pk.ORDINAL_POSITION IS NULL THEN 0
-						ELSE 1
-					END AS BIT) AS PrimaryKey,
-			ISNULL(pk.ORDINAL_POSITION, 0) PrimaryKeyOrdinal,
-			CAST(CASE WHEN fk.COLUMN_NAME IS NULL THEN 0
-						ELSE 1
-					END AS BIT) AS IsForeignKey
+			SELECT  
+				c.TABLE_SCHEMA AS SchemaName,
+				c.TABLE_NAME AS TableName,
+				t.TABLE_TYPE AS TableType,
+				c.ORDINAL_POSITION AS Ordinal,
+				c.COLUMN_NAME AS ColumnName,
+				CAST(CASE WHEN IS_NULLABLE = 'YES' THEN 1
+							ELSE 0
+						END AS BIT) AS IsNullable,
+				DATA_TYPE AS TypeName,
+				ISNULL(CHARACTER_MAXIMUM_LENGTH, 0) AS [MaxLength],
+				CAST(ISNULL(NUMERIC_PRECISION, 0) AS INT) AS [Precision],
+				ISNULL(COLUMN_DEFAULT, '') AS [Default],
+				CAST(ISNULL(DATETIME_PRECISION, 0) AS INT) AS DateTimePrecision,
+				ISNULL(NUMERIC_SCALE, 0) AS Scale,
+				CAST(COLUMNPROPERTY(OBJECT_ID(QUOTENAME(c.TABLE_SCHEMA) + '.' + QUOTENAME(c.TABLE_NAME)), c.COLUMN_NAME, 'IsIdentity') AS BIT) AS IsIdentity,
+				CAST(CASE WHEN COLUMNPROPERTY(OBJECT_ID(QUOTENAME(c.TABLE_SCHEMA) + '.' + QUOTENAME(c.TABLE_NAME)), c.COLUMN_NAME, 'IsIdentity') = 1 THEN 1
+							WHEN COLUMNPROPERTY(OBJECT_ID(QUOTENAME(c.TABLE_SCHEMA) + '.' + QUOTENAME(c.TABLE_NAME)), c.COLUMN_NAME, 'IsComputed') = 1 THEN 1
+							WHEN DATA_TYPE = 'TIMESTAMP' THEN 1
+							WHEN DATA_TYPE = 'UNIQUEIDENTIFIER' AND LOWER(ISNULL(COLUMN_DEFAULT, '')) LIKE '%newsequentialid%' THEN 1
+							ELSE 0
+						END AS BIT) AS IsStoreGenerated,
+				CAST(CASE WHEN pk.ORDINAL_POSITION IS NULL THEN 0
+							ELSE 1
+						END AS BIT) AS PrimaryKey,
+				ISNULL(pk.ORDINAL_POSITION, 0) PrimaryKeyOrdinal,
+				CAST(CASE WHEN fk.COLUMN_NAME IS NULL THEN 0
+							ELSE 1
+						END AS BIT) AS IsForeignKey
 			FROM	 INFORMATION_SCHEMA.COLUMNS c
 			LEFT OUTER JOIN (SELECT u.TABLE_SCHEMA,
 											u.TABLE_NAME,
@@ -76,16 +77,17 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			AND c.TABLE_NAME IN ('{TABLE_NAMES}')";
 
 		private const string ForeignKeySQL = @"
-			SELECT  FK.name AS FK_Table,
-			FkCol.name AS FK_Column,
-			PK.name AS PK_Table,
-			PkCol.name AS PK_Column,
-			OBJECT_NAME(f.object_id) AS Constraint_Name,
-			SCHEMA_NAME(FK.schema_id) AS fkSchema,
-			SCHEMA_NAME(PK.schema_id) AS pkSchema,
-			PkCol.name AS primarykey,
-			k.constraint_column_id AS ORDINAL_POSITION,
-			CASE WHEN f.delete_referential_action = 1 THEN 1 ELSE 0 END as CascadeOnDelete
+			SELECT  
+				FK.name AS FK_Table,
+				FkCol.name AS FK_Column,
+				PK.name AS PK_Table,
+				PkCol.name AS PK_Column,
+				OBJECT_NAME(f.object_id) AS Constraint_Name,
+				SCHEMA_NAME(FK.schema_id) AS fkSchema,
+				SCHEMA_NAME(PK.schema_id) AS pkSchema,
+				PkCol.name AS primarykey,
+				k.constraint_column_id AS ORDINAL_POSITION,
+				CASE WHEN f.delete_referential_action = 1 THEN 1 ELSE 0 END as CascadeOnDelete
 			FROM	 sys.objects AS PK
 			INNER JOIN sys.foreign_keys AS f
 				INNER JOIN sys.foreign_key_columns AS k
@@ -107,12 +109,12 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 
 		private const string IndexSQL = @"
 			SELECT   
-			s.name AS SchemaName
-			,o.name AS TableName
-			, i.name AS IndexName
-			, i.is_unique AS IsUnique
-			, c.name AS ColumnName
-			, i.is_primary_key as IsPrimaryKey
+				s.name AS SchemaName
+				,o.name AS TableName
+				,i.name AS IndexName
+				,i.is_unique AS IsUnique
+				,c.name AS ColumnName
+				,i.is_primary_key as IsPrimaryKey
 			FROM sys.objects o
 			INNER JOIN sys.schemas s ON s.schema_id = o.schema_id
 			INNER JOIN sys.indexes i ON o.object_id = i.object_id
@@ -124,69 +126,49 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			ORDER BY TableName, IsUnique desc, IndexName, ic.key_ordinal";
 
 		private const string StoredProcedureSQL = @"
-			SELECT  R.SPECIFIC_SCHEMA,
-			R.SPECIFIC_NAME,
-			R.ROUTINE_TYPE,
-			P.ORDINAL_POSITION,
-			P.PARAMETER_MODE,
-			P.PARAMETER_NAME,
-			P.DATA_TYPE,
-			ISNULL(P.CHARACTER_MAXIMUM_LENGTH, 0) AS CHARACTER_MAXIMUM_LENGTH,
-			ISNULL(P.NUMERIC_PRECISION, 0) AS NUMERIC_PRECISION,
-			ISNULL(P.NUMERIC_SCALE, 0) AS NUMERIC_SCALE,
-			ISNULL(P.DATETIME_PRECISION, 0) AS DATETIME_PRECISION,
-			P.USER_DEFINED_TYPE_SCHEMA + '.' + P.USER_DEFINED_TYPE_NAME AS USER_DEFINED_TYPE
-			FROM	 INFORMATION_SCHEMA.ROUTINES R
-			LEFT OUTER JOIN INFORMATION_SCHEMA.PARAMETERS P
-				ON P.SPECIFIC_SCHEMA = R.SPECIFIC_SCHEMA
-					AND P.SPECIFIC_NAME = R.SPECIFIC_NAME
-			WHERE	R.ROUTINE_TYPE = 'PROCEDURE'
-			AND (
-					P.IS_RESULT = 'NO'
-					OR P.IS_RESULT IS NULL
-				)
-			AND R.SPECIFIC_SCHEMA + R.SPECIFIC_NAME IN (
-				SELECT  SCHEMA_NAME(sp.schema_id) + sp.name
-				FROM	 sys.all_objects AS sp
-							LEFT OUTER JOIN sys.all_sql_modules AS sm
-								ON sm.object_id = sp.object_id
-				WHERE	sp.type = 'P'
-							AND (CAST(CASE WHEN sp.is_ms_shipped = 1 THEN 1
-												WHEN (
-														SELECT major_id
-														FROM	sys.extended_properties
-														WHERE  major_id = sp.object_id
-																AND minor_id = 0
-																AND class = 1
-																AND name = N'microsoft_database_tools_support'
-														) IS NOT NULL THEN 1
-												ELSE 0
-										END AS BIT) = 0))
-			AND R.SPECIFIC_NAME IN ('{SPROC_NAMES}')
-
-			UNION ALL
-			SELECT  R.SPECIFIC_SCHEMA,
-			R.SPECIFIC_NAME,
-			R.ROUTINE_TYPE,
-			P.ORDINAL_POSITION,
-			P.PARAMETER_MODE,
-			P.PARAMETER_NAME,
-			P.DATA_TYPE,
-			ISNULL(P.CHARACTER_MAXIMUM_LENGTH, 0) AS CHARACTER_MAXIMUM_LENGTH,
-			ISNULL(P.NUMERIC_PRECISION, 0) AS NUMERIC_PRECISION,
-			ISNULL(P.NUMERIC_SCALE, 0) AS NUMERIC_SCALE,
-			ISNULL(P.DATETIME_PRECISION, 0) AS DATETIME_PRECISION,
-			P.USER_DEFINED_TYPE_SCHEMA + '.' + P.USER_DEFINED_TYPE_NAME AS USER_DEFINED_TYPE
-			FROM	 INFORMATION_SCHEMA.ROUTINES R
-			LEFT OUTER JOIN INFORMATION_SCHEMA.PARAMETERS P
-				ON P.SPECIFIC_SCHEMA = R.SPECIFIC_SCHEMA
-					AND P.SPECIFIC_NAME = R.SPECIFIC_NAME
-			WHERE	R.ROUTINE_TYPE = 'FUNCTION'
-			AND R.DATA_TYPE = 'TABLE'
-			AND R.SPECIFIC_NAME IN ('{SPROC_NAMES}')
-			ORDER BY R.SPECIFIC_SCHEMA,
-			R.SPECIFIC_NAME,
-			P.ORDINAL_POSITION";
+			SELECT 
+				s.NAME                     AS 'SPECIFIC_SCHEMA',
+				pr.NAME                    AS 'SPECIFIC_NAME',
+				p.parameter_id             AS 'ORDINAL_POSITION',
+				p.NAME                     AS 'PARAMETER_NAME',
+				CASE
+				WHEN p.parameter_id IS NULL THEN NULL
+				WHEN p.is_output = 0 THEN 'IN'
+				WHEN p.parameter_id > 0
+						AND p.is_output = 1 THEN 'INOUT'
+				ELSE 'OUT'
+				END                        AS 'PARAMETER_MODE',
+				st.NAME                    AS 'DATA_TYPE',
+				CASE
+				WHEN st.collation_name IS NULL THEN 0
+				WHEN st.NAME = 'text' THEN 2147483647
+				WHEN st.NAME = 'ntext' THEN 1073741823
+				ELSE p.max_length
+				END                        AS 'CHARACTER_MAXIMUM_LENGTH',
+				Cast(p.PRECISION AS INT)   AS 'NUMERIC_PRECISION',
+				Cast(p.scale AS INT)       AS 'NUMERIC_SCALE',
+				Cast(p.is_nullable AS BIT) AS 'NULLABLE'
+			FROM   sys.schemas s
+						INNER JOIN sys.procedures pr
+								ON s.schema_id = pr.schema_id
+						LEFT JOIN sys.all_parameters p
+								ON pr.object_id = p.object_id
+						LEFT JOIN sys.types ut
+								ON p.user_type_id = ut.user_type_id
+						LEFT OUTER JOIN sys.types st
+										ON ut.system_type_id = st.user_type_id
+											AND ut.system_type_id = st.system_type_id
+			WHERE  Cast(CASE
+								WHEN pr.is_ms_shipped = 1 THEN 1
+								WHEN (SELECT major_id
+										FROM   sys.extended_properties
+										WHERE  major_id = pr.object_id
+												AND minor_id = 0
+												AND class = 1
+												AND NAME = N'microsoft_database_tools_support') IS NOT NULL THEN 1
+								ELSE 0
+							END AS BIT) = 0 
+				AND pr.NAME IN ('{SPROC_NAMES}')";
 
 		public static readonly List<string> ReservedKeywords = new List<string>
 		  {
@@ -227,13 +209,6 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 		// Use the following regex filters to include or exclude stored procedures
 		private Regex StoredProcedureFilterExclude = null;
 		private Regex StoredProcedureFilterInclude = null;
-
-		// Column modification*****************************************************************************************************************
-		// Use the following list to replace column byte types with Enums.
-		// As long as the type can be mapped to your new type, all is well.
-		//EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "match_table_name", Column = "match_column_name", EnumType = "name_of_enum" });
-		//EnumsDefinitions.Add(new EnumDefinition { Schema = "dbo", Table = "OrderHeader", Column = "OrderStatus", EnumType = "OrderStatusType" }); // This will replace OrderHeader.OrderStatus type to be an OrderStatusType enum
-		public static List<EnumDefinition> EnumsDefinitions = new List<EnumDefinition>();
 
 		private static readonly Regex RxCleanUp = new Regex(@"[^\w\d\s_-]", RegexOptions.Compiled);
 
@@ -323,54 +298,6 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 
 			return name;
 		}
-
-		// Use the following function if you need to apply additional modifications to a column
-		// eg. normalise names etc.
-		private Column UpdateColumn(Column column, Table table)
-		{
-			// Example
-			//if (column.IsPrimaryKey)
-			//	column.NameHumanCase = "Id";
-
-			//if (column.NameHumanCase.EndsWith("Key"))
-			//{
-			//	column.NameHumanCase = column.NameHumanCase.Substring(0, column.NameHumanCase.LastIndexOf("Key")) + "Id";
-			//}
-
-			// .IsConcurrencyToken() must be manually configured. However .IsRowVersion() can be automatically detected.
-			//if (table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase) && column.NameHumanCase.Equals("SomeColumn", StringComparison.InvariantCultureIgnoreCase))
-			//	 column.IsConcurrencyToken = true;
-
-			// Remove table name from primary key
-			//if (column.IsPrimaryKey && column.NameHumanCase.Equals(table.NameHumanCase + "Id", StringComparison.InvariantCultureIgnoreCase))
-			//	 column.NameHumanCase = "Id";
-
-			// Remove column from Model class as it will be inherited from a base class
-			//if (column.IsPrimaryKey && table.NameHumanCase.Equals("SomeTable", StringComparison.InvariantCultureIgnoreCase))
-			//	 column.Hidden = true;
-
-			// Perform Enum property type replacement
-			var enumDefinition = EnumsDefinitions.FirstOrDefault(e =>
-				 (e.Schema.Equals(table.Schema, StringComparison.InvariantCultureIgnoreCase)) &&
-				 (e.Table.Equals(table.Name, StringComparison.InvariantCultureIgnoreCase) || e.Table.Equals(table.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)) &&
-				 (e.Column.Equals(column.Name, StringComparison.InvariantCultureIgnoreCase) || e.Column.Equals(column.NameHumanCase, StringComparison.InvariantCultureIgnoreCase)));
-
-			if (enumDefinition != null)
-			{
-				column.PropertyType = enumDefinition.EnumType;
-				if (!string.IsNullOrEmpty(column.Default))
-					column.Default = "(" + enumDefinition.EnumType + ") " + column.Default;
-			}
-
-			return column;
-		}
-
-		// StoredProcedure return types *******************************************************************************************************
-		// Override generation of return models for stored procedures that return entities.
-		// If a stored procedure returns an entity, add it to the list below.
-		// This will suppress the generation of the return model, and instead return the entity.
-		// Example:							  Proc name		Return this entity type instead
-		//StoredProcedureReturnTypes.Add("SalesByYear", "SummaryOfSalesByYear");
 
 		private ForeignKey ForeignKeyFilter(ForeignKey fk)
 		{
@@ -554,7 +481,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 							validStoredProcedures.Add(sp);
 							continue;
 						}
-						if (!sp.ReturnModels.Any(returnColumns => returnColumns.Any(c => c.ColumnName.Contains(" "))))
+						if (!sp.ReturnModels.Any(returnColumns => returnColumns.Any(c => c.NameHumanCase.Contains(" "))))
 							validStoredProcedures.Add(sp);
 					}
 					return validStoredProcedures;
@@ -731,7 +658,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			}
 
 			// Check for property name clashes in columns
-			foreach (Column c in result.SelectMany(tbl => tbl.Columns.Where(c => tbl.Columns.FindAll(x => x.NameHumanCase == c.NameHumanCase).Count > 1)))
+			foreach (TableColumn c in result.SelectMany(tbl => tbl.Columns.Where(c => tbl.Columns.FindAll(x => x.NameHumanCase == c.NameHumanCase).Count > 1)))
 			{
 				int n = 1;
 				var original = c.NameHumanCase;
@@ -849,8 +776,6 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 				StoredProcedure sp = null;
 				while (rdr.Read())
 				{
-					string spType = rdr["ROUTINE_TYPE"].ToString().Trim().ToUpper();
-
 					string schema = rdr["SPECIFIC_SCHEMA"].ToString().Trim();
 					if (SchemaFilterExclude != null && SchemaFilterExclude.IsMatch(schema))
 						continue;
@@ -888,7 +813,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 					{
 						string typename = rdr["DATA_TYPE"].ToString().Trim().ToLower();
 						var scale = (int)rdr["NUMERIC_SCALE"];
-						var precision = (int)((byte)rdr["NUMERIC_PRECISION"]);
+						var precision = (int)rdr["NUMERIC_PRECISION"];
 						var parameterMode = rdr["PARAMETER_MODE"].ToString().Trim().ToUpper();
 
 						var param = new StoredProcedureParameter
@@ -896,22 +821,26 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 							Ordinal = (int)rdr["ORDINAL_POSITION"],
 							Mode = (parameterMode == "IN") ? StoredProcedureParameterMode.In : StoredProcedureParameterMode.InOut,
 							Name = rdr["PARAMETER_NAME"].ToString().Trim(),
-							SqlDbType = PropertyTypeHelper.GetSqlDbType(typename, scale, precision),
+							SqlPropertyType = PropertyTypeHelper.GetSqlDbType(typename, scale, precision),
 							PropertyType = PropertyTypeHelper.GetPropertyType(typename, scale, precision),
-							DateTimePrecision = (Int16)rdr["DATETIME_PRECISION"],
 							MaxLength = (int)rdr["CHARACTER_MAXIMUM_LENGTH"],
 							Precision = precision,
 							Scale = scale,
-							UserDefinedTypeName = rdr["USER_DEFINED_TYPE"].ToString().Trim()
+							IsNullable = (bool)rdr["NULLABLE"]
 						};
+
+						param.WrapPropertyTypeIfNullable();
 
 						var clean = CleanUp(param.Name.Replace("@", ""));
 						param.NameHumanCase =
 							 Inflector.MakeInitialLower(
 								  (Global.DatabaseSetting.UseCamelCase ? Inflector.ToTitleCase(clean) : clean).Replace(" ", ""));
 
+						param.ParameterName = param.NameHumanCase;
+
 						if (ReservedKeywords.Contains(param.NameHumanCase))
 							param.NameHumanCase = "@" + param.NameHumanCase;
+
 
 						sp.Parameters.Add(param);
 					}
@@ -922,6 +851,8 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 
 		public void ReadStoredProcReturnObject(SqlConnection sqlConnection, StoredProcedure proc)
 		{
+			var rxClean = new Regex("^(event|Equals|GetHashCode|GetType|ToString|repo|Save|IsNew|Insert|Update|Delete|Exists|SingleOrDefault|Single|First|FirstOrDefault|Fetch|Page|Query)$");
+
 			try
 			{
 				var sb = new StringBuilder();
@@ -929,7 +860,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 				sb.AppendLine("SET FMTONLY OFF; SET FMTONLY ON;");
 
 				foreach (var param in proc.Parameters)
-					sb.AppendLine(String.Format("DECLARE {0} {1};", param.Name, param.SqlDbType == "Structured" ? param.UserDefinedTypeName : param.SqlDbType));
+					sb.AppendLine(String.Format("DECLARE {0} {1};", param.Name, param.SqlPropertyType));
 
 				sb.Append(String.Format("exec [{0}].[{1}] ", proc.Schema, proc.Name));
 				foreach (var param in proc.Parameters)
@@ -958,7 +889,40 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 
 				for (var count = 0; count < ds.Tables.Count; count++)
 				{
-					proc.ReturnModels.Add(ds.Tables[count].Columns.Cast<DataColumn>().ToList());
+					List<StoredProcedureColumn> cols = new List<StoredProcedureColumn>();
+					for(var i = 0; i < ds.Tables[count].Columns.Count; i++)
+					{
+						StoredProcedureColumn col = new StoredProcedureColumn();
+
+						col.Name = ds.Tables[count].Columns[i].ColumnName;
+						col.PropertyType = PropertyTypeHelper.GetPropertyType(ds.Tables[count].Columns[i].DataType.Name, 0, 0);
+						col.SqlPropertyType = PropertyTypeHelper.GetSqlDbType(col.PropertyType, 0, 0);
+						col.MaxLength = ds.Tables[count].Columns[i].MaxLength;
+						col.Ordinal = ds.Tables[count].Columns[i].Ordinal;
+						col.IsNullable = ds.Tables[count].Columns[i].AllowDBNull;
+
+						col.WrapPropertyTypeIfNullable();
+
+						col.NameHumanCase = CleanUp(col.Name);
+						col.NameHumanCase = rxClean.Replace(col.NameHumanCase, "_$1");
+
+						if (ReservedKeywords.Contains(col.NameHumanCase))
+							col.NameHumanCase = "@" + col.NameHumanCase;
+
+						var titleCase = (Global.DatabaseSetting.UseCamelCase ? Inflector.ToTitleCase(col.NameHumanCase) : col.NameHumanCase).Replace(" ", "");
+						if (titleCase != string.Empty)
+							col.NameHumanCase = titleCase;
+
+						// Make sure property name doesn't clash with class name
+						if (col.NameHumanCase == proc.NameHumanCase)
+							col.NameHumanCase = col.NameHumanCase + "_";
+
+						col.ParameterName = Inflector.MakeInitialLower(col.NameHumanCase);
+
+						cols.Add(col);
+					}
+
+					proc.ReturnModels.Add(cols);
 				}
 			}
 			catch (Exception)
@@ -1063,11 +1027,11 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 				if (pkTable == null)
 					continue;   // Could be filtered out
 
-				Column fkCol = fkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.FkColumnName, StringComparison.InvariantCultureIgnoreCase));
+				TableColumn fkCol = fkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.FkColumnName, StringComparison.InvariantCultureIgnoreCase));
 				if (fkCol == null)
 					continue;   // Could not find fk column
 
-				Column pkCol = pkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.PkColumnName, StringComparison.InvariantCultureIgnoreCase));
+				TableColumn pkCol = pkTable.Columns.Find(n => string.Equals(n.Name, foreignKey.PkColumnName, StringComparison.InvariantCultureIgnoreCase));
 				if (pkCol == null)
 					continue;   // Could not find pk column
 
@@ -1080,7 +1044,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			}
 		}
 
-		private Relationship CalcRelationship(Table pkTable, Table fkTable, List<Column> fkCols, List<Column> pkCols)
+		private Relationship CalcRelationship(Table pkTable, Table fkTable, List<TableColumn> fkCols, List<TableColumn> pkCols)
 		{
 			if (fkCols.Count() == 1 && pkCols.Count() == 1)
 				return CalcRelationshipSingle(pkTable, fkTable, fkCols.First(), pkCols.First());
@@ -1108,7 +1072,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			return Relationship.ManyToMany;
 		}
 
-		private Relationship CalcRelationshipSingle(Table pkTable, Table fkTable, Column fkCol, Column pkCol)
+		private Relationship CalcRelationshipSingle(Table pkTable, Table fkTable, TableColumn fkCol, TableColumn pkCol)
 		{
 			bool fkTableSinglePrimaryKey = (fkTable.PrimaryKeys.Count() == 1);
 			bool pkTableSinglePrimaryKey = (pkTable.PrimaryKeys.Count() == 1);
@@ -1129,7 +1093,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			return Relationship.ManyToMany;
 		}
 
-		private static string GetRelationship(Relationship relationship, Column fkCol, Column pkCol, string pkPropName, string fkPropName, string manyToManyMapping, string mapKey, bool cascadeOnDelete)
+		private static string GetRelationship(Relationship relationship, TableColumn fkCol, TableColumn pkCol, string pkPropName, string fkPropName, string manyToManyMapping, string mapKey, bool cascadeOnDelete)
 		{
 			return string.Format("Has{0}(a => a.{1}){2}{3}",
 				 GetHasMethod(relationship, fkCol, pkCol),
@@ -1141,7 +1105,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 		// HasOptional
 		// HasRequired
 		// HasMany
-		private static string GetHasMethod(Relationship relationship, Column fkCol, Column pkCol)
+		private static string GetHasMethod(Relationship relationship, TableColumn fkCol, TableColumn pkCol)
 		{
 			bool withMany = false;
 			switch (relationship)
@@ -1163,7 +1127,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 		// WithMany
 		// WithRequiredPrincipal
 		// WithRequiredDependent
-		private static string GetWithMethod(Relationship relationship, Column fkCol, string fkPropName, string manyToManyMapping, string mapKey)
+		private static string GetWithMethod(Relationship relationship, TableColumn fkCol, string fkPropName, string manyToManyMapping, string mapKey)
 		{
 			switch (relationship)
 			{
@@ -1186,7 +1150,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			}
 		}
 
-		private Column CreateColumn(IDataRecord rdr, Regex rxClean, Table table)
+		private TableColumn CreateColumn(IDataRecord rdr, Regex rxClean, Table table)
 		{
 			if (rdr == null)
 				throw new ArgumentNullException("rdr");
@@ -1195,14 +1159,14 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			var scale = (int)rdr["Scale"];
 			var precision = (int)rdr["Precision"];
 
-			var col = new Column
+			var col = new TableColumn
 			{
 				Name = rdr["ColumnName"].ToString().Trim(),
 				SqlPropertyType = typename,
 				PropertyType = PropertyTypeHelper.GetPropertyType(typename, scale, precision),
 				MaxLength = (int)rdr["MaxLength"],
 				Precision = precision,
-				Default = rdr["Default"].ToString().Trim(),
+				DefaultValue = rdr["Default"].ToString().Trim(),
 				DateTimePrecision = (int)rdr["DateTimePrecision"],
 				Scale = scale,
 				Ordinal = (int)rdr["Ordinal"],
@@ -1239,7 +1203,6 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 			if (typename == "hierarchyid")
 				col.MaxLength = 0;
 
-			col.CleanUpDefault();
 			col.NameHumanCase = CleanUp(col.Name);
 			col.NameHumanCase = rxClean.Replace(col.NameHumanCase, "_$1");
 
@@ -1258,8 +1221,6 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration
 				col.NameHumanCase = "_" + col.NameHumanCase;
 
 			table.HasNullableColumns = col.IsNullable;
-
-			col = UpdateColumn(col, table);
 
 			col.ParameterName = Inflector.MakeInitialLower(col.NameHumanCase);
 

@@ -26,7 +26,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 		public bool HasPrimaryKey { get; set; }
 		public Forms.Models.TableData TableData { get; set; }
 
-		public List<Column> Columns { get; set; }
+		public List<TableColumn> Columns { get; set; }
 		public List<ForeignKey> ForeignKeys { get; set; }
 		public List<Index> Indexes { get; set; }
 		public List<ReverseNavigation> ReverseNavigationProperties { get; set; }
@@ -35,7 +35,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 
 		public List<string> DataAnnotations { get; set; }
 
-		public IEnumerable<Column> PrimaryKeys
+		public IEnumerable<TableColumn> PrimaryKeys
 		{
 			get
 			{
@@ -49,7 +49,7 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 		public Table()
 		{
 			TableData = new Forms.Models.TableData();
-			Columns = new List<Column>();
+			Columns = new List<TableColumn>();
 			ForeignKeys = new List<ForeignKey>();
 			Indexes = new List<Index>();
 			ResetNavigationProperties();
@@ -95,12 +95,12 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 			return string.Format("x => new {{ {0} }}", string.Join(", ", data));
 		}
 
-		public Column this[string columnName]
+		public TableColumn this[string columnName]
 		{
 			get { return GetColumn(columnName); }
 		}
 
-		public Column GetColumn(string columnName)
+		public TableColumn GetColumn(string columnName)
 		{
 			return Columns.SingleOrDefault(x => String.Compare(x.Name, columnName, StringComparison.OrdinalIgnoreCase) == 0);
 		}

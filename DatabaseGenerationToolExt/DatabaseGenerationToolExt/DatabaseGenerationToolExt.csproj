@@ -54,13 +54,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DatabaseGeneration\Models\Column.cs" />
+    <Compile Include="DatabaseGeneration\Base\Column.cs" />
+    <Compile Include="DatabaseGeneration\Models\TableColumn.cs" />
     <Compile Include="DatabaseGeneration\Models\DatabaseConnection.cs" />
     <Compile Include="DatabaseGeneration\Models\Enum.cs" />
     <Compile Include="DatabaseGeneration\Models\EnumEntry.cs" />
+    <Compile Include="DatabaseGeneration\Models\StoredProcedureColumn.cs" />
     <Compile Include="DatabaseGeneration\Settings\DatabaseGenerationSetting.cs" />
     <Compile Include="DatabaseGeneration\Models\DatabaseObjectEnums.cs" />
-    <Compile Include="DatabaseGeneration\Models\EnumDefinition.cs" />
     <Compile Include="DatabaseGeneration\Settings\ProjectSetting.cs" />
     <Compile Include="Forms\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

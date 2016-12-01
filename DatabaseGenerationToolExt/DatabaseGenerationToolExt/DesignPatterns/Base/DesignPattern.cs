@@ -17,9 +17,8 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 	public abstract class DesignPattern
 	{
 
-		public DesignPattern(string targetFrameworkVersion, Tables tables, List<StoredProcedure> storedProcs, List<DatabaseGeneration.Models.Enum> enums)
+		public DesignPattern(Tables tables, List<StoredProcedure> storedProcs, List<DatabaseGeneration.Models.Enum> enums)
 		{
-			TargetFrameworkVersion = targetFrameworkVersion;
 			Tables = tables;
 			StoredProcedures = storedProcs;
 			Enums = enums;
@@ -68,20 +67,7 @@ namespace DatabaseGenerationToolExt.DesignPatterns
 		#endregion
 
 		private System.Diagnostics.Stopwatch Stopwatch;
-		private static string TargetFrameworkVersion;
-
-		public bool IsSupportedFrameworkVersion(string frameworkVersion)
-		{
-			if (!string.IsNullOrEmpty(TargetFrameworkVersion))
-			{
-				var nfi = CultureInfo.InvariantCulture.NumberFormat;
-				float target = float.Parse(TargetFrameworkVersion, nfi);
-				float isSupported = float.Parse(frameworkVersion, nfi);
-				return isSupported <= target;
-			}
-			return true;
-		}
-
+		
 		public static void ProcessDatabaseXML()
 		{
 			string fileName = Global.DatabaseSetting.XmlAndLogFilePrefix + "Settings.xml";

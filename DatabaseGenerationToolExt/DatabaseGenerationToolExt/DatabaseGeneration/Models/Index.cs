@@ -14,19 +14,19 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 		public bool IsUnique { get; set; }
 		public bool IsPrimaryKey { get; set; }
 		public string ColumnString { get; set; }
-		public List<Column> Columns { get; set; }
+		public List<TableColumn> Columns { get; set; }
 
 		public Index()
 		{
-			Columns = new List<Column>();
+			Columns = new List<TableColumn>();
 		}
 
-		public string CreateParameterString()
+		public string GetParameterString()
 		{
 			return string.Join(", ", Columns.Select(s => s.PropertyType + " " + s.ParameterName));
 		}
 
-		public string CreateWhereString()
+		public string GetWhereString()
 		{
 			return string.Join(" && ", Columns.Select(s => "x." + s.NameHumanCase + " == " + s.ParameterName));
 		}

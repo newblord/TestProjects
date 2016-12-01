@@ -8,7 +8,7 @@ namespace DatabaseGenerationToolExt.Helpers
 {
 	public static class PropertyTypeHelper
 	{
-		public static readonly List<string> NotNullable = new List<string>
+		public static List<string> NotNullable { get; } = new List<string>
 		  {
 				"string",
 				"byte[]",

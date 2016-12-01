@@ -18,9 +18,9 @@ namespace DatabaseGenerationToolExt.DatabaseGeneration.Models
 		public string PkSchema { get; private set; }
 		public Table PKTable { get; internal set; }
 		public string FkColumnName { get; private set; }
-		public Column FKColumn { get; internal set; }
+		public TableColumn FKColumn { get; internal set; }
 		public string PkColumnName { get; private set; }
-		public Column PKColumn { get; internal set; }
+		public TableColumn PKColumn { get; internal set; }
 		public string ConstraintName { get; private set; }
 		public int Ordinal { get; private set; }
 		public bool CascadeOnDelete { get; private set; }
