@@ -95,7 +95,6 @@
     <Compile Include="Helpers\ConnectionHelper.cs" />
     <Compile Include="Helpers\Global.cs" />
     <Compile Include="Helpers\PropertyTypeHelper.cs" />
-    <Compile Include="Helpers\StoredProcedureHelper.cs" />
     <Compile Include="Helpers\VisualStudioHelper.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
