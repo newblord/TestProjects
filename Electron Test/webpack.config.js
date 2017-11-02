@@ -3,21 +3,19 @@ var webpack = require('webpack');
 
 module.exports = {
     context: __dirname,
-    entry: ['./index.html', './entry.js'],
+    entry: ['babel-polyfill','./index.html', './entry.js'],
     output: {
         path: __dirname,
         filename: 'bundle.js'
     },
+    devtool: "source-map",
     target: "electron",
     module: {
         loaders: [
             {
                 test: /.js?$/,
                 loader: 'babel-loader',
-                exclude: /node_modules/,
-                query: {
-                    presets: ['es2015', 'react']
-                }
+                exclude: /node_modules/
             },
             {
                 test: /\.html$/,
