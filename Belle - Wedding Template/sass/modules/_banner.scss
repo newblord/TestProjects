@@ -1,0 +1,22 @@
+@mixin module-banner {
+	/* Banner */
+	.banner {
+		h1,
+		h2 {
+			color: $brand-primary;
+		}
+		p {
+			color: $brand-white;
+			margin-bottom: 0;
+		}
+	}
+	.banner_top {
+		background-image: url(../img/header-bg.jpg);
+	}
+	.banner_bottom {
+		background-image: url(../img/banner-bottom.jpg);
+		.heading {
+			margin-bottom: 0;
+		}
+	}
+}

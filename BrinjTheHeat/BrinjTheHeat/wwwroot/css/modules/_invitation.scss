@@ -1,0 +1,49 @@
+@mixin module-invitation {
+	/* Invitation */
+	.invitation {
+		.form-wrapper {
+			background: $brand-white;
+			padding: 20px 15px 30px;
+			margin-bottom: 40px;
+
+			@include media(medium) {
+				margin-bottom: 0;
+			}
+		}
+		h3 {
+			margin: 10px 0;
+		}
+		.video {
+			height: 450px;
+			overflow: hidden;
+			border-radius: 5px;
+			background-image: url(../img/video-bg.jpg);
+			&:hover {
+				a {
+					transform: scale(1.2);
+				}
+				.overlay {
+					opacity: 0.5;
+				}
+			}
+			a {
+				z-index: 1001;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				margin-top: -45px;
+				margin-left: -45px;
+				display: table;
+				text-align: center;
+				i {
+					text-align: center;
+					display: table-cell;
+					vertical-align: middle;
+				}
+			}
+			.overlay {
+				@include transition(.5s);
+			}
+		}
+	}
+}

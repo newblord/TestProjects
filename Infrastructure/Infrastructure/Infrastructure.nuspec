@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Edovo.Infrastructure</id>
+    <version>1.0.5</version>
+    <title>Edovo Infrastructure Library</title>
+    <authors>Edovo</authors>
+    <owners>Edovo</owners>
+    <projectUrl>https://github.com/JailEducationSolutions/Infrastructure/tree/master/Edovo.Infrastructure/Edovo.Infrastructure</projectUrl>
+    <description>Edovo Infrastructure Library</description>
+    <copyright>Copyright 2019</copyright>
+    <dependencies>
+      <dependency id="Newtonsoft.Json" version="12.0.2"/>
+      <dependency id="log4net" version="2.0.8"/>
+      <dependency id="StackExchange.Redis" version="1.2.6"/>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\**\Edovo.Infrastructure.dll" target="lib\" />
+  </files>
+</package>

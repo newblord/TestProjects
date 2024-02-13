@@ -1,0 +1,48 @@
+@mixin module-testimonials {
+	/* Testimonials */
+	.testimonials {
+		.wrap-testimony {
+			position: relative;
+		}
+		.testimony-slide {
+			text-align: center;
+			span{
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 2px;
+				font-weight: 700;
+				display: block;
+			}
+			figure {
+				margin-bottom: 10px;
+				@include inline-block;
+				width: 100px;
+				height: 100px;
+				img {
+					width: 100px;
+					height: 100px;
+					@include border-radius(50%);
+				}
+			}
+			blockquote {
+				border: none;
+				margin: 30px auto;
+				width: 100%;
+				position: relative;
+				@include border-radius(4px);
+				@include media(medium) {
+					width: 50%;
+				}
+				p {
+					font-style: italic;
+					color: #8f989f;
+					font-size: 20px;
+					line-height: 1.6em;
+				}
+			}
+			&.active {
+				display: block;
+			}
+		}
+	}
+}

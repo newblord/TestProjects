@@ -1,0 +1,15 @@
+@import "_buttons";
+@import "_forms";
+@import "_countdown";
+@import "_carousel";
+@import "_social-icons";
+@import "_timeline";
+
+@mixin components {
+	@include component-buttons;
+	@include component-forms;
+	@include component-countdown;
+	@include component-carousel;
+	@include component-social-icons;
+	@include component-timeline;
+}

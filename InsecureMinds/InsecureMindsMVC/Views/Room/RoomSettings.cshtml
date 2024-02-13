@@ -1,0 +1,236 @@
+﻿@model InsecureMindsMVC.Models.RoomSettingsModel
+
+@{
+    ViewBag.Title = "RoomSettings";
+}
+
+<style>
+    .selectedCard {
+        border: 3px solid green;
+    }
+
+        .selectedCard::before,
+        .selectedCard::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-color: transparent;
+            border-style: solid;
+        }
+
+        .selectedCard::after {
+            content: '\2713';
+            font-size: 25px;
+            line-height: 15px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .selectedCard::before {
+            border-radius: 0;
+            border-width: 20px;
+            border-left-color: green;
+            border-top-color: green;
+        }
+
+    .card:hover {
+        box-shadow: #007bff 0 0 10px 0;
+    }
+</style>
+
+<div class="container">
+    <div class="py-5 text-center">
+        <h2>Room Settings</h2>
+    </div>
+
+
+    <ul class="nav nav-pills mb-3 justify-content-center">
+        <li class="nav-item">
+            <a class="nav-link active" id="picktypes-tab" data-toggle="pill" href="#picktypes" role="tab" aria-controls="picktypes" aria-selected="true">Pick Types</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="expansionpacks-tab" data-toggle="pill" href="#expansionpacks" role="tab" aria-controls="expansionpacks" aria-selected="false">Expansion Packs</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="houserules-tab" data-toggle="pill" href="#houserules" role="tab" aria-controls="houserules" aria-selected="false">House Rules</a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="picktypes" role="tabpanel" aria-labelledby="picktypes-tab">
+            <div class="pb-3 pt-5 text-center">
+                <h3>Pick Types</h3>
+                <p class="lead">Select atleast one Pick Type for question cards.</p>
+            </div>
+
+
+
+            <div class="picktyperow row row-cols-1 row-cols-md-3" data-toggle="popover" data-trigger="manual" data-content="No selection for Pick Type was made." data-placement="top">
+                @foreach (var item in Model.PickTypes)
+                {
+                    <div class="picktype col-md-4 mb-4">
+                        <div id="picktype-@item.Id" class="card text-center">
+                            <div class="card-body">
+                                <p class="card-text">
+                                    <b>@item.Type</b>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="tab-pane fade" id="expansionpacks" role="tabpanel" aria-labelledby="expansionpacks-tab">
+            <div class="pb-3 pt-5 text-center">
+                <h3>Expansion Packs</h3>
+                <p class="lead">Select from the available expansion packs to include with the base game.</p>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3">
+                @foreach (var item in Model.Expansions)
+                {
+                    <div class="expansion col-md-4 mb-4 @(item.IsRequired ? "d-none" : "")">
+                        <div id="expansion-@item.Id" class="card text-center @(item.IsRequired ? "selectedCard" : "")">
+                            <div class="card-header">
+                                <b>@item.Name</b>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">
+                                    @item.Description
+                                </p>
+                                <button id="viewCards-@item.Id" type="button" class="btn btn-primary viewcard" data-toggle="modal" data-target="#cardsModal">View Cards</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="tab-pane fade" id="houserules" role="tabpanel" aria-labelledby="houserules-tab">
+            <div class="pb-3 pt-5 text-center">
+                <h3>House Rules</h3>
+                <p class="lead">Select from the available to include with the base house rules.</p>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3">
+                @foreach (var item in Model.HouseRules)
+                {
+                    <div class="expansion col-md-4 mb-4">
+                        <div id="expansion-@item.Id" class="card text-center">
+                            <div class="card-header">
+                                <b>@item.Name</b>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">
+                                    @item.Description
+                                </p>
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-end">
+        <div class="col-md-2">
+            <button id="createGame" type="button" class="btn btn-lg btn-success">Create Game</button>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cardsModal" tabindex="-1" role="dialog" aria-labelledby="cardsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $(".card").click(function (x) {
+                if (x.target.type == 'button') {
+                    var id = x.target.id.replace("viewCards-", "");
+
+                    $.ajax({
+                        url: "/Room/ViewCards",
+                        method: "POST",
+                        dataType: "html",
+                        data: { expansionId: id }
+                    }).done(function (data) {
+                        $(".modal-content").html(data);
+                    }).fail(function (x) {
+                        console.error(x);
+                    })
+                }
+                else {
+                    $(this).toggleClass('selectedCard');
+                }
+            });
+
+            $("#createGame").click(function (x) {
+                var pickTypes = $(".picktype .selectedCard");
+
+                if (pickTypes.length == 0) {
+                    $("#picktypes-tab").click();
+                    setTimeout(() => {
+                        $(".picktyperow").popover("show");
+                        $(".popover-body").addClass("alert-danger");
+                        setTimeout(() => {
+                            $(".picktyperow").popover("hide");
+                        }, 3000);
+                    }, 400);
+                }
+
+                var expansionPacks = $(".expansion .selectedCard");
+
+                var pickTypeIds = [];
+                var expansionPackIds = [];
+                var houseRuleIds = [];
+
+                $.each(pickTypes, function (i, item) {
+                    pickTypeIds.push(item.id.replace("picktype-", ""));
+                });
+
+                $.each(expansionPacks, function (i, item) {
+                    expansionPackIds.push(item.id.replace("expansion-", ""));
+                });
+
+                var data = {
+                    pickTypeIds: pickTypeIds,
+                    expansionPackIds: expansionPackIds,
+                    houseRuleIds: houseRuleIds
+                };
+
+                $.ajax({
+                    url: "/Room/CreateGame",
+                    method: "POST",
+                    dataType: "json",
+                    data: data
+                }).done(function (x) {
+                    if (x.result == "Redirect") {
+                        window.location = x.url;
+                    }
+                }).fail(function (x) {
+                    console.error(x);
+                })
+
+            });
+
+            $('a[data-toggle="pill"]').on('hide.bs.tab', function (e) {
+                //    e.target // newly activated tab
+                //    e.relatedTarget // previous active tab
+                $(".picktyperow").popover("hide");
+            });
+        });
+    </script>
+}

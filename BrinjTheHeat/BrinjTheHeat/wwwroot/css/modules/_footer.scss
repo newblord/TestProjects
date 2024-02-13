@@ -1,0 +1,11 @@
+@mixin module-footer {
+	/* Footer */
+	footer {
+		padding: 5em 0;
+		.copyright {
+			.block {
+				display: block;
+			}
+		}
+	}
+}

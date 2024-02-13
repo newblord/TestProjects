@@ -1,0 +1,82 @@
+@mixin module-about-us {
+	/* About-us */
+	.couple-wrap {
+		width: 90%;
+		margin: 0 auto;
+		position: relative;
+		@include media(small) {
+			width: 100%;
+		}
+		h3 {
+			font-family: $heading-font;
+			color: $brand-primary;
+		}
+		.groom-wrap {
+			margin-bottom: 40px;
+			@include media(medium) {
+				margin-bottom: 0;
+			}
+		}
+	}
+	.heart {
+		position: absolute;
+		top: 4em;
+		left: 0;
+		right: 0;
+		z-index: 99;
+		animation: pulse 1s ease infinite;
+		display: none;
+		i {
+			font-size: 20px;
+			// background: $brand-white;
+			padding: 20px;
+			color: $brand-primary;
+
+			// @include border-radius(50%);
+		}
+		@include media(medium) {
+			display: block;
+		}
+	}
+	.groom,.bride {
+		width: 150px;
+		height: 150px;
+		margin: 0 auto 10px;
+		@include border-radius(50%);
+		@include media(small) {
+			float: left;
+		}
+		img {
+			width: 150px;
+			height: 150px;
+			@include border-radius(50%);
+		}
+	}
+	.groom {
+		@include media(small) {
+			float: right;
+			margin-right: 5px;
+		}
+	}
+	.bride {
+		@include media(small) {
+			float: left;
+			margin-left: 5px;
+		}
+	}
+	.desc-groom {
+		text-align: center;
+		@include media(small) {
+			padding-right: 180px;
+			text-align: right;
+		}
+	}
+	.desc-bride {
+		text-align: center;
+		@include media(small) {
+			padding-left: 180px;
+			text-align: left;
+		}
+	}
+
+}

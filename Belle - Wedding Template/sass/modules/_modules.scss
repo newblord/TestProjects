@@ -1,0 +1,27 @@
+@import "_nav";
+@import "_header";
+@import "_about-us";
+@import "_events-accordion";
+@import "_our-story";
+@import "_gallery";
+@import "_counter";
+@import "_testimonials";
+@import "_invitation";
+@import "_banner";
+@import "_blog";
+@import "_footer";
+
+@mixin modules {
+	@include module-nav;
+	@include module-header;
+	@include module-about-us;
+	@include module-events-accordion;
+	@include module-our-story;
+	@include module-gallery;
+	@include module-counter;
+	@include module-testimonials;
+	@include module-invitation;
+	@include module-banner;
+	@include module-blog;
+	@include module-footer;
+}

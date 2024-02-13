@@ -1,0 +1,84 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron text-center">
+    <h1>Insecure Minds</h1>
+</div>
+
+<div class="container-fluid">
+    <div class="text-center">
+        @*<p>
+                @Html.ActionLink(HttpUtility.HtmlDecode("Learn More &raquo;"), "Index", null, new { @class = "btn btn-primary btn-lg"})
+            </p>*@
+
+        <div class="row justify-content-md-center buttonrow">
+            <div class="col col-2">
+                <button type="button" id="joingame" class="btn btn-primary btn-lg">Join Game</button>
+            </div>
+
+            <div class="col col-2">
+                <p>
+                    @Html.ActionLink("Create Game", "RoomSettings", "Room", null, new { @class = "btn btn-primary btn-lg" })
+                </p>
+            </div>
+        </div>
+
+        <div class="row justify-content-md-center roomrow" style="display:none">
+            <div class="col-md-8">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="row form-group justify-content-center">
+                        <div class="roomid col col-md-4 d-flex align-content-center align-items-center" data-toggle="popover" data-trigger="manual" data-content="Invalid room number." data-placement="top">
+                            <input id="Id" type="text" class="form-control" name="Id" />
+                        </div>
+
+                        <div class="col col-md-2">
+                            <button id="join" type="button" class="btn btn-primary btn-lg">Join</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            $("#joingame").click(function (x) {
+                $(".buttonrow").hide();
+                $(".roomrow").show();
+            });
+
+            $("#join").click(function (x) {
+                $.ajax({
+                    url: "/Home/Index/",
+                    method: "POST",
+                    dataType: "json",
+                    data: { id: $("#Id").val() }
+                }).done(function (x) {
+                    if (x.result == "Redirect") {
+                        window.location = x.url;
+                    }
+                    else if (x.result == "Error") {
+                        setTimeout(() => {
+                            $(".roomid").popover("show");
+                            $(".popover-body").addClass("alert-danger");
+                            setTimeout(() => {
+                                $(".roomid").popover("hide");
+                            }, 3000);
+                        }, 400);
+                    }
+                }).fail(function (x) {
+                    console.error(x);
+                })
+            });
+
+        });
+    </script>
+}

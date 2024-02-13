@@ -1,0 +1,12 @@
+@mixin component-carousel {
+	/* Carousel */
+	// Owl 
+	.owl-carousel .owl-controls .owl-dot {
+		&.active {
+			span {
+				background: transparent;
+				border: 2px solid $brand-primary;
+			}
+		}
+	}
+}

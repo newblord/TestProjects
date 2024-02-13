@@ -1,0 +1,58 @@
+﻿[
+  {
+    "outputFile": "wwwroot/sass/main.css",
+    "inputFile": "wwwroot/sass/main.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-amber.css",
+    "inputFile": "wwwroot/sass/main-amber.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-blue.css",
+    "inputFile": "wwwroot/sass/main-blue.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-blue-grey.css",
+    "inputFile": "wwwroot/sass/main-blue-grey.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-cyan.css",
+    "inputFile": "wwwroot/sass/main-cyan.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-deep-purple.css",
+    "inputFile": "wwwroot/sass/main-deep-purple.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-green.css",
+    "inputFile": "wwwroot/sass/main-green.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-grey.css",
+    "inputFile": "wwwroot/sass/main-grey.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-indigo.css",
+    "inputFile": "wwwroot/sass/main-indigo.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-lime.css",
+    "inputFile": "wwwroot/sass/main-lime.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-orange.css",
+    "inputFile": "wwwroot/sass/main-orange.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-pink.css",
+    "inputFile": "wwwroot/sass/main-pink.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-purple.css",
+    "inputFile": "wwwroot/sass/main-purple.scss"
+  },
+  {
+    "outputFile": "wwwroot/sass/main-red.css",
+    "inputFile": "wwwroot/sass/main-red.scss"
+  }
+]

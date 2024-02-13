@@ -1,0 +1,50 @@
+@mixin module-events-accordion {
+	/* Events */
+	.events-accordion {
+		h3 {
+			font-size: 20px;
+		}
+		#accordion-img {
+			margin-top: -20px;
+			margin-bottom: 20px;
+			max-height: 400px;
+			overflow: hidden;
+			@include media(small) {
+				margin-bottom: 0;
+				max-height: inherit;
+			}
+			@include media(medium) {
+				max-height: 485px;
+			}
+		}
+		.panel-default,
+		.panel-default>.panel-heading,
+		.panel-group .panel-heading+.panel-collapse>.list-group,
+		.panel-group .panel-heading+.panel-collapse>.panel-body {
+			border: none;
+		}
+		.panel-default>.panel-heading {
+			background-color: $brand-lighter;
+		}
+		.panel-group .panel-heading+.panel-collapse>.panel-body {
+			padding: 0 15px 5px;
+		}
+		.panel-default {
+			box-shadow: none;
+		}
+		.panel-title {
+			> a {
+				display: inline-block;
+				width: 100%;
+				&:hover,
+				&[aria-expanded="true"] {
+					color: $brand-black;
+					font-weight: 600;
+				}
+			}
+		}
+		.panel-place {
+			padding: 5px 15px 0;
+		}
+	}
+}

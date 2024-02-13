@@ -1,0 +1,50 @@
+@mixin module-counter {
+	/* Counter */
+	.counter {
+		text-align: center;
+		background-image: url(../img/counter-bg.jpg);
+		height: auto;
+		.row {
+			@include media(small) {
+				margin-bottom: -40px;
+			}
+		}
+		.counter-value {
+			font-size: 50px;
+			line-height: 1;
+			margin-bottom: 10px;
+			color: $brand-white;
+			font-weight: 100;
+			display: block;
+		}
+		.counter-label {
+			margin-bottom: 0;
+			text-transform: uppercase;
+			color: $brand-white;
+			letter-spacing: .1em;
+		}
+		.feature-center {
+			text-align: center;
+			margin-bottom: 40px;
+			padding: 0 20px;
+			width: 100%;
+		}
+		.icon {
+			width: 90px;
+			height: 90px;
+			border: 2px solid $brand-lighter;
+			display: table;
+			text-align: center;
+			margin: 0 auto 30px auto;
+			box-shadow: 0px 14px 30px -15px rgba($brand-black, 0.75);
+			@include border-radius(50%);
+			i {
+				display: table-cell;
+				vertical-align: middle;
+				font-size: 40px;
+				line-height: 40px;
+				color: $brand-primary;
+			}
+		}
+	}
+}
